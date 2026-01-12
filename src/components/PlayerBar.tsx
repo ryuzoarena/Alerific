@@ -32,11 +32,22 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
 
+  // Load audio source when song changes
+  useEffect(() => {
+    if (!audioRef.current || !currentSong) return;
+    
+    // Set the audio source from uploaded file or demo
+    if (currentSong.audioUrl) {
+      audioRef.current.src = currentSong.audioUrl;
+      audioRef.current.load();
+    }
+  }, [currentSong?.id]);
+
   // Sync audio with player state
   useEffect(() => {
     if (!audioRef.current || !currentSong) return;
     
-    if (isPlaying) {
+    if (isPlaying && currentSong.audioUrl) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
