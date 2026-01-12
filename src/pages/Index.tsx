@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { LyricsPanel } from '@/components/LyricsPanel';
+import { UploadDialog } from '@/components/UploadDialog';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
+import { Plus } from 'lucide-react';
 
 type View = 'home' | 'search' | 'library' | 'playlist';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<View>('home');
+  const [showUpload, setShowUpload] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
 
@@ -57,6 +60,21 @@ const Index = () => {
       <PlayerBar 
         showLyrics={showLyrics}
         onToggleLyrics={() => setShowLyrics(!showLyrics)}
+      />
+
+      {/* Floating upload button */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40"
+        title="Add music"
+      >
+        <Plus size={28} className="text-primary-foreground" />
+      </button>
+
+      {/* Upload dialog */}
+      <UploadDialog 
+        isOpen={showUpload} 
+        onClose={() => setShowUpload(false)} 
       />
     </div>
   );
