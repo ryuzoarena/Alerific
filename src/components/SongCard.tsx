@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Play, Clock, MoreHorizontal, Heart, Plus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
@@ -11,9 +12,22 @@ interface SongCardProps {
 }
 
 export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
-  const { playSong, playerState } = useMusicStore();
+  const { playSong, playerState, loadSongMedia } = useMusicStore();
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
+
+  // Load cover from IndexedDB
+  useEffect(() => {
+    loadSongMedia(song.id).then((media) => {
+      if (media?.coverUrl) {
+        setCoverUrl(media.coverUrl);
+      }
+    });
+    return () => {
+      if (coverUrl) URL.revokeObjectURL(coverUrl);
+    };
+  }, [song.id]);
 
   const handlePlay = () => {
     playSong(song, queue);
@@ -68,9 +82,9 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
 
       {/* Cover */}
       <div className="w-10 h-10 rounded bg-secondary overflow-hidden flex-shrink-0">
-        {song.coverUrl ? (
+        {coverUrl ? (
           <img 
-            src={song.coverUrl} 
+            src={coverUrl} 
             alt={song.title}
             className="w-full h-full object-cover"
           />
@@ -123,9 +137,22 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
 
 // Grid card variant for home view
 export function SongGridCard({ song, queue }: SongCardProps) {
-  const { playSong, playerState, togglePlay } = useMusicStore();
+  const { playSong, playerState, togglePlay, loadSongMedia } = useMusicStore();
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
+
+  // Load cover from IndexedDB
+  useEffect(() => {
+    loadSongMedia(song.id).then((media) => {
+      if (media?.coverUrl) {
+        setCoverUrl(media.coverUrl);
+      }
+    });
+    return () => {
+      if (coverUrl) URL.revokeObjectURL(coverUrl);
+    };
+  }, [song.id]);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -140,9 +167,9 @@ export function SongGridCard({ song, queue }: SongCardProps) {
     <div className="song-card bg-card p-4 rounded-lg cursor-pointer group">
       <div className="relative mb-4">
         <div className="aspect-square rounded-md overflow-hidden bg-secondary shadow-lg">
-          {song.coverUrl ? (
+          {coverUrl ? (
             <img 
-              src={song.coverUrl} 
+              src={coverUrl} 
               alt={song.title}
               className="w-full h-full object-cover"
             />

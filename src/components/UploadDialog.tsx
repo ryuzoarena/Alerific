@@ -3,7 +3,7 @@ import { X, Upload, Music, Image, FileText } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
-
+import { saveAudioFile, saveCoverImage } from '@/lib/storage';
 interface UploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -116,17 +116,23 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setIsProcessing(true);
 
     try {
-      // Read audio file as blob
-      const audioBlob = audioFile;
+      const songId = crypto.randomUUID();
+      
+      // Save audio blob to IndexedDB
+      await saveAudioFile(songId, audioFile);
+      
+      // Save cover image to IndexedDB if present
+      if (coverFile) {
+        await saveCoverImage(songId, coverFile);
+      }
       
       const newSong: Song = {
-        id: crypto.randomUUID(),
+        id: songId,
         title: title.trim(),
         artist: artist.trim() || 'Unknown Artist',
         album: album.trim() || undefined,
         duration: duration || 180,
         coverUrl: coverPreview || undefined,
-        audioBlob,
         audioUrl,
         addedAt: Date.now(),
         lyrics: parsedLyrics.length > 0 ? parsedLyrics : [],
