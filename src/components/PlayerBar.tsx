@@ -15,6 +15,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
+  const [loadedCoverUrl, setLoadedCoverUrl] = useState<string | null>(null);
   
   const {
     playerState,
@@ -29,31 +31,40 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
     toggleRepeat,
     setCurrentLyricIndex,
     toggleSidebar,
+    loadSongMedia,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
 
-  // Load audio source when song changes
+  // Load audio from IndexedDB when song changes
   useEffect(() => {
     if (!audioRef.current || !currentSong) return;
     
-    // Set the audio source from uploaded file or demo
-    if (currentSong.audioUrl) {
-      audioRef.current.src = currentSong.audioUrl;
-      audioRef.current.load();
-    }
+    // Revoke previous URLs to prevent memory leaks
+    if (loadedAudioUrl) URL.revokeObjectURL(loadedAudioUrl);
+    if (loadedCoverUrl) URL.revokeObjectURL(loadedCoverUrl);
+    
+    // Load from IndexedDB
+    loadSongMedia(currentSong.id).then((media) => {
+      if (media && audioRef.current) {
+        setLoadedAudioUrl(media.audioUrl);
+        setLoadedCoverUrl(media.coverUrl || null);
+        audioRef.current.src = media.audioUrl;
+        audioRef.current.load();
+      }
+    });
   }, [currentSong?.id]);
 
   // Sync audio with player state
   useEffect(() => {
-    if (!audioRef.current || !currentSong) return;
+    if (!audioRef.current || !currentSong || !loadedAudioUrl) return;
     
-    if (isPlaying && currentSong.audioUrl) {
+    if (isPlaying) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentSong]);
+  }, [isPlaying, currentSong, loadedAudioUrl]);
 
   // Update volume
   useEffect(() => {
@@ -139,9 +150,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
         {currentSong ? (
           <>
             <div className="w-10 h-10 md:w-14 md:h-14 rounded bg-secondary overflow-hidden flex-shrink-0">
-              {currentSong.coverUrl ? (
+              {loadedCoverUrl ? (
                 <img 
-                  src={currentSong.coverUrl} 
+                  src={loadedCoverUrl} 
                   alt={currentSong.title}
                   className="w-full h-full object-cover"
                 />
