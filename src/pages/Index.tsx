@@ -7,7 +7,8 @@ import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
-import { Plus } from 'lucide-react';
+import { Plus, Home } from 'lucide-react';
+import { useMusicStore } from '@/stores/musicStore';
 
 type View = 'home' | 'search' | 'library' | 'playlist';
 
@@ -16,6 +17,7 @@ const Index = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
+  const { closeSidebar } = useMusicStore();
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -62,14 +64,29 @@ const Index = () => {
         onToggleLyrics={() => setShowLyrics(!showLyrics)}
       />
 
-      {/* Floating upload button */}
-      <button
-        onClick={() => setShowUpload(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40"
-        title="Add music"
-      >
-        <Plus size={28} className="text-primary-foreground" />
-      </button>
+      {/* Floating buttons */}
+      <div className="fixed bottom-28 md:bottom-24 right-4 md:right-6 flex flex-col gap-3 z-40">
+        {/* Focus/Home button */}
+        <button
+          onClick={() => {
+            setActiveView('home');
+            closeSidebar();
+          }}
+          className="w-12 h-12 md:w-14 md:h-14 bg-secondary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          title="Go to Home"
+        >
+          <Home size={24} className="md:w-7 md:h-7 text-foreground" />
+        </button>
+        
+        {/* Upload button */}
+        <button
+          onClick={() => setShowUpload(true)}
+          className="w-12 h-12 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          title="Add music"
+        >
+          <Plus size={24} className="md:w-7 md:h-7 text-primary-foreground" />
+        </button>
+      </div>
 
       {/* Upload dialog */}
       <UploadDialog 

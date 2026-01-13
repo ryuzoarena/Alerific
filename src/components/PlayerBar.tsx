@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, 
-  Shuffle, Repeat, Repeat1, Mic2, ListMusic, Maximize2 
+  Shuffle, Repeat, Repeat1, Mic2, ListMusic, Maximize2, Menu 
 } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
@@ -28,6 +28,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
     toggleShuffle,
     toggleRepeat,
     setCurrentLyricIndex,
+    toggleSidebar,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
@@ -116,7 +117,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <footer className="h-20 bg-player border-t border-border flex items-center px-4 gap-4">
+    <footer className="h-auto md:h-20 bg-player border-t border-border flex flex-col md:flex-row items-center px-2 md:px-4 gap-2 md:gap-4 py-2 md:py-0">
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
@@ -125,11 +126,19 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
         onEnded={handleEnded}
       />
 
-      {/* Left - Song info */}
-      <div className="w-[30%] min-w-[180px] flex items-center gap-3">
+      {/* Left - Song info with menu button on mobile */}
+      <div className="w-full md:w-[30%] md:min-w-[180px] flex items-center gap-3">
+        {/* Mobile menu button */}
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+
         {currentSong ? (
           <>
-            <div className="w-14 h-14 rounded bg-secondary overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded bg-secondary overflow-hidden flex-shrink-0">
               {currentSong.coverUrl ? (
                 <img 
                   src={currentSong.coverUrl} 
@@ -140,8 +149,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
                 <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
               )}
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate hover:underline cursor-pointer">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm font-medium truncate hover:underline cursor-pointer">
                 {currentSong.title}
               </p>
               <p className="text-xs text-muted-foreground truncate hover:underline cursor-pointer">
@@ -150,28 +159,28 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
             </div>
           </>
         ) : (
-          <div className="text-sm text-muted-foreground">No song playing</div>
+          <div className="text-xs md:text-sm text-muted-foreground">No song playing</div>
         )}
       </div>
 
       {/* Center - Controls */}
-      <div className="flex-1 flex flex-col items-center justify-center max-w-[722px]">
-        <div className="flex items-center gap-4 mb-2">
+      <div className="flex-1 flex flex-col items-center justify-center max-w-[722px] w-full">
+        <div className="flex items-center gap-2 md:gap-4 mb-1 md:mb-2">
           <button
             onClick={toggleShuffle}
             className={cn(
-              "p-1 transition-colors",
+              "p-1 transition-colors hidden sm:block",
               shuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <Shuffle size={18} />
+            <Shuffle size={16} className="md:w-[18px] md:h-[18px]" />
           </button>
           
           <button
             onClick={prevSong}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <SkipBack size={20} fill="currentColor" />
+            <SkipBack size={18} className="md:w-5 md:h-5" fill="currentColor" />
           </button>
           
           <button
@@ -179,9 +188,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
             className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center hover:scale-105 transition-transform"
           >
             {isPlaying ? (
-              <Pause size={18} className="text-background" fill="currentColor" />
+              <Pause size={16} className="md:w-[18px] md:h-[18px] text-background" fill="currentColor" />
             ) : (
-              <Play size={18} className="text-background ml-0.5" fill="currentColor" />
+              <Play size={16} className="md:w-[18px] md:h-[18px] text-background ml-0.5" fill="currentColor" />
             )}
           </button>
           
@@ -189,23 +198,23 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
             onClick={nextSong}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <SkipForward size={20} fill="currentColor" />
+            <SkipForward size={18} className="md:w-5 md:h-5" fill="currentColor" />
           </button>
           
           <button
             onClick={toggleRepeat}
             className={cn(
-              "p-1 transition-colors",
+              "p-1 transition-colors hidden sm:block",
               repeat !== 'off' ? "text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {repeat === 'one' ? <Repeat1 size={18} /> : <Repeat size={18} />}
+            {repeat === 'one' ? <Repeat1 size={16} className="md:w-[18px] md:h-[18px]" /> : <Repeat size={16} className="md:w-[18px] md:h-[18px]" />}
           </button>
         </div>
 
         {/* Progress bar */}
         <div className="w-full flex items-center gap-2">
-          <span className="text-xs text-muted-foreground w-10 text-right">
+          <span className="text-[10px] md:text-xs text-muted-foreground w-8 md:w-10 text-right">
             {formatTime(currentTime)}
           </span>
           
@@ -222,14 +231,14 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
             </div>
           </div>
           
-          <span className="text-xs text-muted-foreground w-10">
+          <span className="text-[10px] md:text-xs text-muted-foreground w-8 md:w-10">
             {formatTime(duration)}
           </span>
         </div>
       </div>
 
       {/* Right - Volume & extras */}
-      <div className="w-[30%] min-w-[180px] flex items-center justify-end gap-3">
+      <div className="hidden md:flex w-[30%] min-w-[180px] items-center justify-end gap-3">
         <button
           onClick={onToggleLyrics}
           className={cn(
@@ -266,6 +275,44 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
         
         <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
           <Maximize2 size={18} />
+        </button>
+      </div>
+
+      {/* Mobile extra controls */}
+      <div className="flex md:hidden items-center gap-4 w-full justify-center pb-1">
+        <button
+          onClick={toggleShuffle}
+          className={cn(
+            "p-1 transition-colors",
+            shuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Shuffle size={16} />
+        </button>
+        <button
+          onClick={toggleRepeat}
+          className={cn(
+            "p-1 transition-colors",
+            repeat !== 'off' ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {repeat === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
+        </button>
+        <button
+          onClick={onToggleLyrics}
+          className={cn(
+            "p-1 transition-colors",
+            showLyrics ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+          title="Lyrics"
+        >
+          <Mic2 size={16} />
+        </button>
+        <button
+          onClick={toggleMute}
+          className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
       </div>
     </footer>

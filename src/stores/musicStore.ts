@@ -40,124 +40,23 @@ interface MusicStore {
   // Search
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  
+  // Mobile sidebar
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  closeSidebar: () => void;
 }
 
-// Demo songs with placeholder lyrics
-const demoSongs: Song[] = [
-  {
-    id: '1',
-    title: 'Neon Dreams',
-    artist: 'Synthwave Artist',
-    album: 'Night Drive',
-    duration: 203,
-    coverUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    addedAt: Date.now(),
-    lyrics: [
-      { time: 0, text: "♪ Instrumental intro ♪" },
-      { time: 12, text: "Driving through the city lights" },
-      { time: 18, text: "Neon signs illuminate the night" },
-      { time: 24, text: "Music fills my soul tonight" },
-      { time: 30, text: "Everything feels so right" },
-      { time: 36, text: "Under the stars we shine" },
-      { time: 42, text: "This moment is yours and mine" },
-      { time: 48, text: "Dancing through the dreams" },
-      { time: 54, text: "Nothing is what it seems" },
-      { time: 60, text: "♪ Synth solo ♪" },
-    ]
-  },
-  {
-    id: '2',
-    title: 'Ocean Waves',
-    artist: 'Chill Beats',
-    album: 'Summer Vibes',
-    duration: 203,
-    coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop',
-    addedAt: Date.now() - 1000,
-    lyrics: [
-      { time: 0, text: "♪ Waves crashing ♪" },
-      { time: 8, text: "Walking on the sandy shore" },
-      { time: 14, text: "Ocean breeze forevermore" },
-      { time: 20, text: "Sunset paints the sky" },
-      { time: 26, text: "Seagulls flying high" },
-      { time: 32, text: "Peace in every moment" },
-    ]
-  },
-  {
-    id: '3',
-    title: 'Midnight Jazz',
-    artist: 'Smooth Ensemble',
-    album: 'Late Night Sessions',
-    duration: 215,
-    coverUrl: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=300&h=300&fit=crop',
-    addedAt: Date.now() - 2000,
-    lyrics: [
-      { time: 0, text: "♪ Piano melody ♪" },
-      { time: 10, text: "Smoky room, dim lights glow" },
-      { time: 18, text: "Saxophone starts to flow" },
-      { time: 26, text: "Notes dancing in the air" },
-      { time: 34, text: "Music beyond compare" },
-    ]
-  },
-  {
-    id: '4',
-    title: 'Summer Groove',
-    artist: 'Funk Masters',
-    album: 'Good Times',
-    duration: 198,
-    coverUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=300&fit=crop',
-    addedAt: Date.now() - 3000,
-    lyrics: [
-      { time: 0, text: "♪ Funky bass line ♪" },
-      { time: 8, text: "Get up and dance tonight" },
-      { time: 14, text: "Everything's gonna be alright" },
-      { time: 20, text: "Feel the rhythm in your soul" },
-    ]
-  },
-  {
-    id: '5',
-    title: 'Electric Dreams',
-    artist: 'Retro Wave',
-    album: 'Future Past',
-    duration: 137,
-    coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    addedAt: Date.now() - 4000,
-    lyrics: [
-      { time: 0, text: "♪ Synth arpeggio ♪" },
-      { time: 8, text: "Electric dreams tonight" },
-      { time: 14, text: "Future shining bright" },
-    ]
-  },
-  {
-    id: '6',
-    title: 'Chill Session',
-    artist: 'Lo-Fi Collective',
-    album: 'Study Beats',
-    duration: 141,
-    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=300&fit=crop',
-    addedAt: Date.now() - 5000,
-    lyrics: [
-      { time: 0, text: "♪ Lo-fi beat starts ♪" },
-      { time: 6, text: "Rainy day, coffee warm" },
-      { time: 12, text: "Cozy vibes, away from storm" },
-    ]
-  },
-];
+// Start with empty songs - no demo songs
+const demoSongs: Song[] = [];
 
 const demoPlaylists: Playlist[] = [
   {
     id: 'liked',
     name: 'Liked Songs',
     description: 'Songs you\'ve liked',
-    songIds: ['1', '2', '3'],
+    songIds: [],
     createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 'chill',
-    name: 'Chill Vibes',
-    description: 'Relaxing tunes for any mood',
-    songIds: ['4', '5', '6'],
-    createdAt: Date.now() - 100000,
     updatedAt: Date.now(),
   },
 ];
@@ -346,4 +245,9 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
   
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
+  
+  // Mobile sidebar
+  isSidebarOpen: false,
+  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  closeSidebar: () => set({ isSidebarOpen: false }),
 }));

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Music, Image, Plus } from 'lucide-react';
+import { X, Upload, Music, Image, FileText } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
-import { Song } from '@/types/music';
+import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
 
 interface UploadDialogProps {
@@ -13,11 +13,14 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const { addSong } = useMusicStore();
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const lyricsInputRef = useRef<HTMLInputElement>(null);
   
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
+  const [lyricsFile, setLyricsFile] = useState<File | null>(null);
+  const [parsedLyrics, setParsedLyrics] = useState<LyricLine[]>([]);
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [album, setAlbum] = useState('');
@@ -59,6 +62,54 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     reader.readAsDataURL(file);
   };
 
+  // Parse LRC or plain text lyrics
+  const parseLyrics = (content: string): LyricLine[] => {
+    const lines = content.split('\n').filter(line => line.trim());
+    const lyrics: LyricLine[] = [];
+    
+    // Check if it's LRC format (has timestamps like [00:12.34])
+    const lrcPattern = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+    
+    for (const line of lines) {
+      const match = line.match(lrcPattern);
+      if (match) {
+        // LRC format - extract time and text
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const milliseconds = parseInt(match[3].padEnd(3, '0'), 10);
+        const time = minutes * 60 + seconds + milliseconds / 1000;
+        const text = line.replace(lrcPattern, '').trim();
+        
+        if (text) {
+          lyrics.push({ time, text });
+        }
+      } else if (!line.startsWith('[')) {
+        // Plain text - assign sequential times (5 seconds apart)
+        lyrics.push({ 
+          time: lyrics.length * 5, 
+          text: line.trim() 
+        });
+      }
+    }
+    
+    return lyrics;
+  };
+
+  const handleLyricsSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLyricsFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lyrics = parseLyrics(content);
+      setParsedLyrics(lyrics);
+    };
+    reader.readAsText(file);
+  };
+
   const handleSubmit = async () => {
     if (!audioFile || !title) return;
 
@@ -78,7 +129,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         audioBlob,
         audioUrl,
         addedAt: Date.now(),
-        lyrics: [],
+        lyrics: parsedLyrics.length > 0 ? parsedLyrics : [],
       };
 
       addSong(newSong);
@@ -98,6 +149,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setAudioUrl('');
     setCoverFile(null);
     setCoverPreview('');
+    setLyricsFile(null);
+    setParsedLyrics([]);
     setTitle('');
     setArtist('');
     setAlbum('');
@@ -112,7 +165,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -120,10 +173,10 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       />
       
       {/* Dialog */}
-      <div className="relative bg-card rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 animate-slide-up">
+      <div className="relative bg-card rounded-xl shadow-2xl w-full max-w-md mx-auto p-4 md:p-6 animate-slide-up max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Add Music</h2>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-lg md:text-xl font-bold">Add Music</h2>
           <button 
             onClick={handleClose}
             className="p-1 rounded-full hover:bg-accent transition-colors"
@@ -133,7 +186,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         </div>
 
         {/* Audio Upload */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <label className="block text-sm font-medium mb-2">Audio File *</label>
           <input
             ref={audioInputRef}
@@ -169,32 +222,33 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
           ) : (
             <button
               onClick={() => audioInputRef.current?.click()}
-              className="w-full p-6 border-2 border-dashed border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center gap-2"
+              className="w-full p-4 md:p-6 border-2 border-dashed border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center gap-2"
             >
-              <Upload size={32} className="text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
+              <Upload size={28} className="md:w-8 md:h-8 text-muted-foreground" />
+              <span className="text-xs md:text-sm text-muted-foreground text-center">
                 Click to upload MP3, WAV, or other audio
               </span>
             </button>
           )}
         </div>
 
-        {/* Cover Image Upload */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Album Art (optional)</label>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="hidden"
-          />
-          
-          <div className="flex gap-4">
+        {/* Cover Image and Lyrics - side by side on larger screens */}
+        <div className="grid grid-cols-2 gap-4 mb-4 md:mb-6">
+          {/* Cover Image Upload */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Album Art</label>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            
             <button
               onClick={() => imageInputRef.current?.click()}
               className={cn(
-                "w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 transition-all",
+                "w-full aspect-square rounded-lg overflow-hidden transition-all",
                 coverPreview 
                   ? "ring-2 ring-primary" 
                   : "border-2 border-dashed border-border hover:border-primary hover:bg-primary/5"
@@ -203,20 +257,69 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
               {coverPreview ? (
                 <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
                   <Image size={24} className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Add</span>
+                  <span className="text-xs text-muted-foreground text-center">Add cover</span>
                 </div>
               )}
             </button>
-            
             {coverPreview && (
               <button
                 onClick={() => {
                   setCoverFile(null);
                   setCoverPreview('');
                 }}
-                className="text-sm text-muted-foreground hover:text-destructive"
+                className="text-xs text-muted-foreground hover:text-destructive mt-1"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+
+          {/* Lyrics Upload */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Lyrics</label>
+            <input
+              ref={lyricsInputRef}
+              type="file"
+              accept=".lrc,.txt"
+              onChange={handleLyricsSelect}
+              className="hidden"
+            />
+            
+            <button
+              onClick={() => lyricsInputRef.current?.click()}
+              className={cn(
+                "w-full aspect-square rounded-lg overflow-hidden transition-all",
+                lyricsFile 
+                  ? "ring-2 ring-primary bg-primary/10" 
+                  : "border-2 border-dashed border-border hover:border-primary hover:bg-primary/5"
+              )}
+            >
+              {lyricsFile ? (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
+                  <FileText size={24} className="text-primary" />
+                  <span className="text-xs text-primary text-center truncate w-full px-2">
+                    {lyricsFile.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {parsedLyrics.length} lines
+                  </span>
+                </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
+                  <FileText size={24} className="text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground text-center">Add lyrics (.lrc/.txt)</span>
+                </div>
+              )}
+            </button>
+            {lyricsFile && (
+              <button
+                onClick={() => {
+                  setLyricsFile(null);
+                  setParsedLyrics([]);
+                }}
+                className="text-xs text-muted-foreground hover:text-destructive mt-1"
               >
                 Remove
               </button>
@@ -225,7 +328,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         </div>
 
         {/* Metadata */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
             <input
