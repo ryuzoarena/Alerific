@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Play, Clock, MoreHorizontal, Heart, Plus } from 'lucide-react';
+import { Play, Clock, MoreHorizontal, Heart, Plus, Trash2 } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ interface SongCardProps {
 }
 
 export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
-  const { playSong, playerState, loadSongMedia } = useMusicStore();
+  const { playSong, playerState, loadSongMedia, removeSong } = useMusicStore();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
@@ -31,6 +31,11 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
 
   const handlePlay = () => {
     playSong(song, queue);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeSong(song.id);
   };
 
   const formatDuration = (seconds: number) => {
@@ -114,9 +119,16 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button className="text-muted-foreground hover:text-foreground">
           <Heart size={16} />
+        </button>
+        <button 
+          onClick={handleDelete}
+          className="text-muted-foreground hover:text-red-400"
+          title="Delete song"
+        >
+          <Trash2 size={16} />
         </button>
       </div>
 
@@ -126,18 +138,13 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
           {formatDuration(song.duration)}
         </span>
       </div>
-
-      {/* More */}
-      <button className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity">
-        <MoreHorizontal size={16} />
-      </button>
     </div>
   );
 }
 
 // Grid card variant for home view
 export function SongGridCard({ song, queue }: SongCardProps) {
-  const { playSong, playerState, togglePlay, loadSongMedia } = useMusicStore();
+  const { playSong, playerState, togglePlay, loadSongMedia, removeSong } = useMusicStore();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
@@ -163,8 +170,13 @@ export function SongGridCard({ song, queue }: SongCardProps) {
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeSong(song.id);
+  };
+
   return (
-    <div className="song-card bg-card p-4 rounded-lg cursor-pointer group">
+    <div className="song-card bg-card p-4 rounded-lg cursor-pointer group relative">
       <div className="relative mb-4">
         <div className="aspect-square rounded-md overflow-hidden bg-secondary shadow-lg">
           {coverUrl ? (
@@ -177,6 +189,15 @@ export function SongGridCard({ song, queue }: SongCardProps) {
             <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
           )}
         </div>
+        
+        {/* Delete button overlay */}
+        <button
+          onClick={handleDelete}
+          className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+          title="Delete song"
+        >
+          <Trash2 size={14} className="text-white" />
+        </button>
         
         {/* Play button overlay */}
         <button

@@ -178,23 +178,35 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const { queue, queueIndex, playerState } = get();
-        if (queue.length === 0) return;
+        const { queue, queueIndex, playerState, songs } = get();
+        const availableQueue = queue.length > 0 ? queue : songs;
+        if (availableQueue.length === 0) return;
         
-        let nextIndex = queueIndex + 1;
-        if (nextIndex >= queue.length) {
-          if (playerState.repeat === 'all') {
-            nextIndex = 0;
-          } else {
-            return;
+        let nextIndex: number;
+        
+        if (playerState.shuffle) {
+          // Pick a random song different from current
+          const randomIndex = Math.floor(Math.random() * availableQueue.length);
+          nextIndex = randomIndex === queueIndex && availableQueue.length > 1 
+            ? (randomIndex + 1) % availableQueue.length 
+            : randomIndex;
+        } else {
+          nextIndex = queueIndex + 1;
+          if (nextIndex >= availableQueue.length) {
+            if (playerState.repeat === 'all') {
+              nextIndex = 0;
+            } else {
+              return;
+            }
           }
         }
         
         set({
           queueIndex: nextIndex,
+          queue: availableQueue,
           playerState: {
             ...playerState,
-            currentSong: queue[nextIndex],
+            currentSong: availableQueue[nextIndex],
             currentTime: 0,
             isPlaying: true,
           },
