@@ -1,4 +1,4 @@
-import { Home, Search, Library, Plus, Heart, Music2 } from 'lucide-react';
+import { Home, Search, Library, Plus, Heart, Music2, Upload } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -8,9 +8,10 @@ interface SidebarProps {
   onViewChange: (view: 'home' | 'search' | 'library' | 'playlist') => void;
   selectedPlaylistId?: string;
   onSelectPlaylist: (id: string) => void;
+  onUploadClick: () => void;
 }
 
-export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelectPlaylist }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelectPlaylist, onUploadClick }: SidebarProps) {
   const { playlists, songs, createPlaylist } = useMusicStore();
   const [showNewPlaylist, setShowNewPlaylist] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
@@ -59,6 +60,15 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
             <span>Search</span>
           </button>
         </nav>
+        
+        {/* Upload Button */}
+        <button
+          onClick={onUploadClick}
+          className="mt-4 w-full flex items-center gap-4 px-4 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:scale-[1.02] transition-transform"
+        >
+          <Upload size={20} />
+          <span>Upload Song</span>
+        </button>
       </div>
 
       {/* Library */}
