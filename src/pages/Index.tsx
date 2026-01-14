@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { LyricsPanel } from '@/components/LyricsPanel';
 import { UploadDialog } from '@/components/UploadDialog';
+import { MobileNavBar } from '@/components/MobileNavBar';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
-import { Plus, Home } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 
 type View = 'home' | 'search' | 'library' | 'playlist';
@@ -17,7 +17,6 @@ const Index = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
-  const { closeSidebar } = useMusicStore();
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -38,24 +37,28 @@ const Index = () => {
     <div className="h-screen flex flex-col bg-black overflow-hidden">
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar 
-          activeView={activeView}
-          onViewChange={setActiveView}
-          selectedPlaylistId={selectedPlaylistId}
-          onSelectPlaylist={setSelectedPlaylistId}
-        />
+        {/* Sidebar - Desktop only */}
+        <div className="hidden lg:block">
+          <Sidebar 
+            activeView={activeView}
+            onViewChange={setActiveView}
+            selectedPlaylistId={selectedPlaylistId}
+            onSelectPlaylist={setSelectedPlaylistId}
+          />
+        </div>
 
         {/* Main content */}
-        <main className="flex-1 bg-gradient-to-b from-card to-background rounded-lg m-2 ml-0 overflow-hidden">
+        <main className="flex-1 bg-gradient-to-b from-card to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-hidden pb-32 lg:pb-0">
           {renderMainContent()}
         </main>
 
-        {/* Lyrics panel */}
-        <LyricsPanel 
-          isOpen={showLyrics} 
-          onClose={() => setShowLyrics(false)} 
-        />
+        {/* Lyrics panel - Desktop only */}
+        <div className="hidden lg:block">
+          <LyricsPanel 
+            isOpen={showLyrics} 
+            onClose={() => setShowLyrics(false)} 
+          />
+        </div>
       </div>
 
       {/* Player bar */}
@@ -64,29 +67,12 @@ const Index = () => {
         onToggleLyrics={() => setShowLyrics(!showLyrics)}
       />
 
-      {/* Floating buttons */}
-      <div className="fixed bottom-28 md:bottom-24 right-4 md:right-6 flex flex-col gap-3 z-40">
-        {/* Focus/Home button */}
-        <button
-          onClick={() => {
-            setActiveView('home');
-            closeSidebar();
-          }}
-          className="w-12 h-12 md:w-14 md:h-14 bg-secondary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          title="Go to Home"
-        >
-          <Home size={24} className="md:w-7 md:h-7 text-foreground" />
-        </button>
-        
-        {/* Upload button */}
-        <button
-          onClick={() => setShowUpload(true)}
-          className="w-12 h-12 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          title="Add music"
-        >
-          <Plus size={24} className="md:w-7 md:h-7 text-primary-foreground" />
-        </button>
-      </div>
+      {/* Mobile bottom navigation */}
+      <MobileNavBar 
+        activeView={activeView}
+        onViewChange={setActiveView}
+        onUploadClick={() => setShowUpload(true)}
+      />
 
       {/* Upload dialog */}
       <UploadDialog 
