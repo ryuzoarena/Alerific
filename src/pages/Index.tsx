@@ -44,6 +44,7 @@ const Index = () => {
             onViewChange={setActiveView}
             selectedPlaylistId={selectedPlaylistId}
             onSelectPlaylist={setSelectedPlaylistId}
+            onUploadClick={() => setShowUpload(true)}
           />
         </div>
 
