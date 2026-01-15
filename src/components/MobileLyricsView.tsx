@@ -90,7 +90,8 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
       {/* Scrollable Lyrics Area */}
       <div 
         ref={lyricsContainerRef}
-        className="flex-1 overflow-y-auto px-4 pb-8"
+        className="flex-1 overflow-y-auto px-4 pb-8 scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {!hasLyrics ? (
           <div className="h-full flex items-center justify-center">
