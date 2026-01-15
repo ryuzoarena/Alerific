@@ -39,7 +39,7 @@ export function LyricsPanel({ isOpen, onClose }: LyricsPanelProps) {
   const hasLyrics = lyrics.length > 0;
 
   return (
-    <div className="w-96 bg-gradient-to-b from-card to-background border-l border-border flex flex-col animate-slide-up">
+    <div className="w-96 h-full min-h-0 bg-gradient-to-b from-card to-background border-l border-border flex flex-col animate-slide-up">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h2 className="text-sm font-semibold">Lyrics</h2>
@@ -75,7 +75,7 @@ export function LyricsPanel({ isOpen, onClose }: LyricsPanelProps) {
       {/* Lyrics content */}
       <div 
         ref={lyricsContainerRef}
-        className="flex-1 overflow-y-auto p-6 scroll-smooth scrollbar-hide"
+        className="flex-1 min-h-0 overflow-y-auto p-6 scroll-smooth scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {!currentSong ? (
