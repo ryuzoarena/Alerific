@@ -243,7 +243,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
         {hasLyrics && (
           <div 
             ref={lyricsContainerRef}
-            className="mx-4 md:mx-12 mb-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 max-h-[25vh] overflow-y-auto"
+            className="mx-4 md:mx-12 mb-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 max-h-[35vh] overflow-y-auto"
           >
             <p className="text-sm text-white/60 mb-3">Lyrics Preview</p>
             <div className="space-y-3">
