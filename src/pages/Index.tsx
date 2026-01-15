@@ -49,7 +49,7 @@ const Index = () => {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 bg-gradient-to-b from-card to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-hidden pb-32 lg:pb-0">
+        <main className="flex-1 bg-gradient-to-b from-card to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide">
           {renderMainContent()}
         </main>
 
