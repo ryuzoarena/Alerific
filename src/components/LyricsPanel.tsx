@@ -75,7 +75,8 @@ export function LyricsPanel({ isOpen, onClose }: LyricsPanelProps) {
       {/* Lyrics content */}
       <div 
         ref={lyricsContainerRef}
-        className="flex-1 overflow-y-auto p-6"
+        className="flex-1 overflow-y-auto p-6 scroll-smooth"
+        style={{ scrollBehavior: 'smooth' }}
       >
         {!currentSong ? (
           <div className="h-full flex items-center justify-center">
