@@ -22,7 +22,7 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
   return (
     <div 
       onClick={onClick}
-      className="lg:hidden fixed bottom-20 left-2 right-2 z-40 cursor-pointer"
+      className="lg:hidden fixed bottom-[88px] left-2 right-2 z-40 cursor-pointer"
     >
       <div className="bg-[#442c2c] rounded-lg p-2 flex items-center gap-3 relative overflow-hidden">
         {/* Progress bar at bottom */}
