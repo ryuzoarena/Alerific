@@ -36,7 +36,7 @@ const Index = () => {
   return (
     <div className="h-screen flex flex-col bg-black overflow-hidden">
       {/* Main content area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Sidebar - Desktop only */}
         <div className="hidden lg:block">
           <Sidebar 
@@ -54,7 +54,7 @@ const Index = () => {
         </main>
 
         {/* Lyrics panel - Desktop only */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block h-full min-h-0">
           <LyricsPanel 
             isOpen={showLyrics} 
             onClose={() => setShowLyrics(false)} 
