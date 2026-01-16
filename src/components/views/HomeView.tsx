@@ -9,7 +9,7 @@ export function HomeView() {
   const topMixes = songs.slice().reverse().slice(0, 6);
 
   return (
-    <div className="p-6 pb-24 overflow-y-auto h-full">
+    <div className="p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full">
       {/* Greeting */}
       <section className="mb-8">
         <h1 className="text-3xl font-bold mb-6">Good evening</h1>
@@ -49,7 +49,7 @@ export function HomeView() {
           <Clock size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Recently Played</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
           {recentlyPlayed.map((song) => (
             <SongGridCard key={song.id} song={song} queue={recentlyPlayed} />
           ))}
@@ -62,7 +62,7 @@ export function HomeView() {
           <TrendingUp size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Made For You</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
           {topMixes.map((song) => (
             <SongGridCard key={song.id} song={song} queue={topMixes} />
           ))}
@@ -75,7 +75,7 @@ export function HomeView() {
           <Music2 size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Your Music</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
           {songs.map((song) => (
             <SongGridCard key={song.id} song={song} queue={songs} />
           ))}

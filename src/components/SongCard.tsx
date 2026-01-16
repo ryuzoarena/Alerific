@@ -176,8 +176,8 @@ export function SongGridCard({ song, queue }: SongCardProps) {
   };
 
   return (
-    <div className="song-card bg-card p-3 md:p-4 rounded-lg cursor-pointer group relative">
-      <div className="relative mb-3 md:mb-4">
+    <div className="song-card bg-card p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer group relative w-full">
+      <div className="relative mb-2 sm:mb-3 md:mb-4">
         <div className="aspect-square rounded-lg overflow-hidden bg-secondary shadow-lg">
           {coverUrl ? (
             <img 
