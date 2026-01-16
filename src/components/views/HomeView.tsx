@@ -49,9 +49,9 @@ export function HomeView() {
           <Clock size={20} className="text-muted-foreground" />
           <h2 className="text-xl sm:text-2xl font-bold">Recently Played</h2>
         </div>
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {recentlyPlayed.map((song) => (
-            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+            <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
               <SongGridCard song={song} queue={recentlyPlayed} />
             </div>
           ))}
@@ -64,9 +64,9 @@ export function HomeView() {
           <TrendingUp size={20} className="text-muted-foreground" />
           <h2 className="text-xl sm:text-2xl font-bold">Made For You</h2>
         </div>
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {topMixes.map((song) => (
-            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+            <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
               <SongGridCard song={song} queue={topMixes} />
             </div>
           ))}
@@ -79,9 +79,9 @@ export function HomeView() {
           <Music2 size={20} className="text-muted-foreground" />
           <h2 className="text-xl sm:text-2xl font-bold">Your Music</h2>
         </div>
-        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {songs.map((song) => (
-            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+            <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
               <SongGridCard song={song} queue={songs} />
             </div>
           ))}
