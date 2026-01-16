@@ -176,10 +176,9 @@ export function SongGridCard({ song, queue }: SongCardProps) {
   };
 
   return (
-    <div className="song-card bg-card p-3 sm:p-4 rounded-lg cursor-pointer group relative flex flex-row sm:flex-col gap-3 sm:gap-0">
-      {/* Album art */}
-      <div className="relative w-20 h-20 sm:w-auto sm:h-auto sm:mb-4 flex-shrink-0">
-        <div className="w-20 h-20 sm:w-full sm:aspect-square rounded-md overflow-hidden bg-secondary shadow-lg">
+    <div className="song-card bg-card p-4 rounded-lg cursor-pointer group relative">
+      <div className="relative mb-4">
+        <div className="aspect-square rounded-md overflow-hidden bg-secondary shadow-lg">
           {coverUrl ? (
             <img 
               src={coverUrl} 
@@ -194,44 +193,37 @@ export function SongGridCard({ song, queue }: SongCardProps) {
         {/* Delete button overlay */}
         <button
           onClick={handleDelete}
-          className="absolute top-1 right-1 sm:top-2 sm:right-2 w-6 h-6 sm:w-8 sm:h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+          className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
           title="Delete song"
         >
-          <Trash2 size={12} className="text-white sm:hidden" />
-          <Trash2 size={14} className="text-white hidden sm:block" />
+          <Trash2 size={14} className="text-white" />
         </button>
         
         {/* Play button overlay */}
         <button
           onClick={handlePlay}
-          className="play-overlay absolute bottom-1 right-1 sm:bottom-2 sm:right-2 w-8 h-8 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-primary/90 transition-all"
+          className="play-overlay absolute bottom-2 right-2 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-primary/90 transition-all"
         >
           {isPlaying ? (
             <span className="flex gap-0.5">
-              <span className="w-0.5 h-3 sm:w-1 sm:h-4 bg-primary-foreground rounded-full" />
-              <span className="w-0.5 h-3 sm:w-1 sm:h-4 bg-primary-foreground rounded-full" />
+              <span className="w-1 h-4 bg-primary-foreground rounded-full" />
+              <span className="w-1 h-4 bg-primary-foreground rounded-full" />
             </span>
           ) : (
-            <Play size={16} className="text-primary-foreground ml-0.5 sm:hidden" fill="currentColor" />
-          )}
-          {!isPlaying && (
-            <Play size={24} className="text-primary-foreground ml-1 hidden sm:block" fill="currentColor" />
+            <Play size={24} className="text-primary-foreground ml-1" fill="currentColor" />
           )}
         </button>
       </div>
 
-      {/* Song info */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center sm:justify-start">
-        <h3 className={cn(
-          "font-semibold text-sm truncate mb-0.5 sm:mb-1",
-          isActive ? "text-primary" : "text-foreground"
-        )}>
-          {song.title}
-        </h3>
-        <p className="text-xs text-muted-foreground truncate">
-          {song.artist}
-        </p>
-      </div>
+      <h3 className={cn(
+        "font-semibold text-sm truncate mb-1",
+        isActive ? "text-primary" : "text-foreground"
+      )}>
+        {song.title}
+      </h3>
+      <p className="text-xs text-muted-foreground truncate">
+        {song.artist}
+      </p>
     </div>
   );
 }
