@@ -176,9 +176,9 @@ export function SongGridCard({ song, queue }: SongCardProps) {
   };
 
   return (
-    <div className="song-card bg-card p-4 rounded-lg cursor-pointer group relative">
-      <div className="relative mb-4">
-        <div className="aspect-square rounded-md overflow-hidden bg-secondary shadow-lg">
+    <div className="song-card bg-card p-3 md:p-4 rounded-lg cursor-pointer group relative">
+      <div className="relative mb-3 md:mb-4">
+        <div className="aspect-square rounded-lg overflow-hidden bg-secondary shadow-lg">
           {coverUrl ? (
             <img 
               src={coverUrl} 
@@ -216,12 +216,12 @@ export function SongGridCard({ song, queue }: SongCardProps) {
       </div>
 
       <h3 className={cn(
-        "font-semibold text-sm truncate mb-1",
+        "font-semibold text-sm md:text-base truncate mb-1",
         isActive ? "text-primary" : "text-foreground"
       )}>
         {song.title}
       </h3>
-      <p className="text-xs text-muted-foreground truncate">
+      <p className="text-xs md:text-sm text-muted-foreground truncate">
         {song.artist}
       </p>
     </div>

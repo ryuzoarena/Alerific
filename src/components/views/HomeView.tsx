@@ -49,7 +49,7 @@ export function HomeView() {
           <Clock size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Recently Played</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           {recentlyPlayed.map((song) => (
             <SongGridCard key={song.id} song={song} queue={recentlyPlayed} />
           ))}
@@ -62,7 +62,7 @@ export function HomeView() {
           <TrendingUp size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Made For You</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           {topMixes.map((song) => (
             <SongGridCard key={song.id} song={song} queue={topMixes} />
           ))}
@@ -75,7 +75,7 @@ export function HomeView() {
           <Music2 size={20} className="text-muted-foreground" />
           <h2 className="text-2xl font-bold">Your Music</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           {songs.map((song) => (
             <SongGridCard key={song.id} song={song} queue={songs} />
           ))}
