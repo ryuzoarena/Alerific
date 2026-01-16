@@ -47,11 +47,13 @@ export function HomeView() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Clock size={20} className="text-muted-foreground" />
-          <h2 className="text-2xl font-bold">Recently Played</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Recently Played</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
           {recentlyPlayed.map((song) => (
-            <SongGridCard key={song.id} song={song} queue={recentlyPlayed} />
+            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+              <SongGridCard song={song} queue={recentlyPlayed} />
+            </div>
           ))}
         </div>
       </section>
@@ -60,11 +62,13 @@ export function HomeView() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={20} className="text-muted-foreground" />
-          <h2 className="text-2xl font-bold">Made For You</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Made For You</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
           {topMixes.map((song) => (
-            <SongGridCard key={song.id} song={song} queue={topMixes} />
+            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+              <SongGridCard song={song} queue={topMixes} />
+            </div>
           ))}
         </div>
       </section>
@@ -73,11 +77,13 @@ export function HomeView() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <Music2 size={20} className="text-muted-foreground" />
-          <h2 className="text-2xl font-bold">Your Music</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Your Music</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible">
           {songs.map((song) => (
-            <SongGridCard key={song.id} song={song} queue={songs} />
+            <div key={song.id} className="flex-shrink-0 w-36 sm:w-40 md:w-auto">
+              <SongGridCard song={song} queue={songs} />
+            </div>
           ))}
         </div>
       </section>
