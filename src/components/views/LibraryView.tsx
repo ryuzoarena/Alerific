@@ -2,7 +2,11 @@ import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { Clock, Play, Heart, Music2 } from 'lucide-react';
 
-export function LibraryView() {
+interface LibraryViewProps {
+  isDeleteMode?: boolean;
+}
+
+export function LibraryView({ isDeleteMode }: LibraryViewProps) {
   const { songs, playSong } = useMusicStore();
 
   const handlePlayAll = () => {
@@ -73,6 +77,7 @@ export function LibraryView() {
               index={index}
               showIndex
               queue={songs}
+              isDeleteMode={isDeleteMode}
             />
           ))
         )}

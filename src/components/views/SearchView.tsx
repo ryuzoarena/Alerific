@@ -3,7 +3,11 @@ import { SongGridCard } from '@/components/SongCard';
 import { SearchBar } from '@/components/SearchBar';
 import { Search as SearchIcon } from 'lucide-react';
 
-export function SearchView() {
+interface SearchViewProps {
+  isDeleteMode?: boolean;
+}
+
+export function SearchView({ isDeleteMode }: SearchViewProps) {
   const { songs, searchQuery } = useMusicStore();
 
   const filteredSongs = songs.filter(song => {
@@ -43,7 +47,7 @@ export function SearchView() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {filteredSongs.map((song) => (
-              <SongGridCard key={song.id} song={song} queue={filteredSongs} />
+              <SongGridCard key={song.id} song={song} queue={filteredSongs} isDeleteMode={isDeleteMode} />
             ))}
           </div>
         </>
