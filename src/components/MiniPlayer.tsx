@@ -47,7 +47,7 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
         </div>
 
         {/* Song info with marquee animation */}
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 max-w-[140px] overflow-hidden">
           <div className="marquee-container">
             <p 
               className="text-sm font-medium text-white whitespace-nowrap animate-marquee"
