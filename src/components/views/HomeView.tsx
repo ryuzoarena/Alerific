@@ -12,11 +12,20 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
   const recentlyPlayed = songs.slice(0, 6);
   const topMixes = songs.slice().reverse().slice(0, 6);
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 10) return 'Good morning';
+    if (hour >= 10 && hour < 15) return 'Good afternoon';
+    if (hour >= 15 && hour < 18) return 'Good evening';
+    return 'Good night';
+  };
+
   return (
     <div className="p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full">
       {/* Greeting */}
       <section className="mb-8">
-        <h1 className="text-3xl font-bold mb-6">Good evening</h1>
+        <h1 className="text-3xl font-bold mb-6">{getGreeting()}</h1>
         
         {/* Quick access grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
