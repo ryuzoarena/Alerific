@@ -21,8 +21,27 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
     return 'Good night';
   };
 
+  // Get gradient based on time of day
+  const getTimeGradient = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 10) {
+      // Morning - warm orange/pink sunrise
+      return 'from-orange-500/30 via-rose-400/20 to-background';
+    }
+    if (hour >= 10 && hour < 15) {
+      // Afternoon - bright blue/cyan
+      return 'from-sky-500/30 via-cyan-400/20 to-background';
+    }
+    if (hour >= 15 && hour < 18) {
+      // Evening - golden/amber sunset
+      return 'from-amber-500/30 via-orange-400/20 to-background';
+    }
+    // Night - deep purple/indigo
+    return 'from-indigo-600/30 via-purple-500/20 to-background';
+  };
+
   return (
-    <div className="p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full">
+    <div className={`p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full bg-gradient-to-b ${getTimeGradient()}`}>
       {/* Greeting */}
       <section className="mb-8">
         <h1 className="text-3xl font-bold mb-6">{getGreeting()}</h1>
