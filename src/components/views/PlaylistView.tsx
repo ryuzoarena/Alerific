@@ -81,9 +81,9 @@ export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
         <button
           onClick={handlePlayAll}
           disabled={playlistSongs.length === 0}
-          className={`w-14 h-14 ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100`}
+          className={`w-14 h-14 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100`}
         >
-          <Play size={28} className={`${timeTheme.buttonText} ml-1`} fill="currentColor" />
+          <Play size={28} className={`theme-transition ${timeTheme.buttonText} ml-1`} fill="currentColor" />
         </button>
         
         {!isLikedSongs && (

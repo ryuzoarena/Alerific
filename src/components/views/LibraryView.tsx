@@ -19,7 +19,7 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
 
   return (
     <div className="h-full overflow-y-auto pb-24">
-      <div className={`relative bg-gradient-to-b ${timeTheme.gradient}`}>
+      <div className={`relative theme-transition bg-gradient-to-b ${timeTheme.gradient}`}>
         <div className="h-32 sm:h-48 md:h-64" />
         <div className="h-32 sm:h-48 md:h-64 bg-gradient-to-b from-primary/30 to-background" />
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 flex items-end gap-4 sm:gap-6">
@@ -42,9 +42,9 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
       <div className="px-4 sm:px-6 py-4 flex items-center gap-4">
         <button
           onClick={handlePlayAll}
-          className={`w-12 h-12 sm:w-14 sm:h-14 ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg`}
+          className={`w-12 h-12 sm:w-14 sm:h-14 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg`}
         >
-          <Play size={24} className={timeTheme.buttonText} fill="currentColor" />
+          <Play size={24} className={`theme-transition ${timeTheme.buttonText}`} fill="currentColor" />
         </button>
       </div>
 

@@ -66,7 +66,7 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
         {/* Upload Button */}
         <button
           onClick={onUploadClick}
-          className={`mt-4 w-full flex items-center gap-4 px-4 py-2.5 ${timeTheme.accentBg} ${timeTheme.buttonText} rounded-full text-sm font-semibold hover:scale-[1.02] transition-transform`}
+          className={`mt-4 w-full flex items-center gap-4 px-4 py-2.5 theme-transition ${timeTheme.accentBg} ${timeTheme.buttonText} rounded-full text-sm font-semibold hover:scale-[1.02] transition-transform`}
         >
           <Upload size={20} />
           <span>Upload Song</span>
@@ -110,7 +110,7 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
             <div className="flex gap-2 mt-2">
               <button
                 onClick={handleCreatePlaylist}
-                className={`flex-1 px-3 py-1.5 ${timeTheme.accentBg} ${timeTheme.buttonText} rounded-full text-xs font-semibold hover:scale-105 transition-transform`}
+                className={`flex-1 px-3 py-1.5 theme-transition ${timeTheme.accentBg} ${timeTheme.buttonText} rounded-full text-xs font-semibold hover:scale-105 transition-transform`}
               >
                 Create
               </button>
@@ -154,7 +154,7 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
                 
                 <div className="min-w-0 flex-1">
                   <p className={cn(
-                    "text-sm font-medium truncate",
+                    "text-sm font-medium truncate theme-transition",
                     isActive ? timeTheme.accentColor : "text-foreground"
                   )}>
                     {playlist.name}
