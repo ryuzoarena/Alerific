@@ -15,7 +15,7 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
   const topMixes = songs.slice().reverse().slice(0, 6);
 
   return (
-    <div className={`p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full bg-gradient-to-b ${timeTheme.gradient}`}>
+    <div className={`p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full bg-gradient-to-b theme-transition ${timeTheme.gradient}`}>
       {/* Greeting */}
       <section className="mb-8">
         <h1 className="text-3xl font-bold mb-6">{timeTheme.greeting}</h1>
@@ -35,8 +35,8 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
                   {coverUrl ? (
                     <img src={coverUrl} alt={playlist.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${timeTheme.accentBg}/50 to-${timeTheme.accentBg}/20 flex items-center justify-center`}>
-                      <Music2 className={timeTheme.accentColor} />
+                    <div className={`w-full h-full bg-gradient-to-br theme-transition ${timeTheme.accentBg}/50 to-${timeTheme.accentBg}/20 flex items-center justify-center`}>
+                      <Music2 className={`theme-transition ${timeTheme.accentColor}`} />
                     </div>
                   )}
                 </div>
@@ -52,7 +52,7 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
       {/* Recently played */}
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <Clock size={20} className={timeTheme.accentColor} />
+          <Clock size={20} className={`theme-transition ${timeTheme.accentColor}`} />
           <h2 className="text-xl sm:text-2xl font-bold">Recently Played</h2>
         </div>
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
@@ -67,7 +67,7 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
       {/* Made for you */}
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={20} className={timeTheme.accentColor} />
+          <TrendingUp size={20} className={`theme-transition ${timeTheme.accentColor}`} />
           <h2 className="text-xl sm:text-2xl font-bold">Made For You</h2>
         </div>
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
@@ -82,7 +82,7 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
       {/* All songs */}
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <Music2 size={20} className={timeTheme.accentColor} />
+          <Music2 size={20} className={`theme-transition ${timeTheme.accentColor}`} />
           <h2 className="text-xl sm:text-2xl font-bold">Your Music</h2>
         </div>
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">

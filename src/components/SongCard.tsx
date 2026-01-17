@@ -213,7 +213,7 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
         {/* Play button overlay */}
         <button
           onClick={handlePlay}
-          className={`play-overlay absolute bottom-2 right-2 w-9 h-9 ${timeTheme.accentBg} rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all`}
+          className={`play-overlay absolute bottom-2 right-2 w-9 h-9 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all`}
         >
           {isPlaying ? (
             <span className="flex gap-0.5">
@@ -227,7 +227,7 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
       </div>
 
       <h3 className={cn(
-        "font-semibold text-sm md:text-base truncate mb-1",
+        "font-semibold text-sm md:text-base truncate mb-1 theme-transition",
         isActive ? timeTheme.accentColor : "text-foreground"
       )}>
         {song.title}

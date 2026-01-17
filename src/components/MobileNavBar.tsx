@@ -73,10 +73,10 @@ export function MobileNavBar({
           <PopoverTrigger asChild>
             <button className="flex flex-col items-center gap-1 px-4 py-2">
               <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center transition-colors",
+                "w-6 h-6 rounded-full flex items-center justify-center theme-transition",
                 isDeleteMode ? "bg-destructive" : timeTheme.accentBg
               )}>
-                <Sparkles size={14} className={timeTheme.buttonText} />
+                <Sparkles size={14} className={`theme-transition ${timeTheme.buttonText}`} />
               </div>
               <span className={cn(
                 "text-[10px] font-medium",
@@ -97,7 +97,7 @@ export function MobileNavBar({
                 onClick={handleAddSong}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors text-left"
               >
-                <Plus size={18} className={timeTheme.accentColor} />
+                <Plus size={18} className={`theme-transition ${timeTheme.accentColor}`} />
                 <span className="text-sm font-medium">Add Song</span>
               </button>
               <button
