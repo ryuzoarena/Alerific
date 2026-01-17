@@ -18,6 +18,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
   const [showMobileLyrics, setShowMobileLyrics] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
   
   const {
     playerState,
@@ -34,6 +36,26 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const { currentSong, isPlaying, currentTime, duration, shuffle, repeat } = playerState;
   const lyrics = currentSong?.lyrics || [];
   const hasLyrics = lyrics.length > 0;
+
+  // Handle open/close animation
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      // Small delay to trigger animation after render
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
+    } else {
+      setIsAnimating(false);
+      // Wait for animation to complete before unmounting
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Auto-scroll to active lyric
   useEffect(() => {
@@ -80,10 +102,17 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-gradient-to-b from-neutral-800 to-black flex flex-col">
+    <div 
+      className={cn(
+        "fixed inset-0 z-[100] bg-gradient-to-b from-neutral-800 to-black flex flex-col transition-all duration-300 ease-out",
+        isAnimating 
+          ? "translate-y-0 opacity-100" 
+          : "translate-y-full opacity-0"
+      )}
+    >
       {/* Background with album art blur */}
       {loadedCoverUrl && (
         <div 
