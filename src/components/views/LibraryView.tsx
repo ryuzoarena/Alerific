@@ -1,6 +1,7 @@
 import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { Clock, Play, Heart, Music2 } from 'lucide-react';
+import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface LibraryViewProps {
   isDeleteMode?: boolean;
@@ -8,6 +9,7 @@ interface LibraryViewProps {
 
 export function LibraryView({ isDeleteMode }: LibraryViewProps) {
   const { songs, playSong } = useMusicStore();
+  const timeTheme = useTimeTheme();
 
   const handlePlayAll = () => {
     if (songs.length > 0) {
@@ -17,8 +19,8 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
 
   return (
     <div className="h-full overflow-y-auto pb-24">
-      {/* Header with gradient - smaller for mobile */}
-      <div className="relative">
+      <div className={`relative bg-gradient-to-b ${timeTheme.gradient}`}>
+        <div className="h-32 sm:h-48 md:h-64" />
         <div className="h-32 sm:h-48 md:h-64 bg-gradient-to-b from-primary/30 to-background" />
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 flex items-end gap-4 sm:gap-6">
           <div className="w-24 h-24 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-indigo-600 to-purple-400 rounded shadow-2xl flex items-center justify-center flex-shrink-0">
@@ -37,12 +39,12 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
       </div>
 
       {/* Controls */}
-      <div className="px-6 py-4 flex items-center gap-4">
+      <div className="px-4 sm:px-6 py-4 flex items-center gap-4">
         <button
           onClick={handlePlayAll}
-          className="w-14 h-14 bg-primary rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
+          className={`w-12 h-12 sm:w-14 sm:h-14 ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg`}
         >
-          <Play size={28} className="text-primary-foreground ml-1" fill="currentColor" />
+          <Play size={24} className={timeTheme.buttonText} fill="currentColor" />
         </button>
       </div>
 
