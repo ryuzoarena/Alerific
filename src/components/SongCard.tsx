@@ -190,27 +190,18 @@ export function SongGridCard({ song, queue }: SongCardProps) {
           )}
         </div>
         
-        {/* Delete button overlay */}
-        <button
-          onClick={handleDelete}
-          className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
-          title="Delete song"
-        >
-          <Trash2 size={14} className="text-white" />
-        </button>
-        
         {/* Play button overlay */}
         <button
           onClick={handlePlay}
-          className="play-overlay absolute bottom-2 right-2 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-primary/90 transition-all"
+          className="play-overlay absolute bottom-2 right-2 w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-primary/90 transition-all"
         >
           {isPlaying ? (
             <span className="flex gap-0.5">
-              <span className="w-1 h-4 bg-primary-foreground rounded-full" />
-              <span className="w-1 h-4 bg-primary-foreground rounded-full" />
+              <span className="w-0.5 h-3 bg-primary-foreground rounded-full" />
+              <span className="w-0.5 h-3 bg-primary-foreground rounded-full" />
             </span>
           ) : (
-            <Play size={24} className="text-primary-foreground ml-1" fill="currentColor" />
+            <Play size={18} className="text-primary-foreground ml-0.5" fill="currentColor" />
           )}
         </button>
       </div>
