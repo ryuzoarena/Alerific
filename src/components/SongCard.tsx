@@ -9,9 +9,10 @@ interface SongCardProps {
   index?: number;
   showIndex?: boolean;
   queue?: Song[];
+  isDeleteMode?: boolean;
 }
 
-export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
+export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
   const { playSong, playerState, loadSongMedia, removeSong } = useMusicStore();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
@@ -119,17 +120,22 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className={cn(
+        "flex items-center gap-2 transition-opacity",
+        isDeleteMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+      )}>
         <button className="text-muted-foreground hover:text-foreground">
           <Heart size={16} />
         </button>
-        <button 
-          onClick={handleDelete}
-          className="text-muted-foreground hover:text-red-400"
-          title="Delete song"
-        >
-          <Trash2 size={16} />
-        </button>
+        {isDeleteMode && (
+          <button 
+            onClick={handleDelete}
+            className="text-red-400 hover:text-red-300 animate-pulse"
+            title="Delete song"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
 
       {/* Duration */}
@@ -143,7 +149,7 @@ export function SongCard({ song, index, showIndex, queue }: SongCardProps) {
 }
 
 // Grid card variant for home view
-export function SongGridCard({ song, queue }: SongCardProps) {
+export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
   const { playSong, playerState, togglePlay, loadSongMedia, removeSong } = useMusicStore();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
@@ -189,6 +195,17 @@ export function SongGridCard({ song, queue }: SongCardProps) {
             <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
           )}
         </div>
+        
+        {/* Delete button overlay - only visible in delete mode */}
+        {isDeleteMode && (
+          <button
+            onClick={handleDelete}
+            className="absolute top-1 right-1 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse hover:bg-red-400 transition-colors"
+            title="Delete song"
+          >
+            <Trash2 size={14} className="text-white" />
+          </button>
+        )}
         
         {/* Play button overlay */}
         <button

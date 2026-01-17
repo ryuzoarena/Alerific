@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 
 interface PlaylistViewProps {
   playlistId: string;
+  isDeleteMode?: boolean;
 }
 
-export function PlaylistView({ playlistId }: PlaylistViewProps) {
+export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
   const { playlists, songs, playSong, deletePlaylist, removeSongFromPlaylist } = useMusicStore();
   
   const playlist = playlists.find(p => p.id === playlistId);
@@ -127,6 +128,7 @@ export function PlaylistView({ playlistId }: PlaylistViewProps) {
               index={index}
               showIndex
               queue={playlistSongs}
+              isDeleteMode={isDeleteMode}
             />
           ))
         )}

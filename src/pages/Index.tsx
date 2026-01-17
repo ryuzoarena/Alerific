@@ -22,15 +22,15 @@ const Index = () => {
   const renderMainContent = () => {
     switch (activeView) {
       case 'home':
-        return <HomeView />;
+        return <HomeView isDeleteMode={isDeleteMode} />;
       case 'search':
-        return <SearchView />;
+        return <SearchView isDeleteMode={isDeleteMode} />;
       case 'library':
-        return <LibraryView />;
+        return <LibraryView isDeleteMode={isDeleteMode} />;
       case 'playlist':
-        return <PlaylistView playlistId={selectedPlaylistId} />;
+        return <PlaylistView playlistId={selectedPlaylistId} isDeleteMode={isDeleteMode} />;
       default:
-        return <HomeView />;
+        return <HomeView isDeleteMode={isDeleteMode} />;
     }
   };
 

@@ -2,7 +2,11 @@ import { SongGridCard } from '@/components/SongCard';
 import { useMusicStore } from '@/stores/musicStore';
 import { Music2, TrendingUp, Clock } from 'lucide-react';
 
-export function HomeView() {
+interface HomeViewProps {
+  isDeleteMode?: boolean;
+}
+
+export function HomeView({ isDeleteMode }: HomeViewProps) {
   const { songs, playlists, playSong } = useMusicStore();
 
   const recentlyPlayed = songs.slice(0, 6);
@@ -52,7 +56,7 @@ export function HomeView() {
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {recentlyPlayed.map((song) => (
             <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
-              <SongGridCard song={song} queue={recentlyPlayed} />
+              <SongGridCard song={song} queue={recentlyPlayed} isDeleteMode={isDeleteMode} />
             </div>
           ))}
         </div>
@@ -67,7 +71,7 @@ export function HomeView() {
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {topMixes.map((song) => (
             <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
-              <SongGridCard song={song} queue={topMixes} />
+              <SongGridCard song={song} queue={topMixes} isDeleteMode={isDeleteMode} />
             </div>
           ))}
         </div>
@@ -82,7 +86,7 @@ export function HomeView() {
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
           {songs.map((song) => (
             <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
-              <SongGridCard song={song} queue={songs} />
+              <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} />
             </div>
           ))}
         </div>
