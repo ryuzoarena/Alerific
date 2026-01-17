@@ -17,17 +17,19 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
 
   return (
     <div className="h-full overflow-y-auto pb-24">
-      {/* Header with gradient */}
+      {/* Header with gradient - smaller for mobile */}
       <div className="relative">
-        <div className="h-64 bg-gradient-to-b from-primary/30 to-background" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end gap-6">
-          <div className="w-56 h-56 bg-gradient-to-br from-indigo-600 to-purple-400 rounded shadow-2xl flex items-center justify-center">
-            <Music2 size={80} className="text-white" />
+        <div className="h-32 sm:h-48 md:h-64 bg-gradient-to-b from-primary/30 to-background" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 flex items-end gap-4 sm:gap-6">
+          <div className="w-24 h-24 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-indigo-600 to-purple-400 rounded shadow-2xl flex items-center justify-center flex-shrink-0">
+            <Music2 size={40} className="text-white sm:hidden" />
+            <Music2 size={60} className="text-white hidden sm:block md:hidden" />
+            <Music2 size={80} className="text-white hidden md:block" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium mb-2">Playlist</p>
-            <h1 className="text-5xl font-bold mb-4">All Songs</h1>
-            <p className="text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Playlist</p>
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 truncate">All Songs</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {songs.length} songs
             </p>
           </div>
