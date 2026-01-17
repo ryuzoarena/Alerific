@@ -61,10 +61,13 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
           </p>
         </div>
 
+        {/* Spacer to push play button to the right */}
+        <div className="flex-1" />
+
         {/* Play button */}
         <button
           onClick={handlePlayClick}
-          className="p-2 text-white"
+          className="p-2 text-white mr-1"
         >
           {isPlaying ? (
             <Pause size={24} fill="currentColor" />
