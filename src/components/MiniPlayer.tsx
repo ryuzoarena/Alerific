@@ -46,11 +46,16 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
           )}
         </div>
 
-        {/* Song info */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">
-            {currentSong.title}
-          </p>
+        {/* Song info with marquee animation */}
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="marquee-container">
+            <p 
+              className="text-sm font-medium text-white whitespace-nowrap animate-marquee"
+              data-text={currentSong.title}
+            >
+              {currentSong.title}
+            </p>
+          </div>
           <p className="text-xs text-white/60 truncate">
             {currentSong.artist}
           </p>

@@ -175,4 +175,31 @@
   .song-card:hover .play-overlay {
     @apply opacity-100 translate-y-0;
   }
+
+  /* Marquee animation for song titles */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .marquee-container {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+  }
+
+  .animate-marquee {
+    display: inline-block;
+    padding-right: 2rem;
+    animation: marquee 8s linear infinite;
+  }
+
+  .animate-marquee::after {
+    content: attr(data-text);
+    padding-left: 2rem;
+  }
 }
