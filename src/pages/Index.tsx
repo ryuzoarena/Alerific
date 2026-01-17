@@ -17,6 +17,7 @@ const Index = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -73,6 +74,8 @@ const Index = () => {
         activeView={activeView}
         onViewChange={setActiveView}
         onUploadClick={() => setShowUpload(true)}
+        onDeleteModeToggle={() => setIsDeleteMode(!isDeleteMode)}
+        isDeleteMode={isDeleteMode}
       />
 
       {/* Upload dialog */}
