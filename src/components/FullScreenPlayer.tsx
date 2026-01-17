@@ -6,6 +6,7 @@ import {
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { MobileLyricsView } from './MobileLyricsView';
+import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface FullScreenPlayerProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const [showMobileLyrics, setShowMobileLyrics] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const timeTheme = useTimeTheme();
   
   const {
     playerState,
@@ -204,7 +206,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             onClick={toggleShuffle}
             className={cn(
               "p-2 transition-colors",
-              shuffle ? "text-primary" : "text-white/60 hover:text-white"
+              shuffle ? timeTheme.accentColor : "text-white/60 hover:text-white"
             )}
           >
             <Shuffle size={22} />
@@ -239,7 +241,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             onClick={toggleRepeat}
             className={cn(
               "p-2 transition-colors",
-              repeat !== 'off' ? "text-primary" : "text-white/60 hover:text-white"
+              repeat !== 'off' ? timeTheme.accentColor : "text-white/60 hover:text-white"
             )}
           >
             {repeat === 'one' ? <Repeat1 size={22} /> : <Repeat size={22} />}

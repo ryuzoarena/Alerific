@@ -3,6 +3,7 @@ import { Play, Clock, MoreHorizontal, Heart, Plus, Trash2 } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
+import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface SongCardProps {
   song: Song;
@@ -14,6 +15,7 @@ interface SongCardProps {
 
 export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
   const { playSong, playerState, loadSongMedia, removeSong } = useMusicStore();
+  const timeTheme = useTimeTheme();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
@@ -59,13 +61,13 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
           <>
             <span className={cn(
               "text-sm group-hover:hidden",
-              isActive ? "text-primary" : "text-muted-foreground"
+              isActive ? timeTheme.accentColor : "text-muted-foreground"
             )}>
               {isPlaying ? (
                 <span className="flex gap-0.5">
-                  <span className="w-1 h-3 bg-primary rounded-full animate-pulse" />
-                  <span className="w-1 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <span className="w-1 h-3 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} />
+                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} style={{ animationDelay: '0.2s' }} />
+                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} style={{ animationDelay: '0.4s' }} />
                 </span>
               ) : (
                 index! + 1
@@ -103,7 +105,7 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
       <div className="flex-1 min-w-0">
         <p className={cn(
           "text-sm font-medium truncate",
-          isActive ? "text-primary" : "text-foreground"
+          isActive ? timeTheme.accentColor : "text-foreground"
         )}>
           {song.title}
         </p>
@@ -151,6 +153,7 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
 // Grid card variant for home view
 export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
   const { playSong, playerState, togglePlay, loadSongMedia, removeSong } = useMusicStore();
+  const timeTheme = useTimeTheme();
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
@@ -210,22 +213,22 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
         {/* Play button overlay */}
         <button
           onClick={handlePlay}
-          className="play-overlay absolute bottom-2 right-2 w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-primary/90 transition-all"
+          className={`play-overlay absolute bottom-2 right-2 w-9 h-9 ${timeTheme.accentBg} rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all`}
         >
           {isPlaying ? (
             <span className="flex gap-0.5">
-              <span className="w-0.5 h-3 bg-primary-foreground rounded-full" />
-              <span className="w-0.5 h-3 bg-primary-foreground rounded-full" />
+              <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
+              <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
             </span>
           ) : (
-            <Play size={18} className="text-primary-foreground ml-0.5" fill="currentColor" />
+            <Play size={18} className={`${timeTheme.buttonText} ml-0.5`} fill="currentColor" />
           )}
         </button>
       </div>
 
       <h3 className={cn(
         "font-semibold text-sm md:text-base truncate mb-1",
-        isActive ? "text-primary" : "text-foreground"
+        isActive ? timeTheme.accentColor : "text-foreground"
       )}>
         {song.title}
       </h3>

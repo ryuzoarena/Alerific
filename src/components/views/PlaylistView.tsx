@@ -2,6 +2,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { Clock, Play, Heart, Music2, Trash2, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface PlaylistViewProps {
   playlistId: string;
@@ -10,6 +11,7 @@ interface PlaylistViewProps {
 
 export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
   const { playlists, songs, playSong, deletePlaylist, removeSongFromPlaylist } = useMusicStore();
+  const timeTheme = useTimeTheme();
   
   const playlist = playlists.find(p => p.id === playlistId);
   const playlistSongs = songs.filter(s => playlist?.songIds.includes(s.id));
@@ -79,9 +81,9 @@ export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
         <button
           onClick={handlePlayAll}
           disabled={playlistSongs.length === 0}
-          className="w-14 h-14 bg-primary rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100"
+          className={`w-14 h-14 ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100`}
         >
-          <Play size={28} className="text-primary-foreground ml-1" fill="currentColor" />
+          <Play size={28} className={`${timeTheme.buttonText} ml-1`} fill="currentColor" />
         </button>
         
         {!isLikedSongs && (
