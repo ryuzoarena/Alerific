@@ -72,7 +72,7 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
       {/* Blurred background image - Apple Music style */}
       {loadedCoverUrl && (
         <div 
-          className="absolute inset-0 scale-110"
+          className="absolute inset-0 scale-110 pointer-events-none"
           style={{
             backgroundImage: `url(${loadedCoverUrl})`,
             backgroundSize: 'cover',
@@ -83,17 +83,16 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
       )}
       {/* Gradient overlay */}
       <div 
-        className="absolute inset-0 transition-colors duration-500"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
           background: dominantColor 
             ? `linear-gradient(to bottom, ${dominantColor}88, #1a1a1aee)` 
             : 'linear-gradient(to bottom, rgba(74, 124, 124, 0.5), rgba(26, 26, 26, 0.95))' 
         }}
       />
-      {/* Content container */}
-      <div className="relative flex-1 flex flex-col z-10">
+      
       {/* Header */}
-      <div className="flex items-center justify-between p-4">
+      <div className="relative z-10 flex items-center justify-between p-4">
         <button 
           onClick={onClose}
           className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -106,14 +105,13 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           <p className="text-sm text-white/70">{currentSong.artist}</p>
         </div>
         
-        <div className="w-10" /> {/* Spacer for balance */}
+        <div className="w-10" />
       </div>
 
       {/* Scrollable Lyrics Area */}
       <div 
         ref={lyricsContainerRef}
-        className="flex-1 overflow-y-auto px-4 pb-8 scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="relative z-10 flex-1 overflow-y-auto px-4 pb-8 min-h-0"
       >
         {!hasLyrics ? (
           <div className="h-full flex items-center justify-center">
@@ -122,7 +120,7 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             </p>
           </div>
         ) : (
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4 pb-20">
             {lyrics.map((line, index) => (
               <p
                 key={index}
@@ -144,7 +142,7 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
       </div>
 
       {/* Bottom Controls */}
-      <div className="p-4 pb-8">
+      <div className="relative z-10 p-4 pb-8">
         {/* Secondary actions */}
         <div className="flex items-center justify-between mb-4 px-2">
           <button className="p-2 text-white/70 hover:text-white">
@@ -186,7 +184,6 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
               <Play size={32} className="text-black/80 ml-1" fill="currentColor" />
             )}
           </button>
-        </div>
         </div>
       </div>
     </div>
