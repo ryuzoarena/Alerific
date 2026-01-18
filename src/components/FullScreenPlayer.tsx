@@ -277,24 +277,15 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           </button>
         </div>
 
-        {/* Lyrics Section - scrollable full lyrics */}
+        {/* Lyrics Preview Section - with Show Lyrics button on mobile */}
         {hasLyrics && (
           <div 
             ref={lyricsContainerRef}
-            className="mx-4 md:mx-12 mb-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 max-h-[45vh] overflow-y-auto scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="mx-4 md:mx-12 mb-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 max-h-[35vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-white/60">Lyrics</p>
-              <button
-                onClick={() => setShowMobileLyrics(true)}
-                className="md:hidden text-xs text-white/60 hover:text-white transition-colors"
-              >
-                Fullscreen
-              </button>
-            </div>
+            <p className="text-sm text-white/60 mb-3">Lyrics Preview</p>
             <div className="space-y-3">
-              {lyrics.map((line, index) => (
+              {lyrics.slice(0, 5).map((line, index) => (
                 <p
                   key={index}
                   ref={index === currentLyricIndex ? activeLyricRef : null}
@@ -311,6 +302,14 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
                 </p>
               ))}
             </div>
+            
+            {/* Show full lyrics button - Mobile only */}
+            <button
+              onClick={() => setShowMobileLyrics(true)}
+              className="md:hidden mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium text-white transition-colors"
+            >
+              Show full lyrics
+            </button>
           </div>
         )}
       </div>
