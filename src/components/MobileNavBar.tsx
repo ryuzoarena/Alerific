@@ -105,7 +105,7 @@ export function MobileNavBar({
             </button>
           </PopoverTrigger>
           <PopoverContent 
-            className="w-72 p-3 bg-card/95 backdrop-blur-xl border-border rounded-2xl" 
+            className="w-72 p-3 bg-card/95 backdrop-blur-xl border-border rounded-2xl fixed left-1/2 -translate-x-1/2" 
             side="top" 
             align="center"
             sideOffset={12}
