@@ -102,23 +102,6 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
         </div>
       </section>
 
-      {/* Daily Recommendations */}
-      {recommendedSongs.length > 0 && (
-        <section className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles size={20} className={`theme-transition ${timeTheme.accentColor}`} />
-            <h2 className="text-xl sm:text-2xl font-bold">Recommendation for a Fresh New Day</h2>
-          </div>
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
-            {recommendedSongs.map((song) => (
-              <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
-                <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Recently Played - List Layout (max 3) */}
       {recentlyPlayedSongs.length > 0 && (
         <section className="mb-8">
@@ -133,6 +116,23 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
                 song={song} 
                 queue={recentlyPlayedSongs} 
               />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Daily Recommendations */}
+      {recommendedSongs.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles size={20} className={`theme-transition ${timeTheme.accentColor}`} />
+            <h2 className="text-xl sm:text-2xl font-bold">Recommendation For a Fresh New Day</h2>
+          </div>
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
+            {recommendedSongs.map((song) => (
+              <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
+                <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
+              </div>
             ))}
           </div>
         </section>
