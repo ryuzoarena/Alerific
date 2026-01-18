@@ -72,8 +72,8 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
       className="fixed inset-0 z-[110] flex flex-col transition-colors duration-500"
       style={{ 
         background: dominantColor 
-          ? `linear-gradient(to bottom, ${dominantColor}, ${dominantColor}dd)` 
-          : 'linear-gradient(to bottom, #4a7c7c, #3d6666)' 
+          ? `linear-gradient(to bottom, ${dominantColor}, #1a1a1a)` 
+          : 'linear-gradient(to bottom, #4a7c7c, #1a1a1a)' 
       }}
     >
       {/* Header */}
