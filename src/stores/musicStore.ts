@@ -10,6 +10,10 @@ interface MusicStore {
   removeSong: (id: string) => void;
   loadSongMedia: (songId: string) => Promise<{ audioUrl: string; coverUrl?: string } | null>;
   
+  // Recently Played (max 3, ordered by most recent)
+  recentlyPlayedIds: string[];
+  addToRecentlyPlayed: (songId: string) => void;
+  
   // Playlists
   playlists: Playlist[];
   createPlaylist: (name: string, description?: string) => Playlist;
@@ -69,6 +73,15 @@ export const useMusicStore = create<MusicStore>()(
     (set, get) => ({
       songs: [],
       playlists: defaultPlaylists,
+      recentlyPlayedIds: [],
+      
+      addToRecentlyPlayed: (songId: string) => {
+        set((state) => {
+          // Remove if exists, add to front, keep max 3
+          const filtered = state.recentlyPlayedIds.filter(id => id !== songId);
+          return { recentlyPlayedIds: [songId, ...filtered].slice(0, 3) };
+        });
+      },
       
       addSong: (song) => {
         // Don't persist audioUrl and coverUrl (they're blob URLs that expire)
@@ -157,6 +170,10 @@ export const useMusicStore = create<MusicStore>()(
       playSong: (song, queue) => {
         const newQueue = queue || get().songs;
         const index = newQueue.findIndex(s => s.id === song.id);
+        
+        // Add to recently played
+        get().addToRecentlyPlayed(song.id);
+        
         set({
           playerState: {
             ...get().playerState,
@@ -300,6 +317,7 @@ export const useMusicStore = create<MusicStore>()(
       partialize: (state) => ({
         songs: state.songs,
         playlists: state.playlists,
+        recentlyPlayedIds: state.recentlyPlayedIds,
       }),
     }
   )
