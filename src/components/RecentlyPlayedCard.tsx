@@ -13,7 +13,7 @@ export function RecentlyPlayedCard({ song, queue }: RecentlyPlayedCardProps) {
   return (
     <button
       onClick={() => playSong(song, queue)}
-      className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/10 transition-colors group text-left"
+      className="flex items-center gap-3 w-full p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors group text-left"
     >
       {/* Cover */}
       <div className="w-14 h-14 rounded-md overflow-hidden bg-secondary flex-shrink-0">
