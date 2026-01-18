@@ -14,6 +14,12 @@ interface MusicStore {
   recentlyPlayedIds: string[];
   addToRecentlyPlayed: (songId: string) => void;
   
+  // Daily Recommendations (resets at 3 AM)
+  dailyRecommendationIds: string[];
+  lastRecommendationReset: number;
+  refreshDailyRecommendations: () => void;
+  checkAndRefreshRecommendations: () => void;
+  
   // Playlists
   playlists: Playlist[];
   createPlaylist: (name: string, description?: string) => Playlist;
@@ -68,12 +74,38 @@ const defaultPlaylists: Playlist[] = [
 // Initialize the IndexedDB on load
 initDB().catch(console.error);
 
+// Helper to check if we need to reset (past 3 AM today)
+const shouldResetRecommendations = (lastReset: number): boolean => {
+  const now = new Date();
+  const today3AM = new Date(now);
+  today3AM.setHours(3, 0, 0, 0);
+  
+  // If current time is before 3 AM, use yesterday's 3 AM
+  if (now.getHours() < 3) {
+    today3AM.setDate(today3AM.getDate() - 1);
+  }
+  
+  return lastReset < today3AM.getTime();
+};
+
+// Shuffle array helper
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const useMusicStore = create<MusicStore>()(
   persist(
     (set, get) => ({
       songs: [],
       playlists: defaultPlaylists,
       recentlyPlayedIds: [],
+      dailyRecommendationIds: [],
+      lastRecommendationReset: 0,
       
       addToRecentlyPlayed: (songId: string) => {
         set((state) => {
@@ -81,6 +113,25 @@ export const useMusicStore = create<MusicStore>()(
           const filtered = state.recentlyPlayedIds.filter(id => id !== songId);
           return { recentlyPlayedIds: [songId, ...filtered].slice(0, 3) };
         });
+      },
+      
+      refreshDailyRecommendations: () => {
+        const { songs } = get();
+        const shuffledIds = shuffleArray(songs.map(s => s.id)).slice(0, 6);
+        set({
+          dailyRecommendationIds: shuffledIds,
+          lastRecommendationReset: Date.now(),
+        });
+      },
+      
+      checkAndRefreshRecommendations: () => {
+        const { lastRecommendationReset, songs, dailyRecommendationIds } = get();
+        
+        // Also refresh if we have songs but no recommendations
+        if (shouldResetRecommendations(lastRecommendationReset) || 
+            (songs.length > 0 && dailyRecommendationIds.length === 0)) {
+          get().refreshDailyRecommendations();
+        }
       },
       
       addSong: (song) => {
@@ -318,6 +369,8 @@ export const useMusicStore = create<MusicStore>()(
         songs: state.songs,
         playlists: state.playlists,
         recentlyPlayedIds: state.recentlyPlayedIds,
+        dailyRecommendationIds: state.dailyRecommendationIds,
+        lastRecommendationReset: state.lastRecommendationReset,
       }),
     }
   )
