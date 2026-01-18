@@ -11,9 +11,10 @@ import { MiniPlayer } from './MiniPlayer';
 interface PlayerBarProps {
   onToggleLyrics: () => void;
   showLyrics: boolean;
+  onCoverUrlChange?: (url: string | null) => void;
 }
 
-export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
+export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: PlayerBarProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -55,6 +56,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics }: PlayerBarProps) {
       if (media && audioRef.current) {
         setLoadedAudioUrl(media.audioUrl);
         setLoadedCoverUrl(media.coverUrl || null);
+        onCoverUrlChange?.(media.coverUrl || null);
         audioRef.current.src = media.audioUrl;
         audioRef.current.load();
       }

@@ -1,18 +1,21 @@
 import { useEffect, useRef } from 'react';
-import { X, ChevronDown } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
+import { useDominantColor } from '@/hooks/useDominantColor';
 import { cn } from '@/lib/utils';
 
 interface LyricsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  loadedCoverUrl?: string | null;
 }
 
-export function LyricsPanel({ isOpen, onClose }: LyricsPanelProps) {
+export function LyricsPanel({ isOpen, onClose, loadedCoverUrl }: LyricsPanelProps) {
   const { playerState, currentLyricIndex } = useMusicStore();
   const { currentSong } = playerState;
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
+  const dominantColor = useDominantColor(loadedCoverUrl || null);
 
   // Auto-scroll to active lyric
   useEffect(() => {
@@ -39,7 +42,14 @@ export function LyricsPanel({ isOpen, onClose }: LyricsPanelProps) {
   const hasLyrics = lyrics.length > 0;
 
   return (
-    <div className="w-96 h-full min-h-0 bg-gradient-to-b from-card to-background border-l border-border flex flex-col animate-slide-up">
+    <div 
+      className="w-96 h-full min-h-0 border-l border-border flex flex-col animate-slide-up transition-colors duration-500"
+      style={{ 
+        background: dominantColor 
+          ? `linear-gradient(to bottom, ${dominantColor}, ${dominantColor}99)` 
+          : undefined 
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h2 className="text-sm font-semibold">Lyrics</h2>

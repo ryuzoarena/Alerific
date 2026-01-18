@@ -7,6 +7,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { MobileLyricsView } from './MobileLyricsView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { useDominantColor } from '@/hooks/useDominantColor';
 
 interface FullScreenPlayerProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const timeTheme = useTimeTheme();
+  const dominantColor = useDominantColor(loadedCoverUrl);
   
   const {
     playerState,
@@ -109,11 +111,16 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   return (
     <div 
       className={cn(
-        "fixed inset-0 z-[100] bg-gradient-to-b from-neutral-800 to-black flex flex-col transition-all duration-300 ease-out",
+        "fixed inset-0 z-[100] flex flex-col transition-all duration-300 ease-out",
         isAnimating 
           ? "translate-y-0 opacity-100" 
           : "translate-y-full opacity-0"
       )}
+      style={{ 
+        background: dominantColor 
+          ? `linear-gradient(to bottom, ${dominantColor}, #000)` 
+          : 'linear-gradient(to bottom, #404040, #000)' 
+      }}
     >
       {/* Background with album art blur */}
       {loadedCoverUrl && (
