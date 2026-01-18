@@ -68,14 +68,30 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   if (!isOpen || !currentSong) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-[110] flex flex-col transition-colors duration-500"
-      style={{ 
-        background: dominantColor 
-          ? `linear-gradient(to bottom, ${dominantColor}, #1a1a1a)` 
-          : 'linear-gradient(to bottom, #4a7c7c, #1a1a1a)' 
-      }}
-    >
+    <div className="fixed inset-0 z-[110] flex flex-col overflow-hidden">
+      {/* Blurred background image - Apple Music style */}
+      {loadedCoverUrl && (
+        <div 
+          className="absolute inset-0 scale-110"
+          style={{
+            backgroundImage: `url(${loadedCoverUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(80px) saturate(1.5)',
+          }}
+        />
+      )}
+      {/* Gradient overlay */}
+      <div 
+        className="absolute inset-0 transition-colors duration-500"
+        style={{ 
+          background: dominantColor 
+            ? `linear-gradient(to bottom, ${dominantColor}88, #1a1a1aee)` 
+            : 'linear-gradient(to bottom, rgba(74, 124, 124, 0.5), rgba(26, 26, 26, 0.95))' 
+        }}
+      />
+      {/* Content container */}
+      <div className="relative flex-1 flex flex-col z-10">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <button 
@@ -170,6 +186,7 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
               <Play size={32} className="text-black/80 ml-1" fill="currentColor" />
             )}
           </button>
+        </div>
         </div>
       </div>
     </div>
