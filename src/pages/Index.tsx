@@ -9,6 +9,7 @@ import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
 import { useMusicStore } from '@/stores/musicStore';
+import { cn } from '@/lib/utils';
 
 type View = 'home' | 'search' | 'library' | 'playlist';
 
@@ -18,6 +19,7 @@ const Index = () => {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [isFeaturedMenuOpen, setIsFeaturedMenuOpen] = useState(false);
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -63,11 +65,16 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Player bar */}
-      <PlayerBar 
-        showLyrics={showLyrics}
-        onToggleLyrics={() => setShowLyrics(!showLyrics)}
-      />
+      {/* Player bar - hide on mobile when Featured menu is open */}
+      <div className={cn(
+        "transition-opacity duration-200",
+        isFeaturedMenuOpen ? "lg:opacity-100 opacity-0 pointer-events-none lg:pointer-events-auto" : "opacity-100"
+      )}>
+        <PlayerBar 
+          showLyrics={showLyrics}
+          onToggleLyrics={() => setShowLyrics(!showLyrics)}
+        />
+      </div>
 
       {/* Mobile bottom navigation */}
       <MobileNavBar 
@@ -76,6 +83,7 @@ const Index = () => {
         onUploadClick={() => setShowUpload(true)}
         onDeleteModeToggle={() => setIsDeleteMode(!isDeleteMode)}
         isDeleteMode={isDeleteMode}
+        onMenuOpenChange={setIsFeaturedMenuOpen}
       />
 
       {/* Upload dialog */}

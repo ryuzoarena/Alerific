@@ -14,6 +14,7 @@ interface MobileNavBarProps {
   onUploadClick: () => void;
   onDeleteModeToggle?: () => void;
   isDeleteMode?: boolean;
+  onMenuOpenChange?: (isOpen: boolean) => void;
 }
 
 export function MobileNavBar({ 
@@ -21,15 +22,21 @@ export function MobileNavBar({
   onViewChange, 
   onUploadClick, 
   onDeleteModeToggle,
-  isDeleteMode 
+  isDeleteMode,
+  onMenuOpenChange
 }: MobileNavBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const timeTheme = useTimeTheme();
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    onMenuOpenChange?.(open);
+  };
+
   const handleFeaturedClick = () => {
     setIsSpinning(true);
-    setIsOpen(!isOpen);
+    handleOpenChange(!isOpen);
     setTimeout(() => setIsSpinning(false), 500);
   };
   
@@ -40,12 +47,12 @@ export function MobileNavBar({
   ];
 
   const handleAddSong = () => {
-    setIsOpen(false);
+    handleOpenChange(false);
     onUploadClick();
   };
 
   const handleDeleteMode = () => {
-    setIsOpen(false);
+    handleOpenChange(false);
     onDeleteModeToggle?.();
   };
 
@@ -76,7 +83,7 @@ export function MobileNavBar({
         ))}
         
         {/* Featured button with menu */}
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Popover open={isOpen} onOpenChange={handleOpenChange}>
           <PopoverTrigger asChild>
             <button 
               className="flex flex-col items-center gap-1 px-4 py-2"
