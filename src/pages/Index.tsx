@@ -20,6 +20,7 @@ const Index = () => {
   const [showLyrics, setShowLyrics] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isFeaturedMenuOpen, setIsFeaturedMenuOpen] = useState(false);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -60,7 +61,8 @@ const Index = () => {
         <div className="hidden lg:block h-full min-h-0">
           <LyricsPanel 
             isOpen={showLyrics} 
-            onClose={() => setShowLyrics(false)} 
+            onClose={() => setShowLyrics(false)}
+            loadedCoverUrl={currentCoverUrl}
           />
         </div>
       </div>
@@ -73,6 +75,7 @@ const Index = () => {
         <PlayerBar 
           showLyrics={showLyrics}
           onToggleLyrics={() => setShowLyrics(!showLyrics)}
+          onCoverUrlChange={setCurrentCoverUrl}
         />
       </div>
 

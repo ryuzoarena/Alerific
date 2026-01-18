@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ChevronDown, Play, Pause, Share2, MoreVertical } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
+import { useDominantColor } from '@/hooks/useDominantColor';
 import { cn } from '@/lib/utils';
 
 interface MobileLyricsViewProps {
@@ -13,6 +14,7 @@ interface MobileLyricsViewProps {
 export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: MobileLyricsViewProps) {
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
+  const dominantColor = useDominantColor(loadedCoverUrl);
   
   const {
     playerState,
@@ -65,11 +67,15 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
 
   if (!isOpen || !currentSong) return null;
 
-  // Get a teal-like background color from cover or use default
-  const bgColor = 'from-[#4a7c7c] to-[#3d6666]';
-
   return (
-    <div className={`fixed inset-0 z-[110] bg-gradient-to-b ${bgColor} flex flex-col`}>
+    <div 
+      className="fixed inset-0 z-[110] flex flex-col transition-colors duration-500"
+      style={{ 
+        background: dominantColor 
+          ? `linear-gradient(to bottom, ${dominantColor}, ${dominantColor}dd)` 
+          : 'linear-gradient(to bottom, #4a7c7c, #3d6666)' 
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <button 
@@ -159,9 +165,9 @@ export function MobileLyricsView({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
           >
             {isPlaying ? (
-              <Pause size={32} className="text-[#3d6666]" fill="currentColor" />
+              <Pause size={32} className="text-black/80" fill="currentColor" />
             ) : (
-              <Play size={32} className="text-[#3d6666] ml-1" fill="currentColor" />
+              <Play size={32} className="text-black/80 ml-1" fill="currentColor" />
             )}
           </button>
         </div>
