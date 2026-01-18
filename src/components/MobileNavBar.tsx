@@ -107,7 +107,7 @@ export function MobileNavBar({
           <PopoverContent 
             className="w-72 p-3 bg-card/95 backdrop-blur-xl border-border rounded-2xl" 
             side="top" 
-            align="end"
+            align="center"
             sideOffset={12}
           >
             <div className="flex flex-col gap-2">
