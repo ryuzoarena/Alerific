@@ -1,7 +1,7 @@
 import { SongGridCard } from '@/components/SongCard';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
 import { useMusicStore } from '@/stores/musicStore';
-import { Music2, TrendingUp, Clock, Sparkles } from 'lucide-react';
+import { Music2, TrendingUp, Clock, Sparkles, Library } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useEffect, useState } from 'react';
 
@@ -138,20 +138,39 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
         </section>
       )}
 
-      {/* Made for you - all uploaded songs */}
-      <section className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={20} className={`theme-transition ${timeTheme.accentColor}`} />
-          <h2 className="text-xl sm:text-2xl font-bold">Made For You</h2>
-        </div>
-        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
-          {madeForYou.map((song) => (
-            <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
-              <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Made for you - newest 6 songs */}
+      {madeForYou.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={20} className={`theme-transition ${timeTheme.accentColor}`} />
+            <h2 className="text-xl sm:text-2xl font-bold">Made For You</h2>
+          </div>
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
+            {madeForYou.map((song) => (
+              <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
+                <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All Songs */}
+      {songs.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Library size={20} className={`theme-transition ${timeTheme.accentColor}`} />
+            <h2 className="text-xl sm:text-2xl font-bold">All Songs</h2>
+          </div>
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:overflow-visible md:gap-4">
+            {songs.map((song) => (
+              <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 md:w-auto">
+                <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
