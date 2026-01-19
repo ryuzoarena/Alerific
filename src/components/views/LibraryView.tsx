@@ -1,70 +1,127 @@
 import { useMusicStore } from '@/stores/musicStore';
-import { SongCard } from '@/components/SongCard';
-import { Clock, Play, Heart, Music2 } from 'lucide-react';
+import { LibrarySongCard } from '@/components/LibrarySongCard';
+import { Play, Music2, Shuffle, ArrowLeft, Plus } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { useState, useEffect } from 'react';
 
 interface LibraryViewProps {
   isDeleteMode?: boolean;
+  onBack?: () => void;
 }
 
-export function LibraryView({ isDeleteMode }: LibraryViewProps) {
-  const { songs, playSong } = useMusicStore();
+export function LibraryView({ isDeleteMode, onBack }: LibraryViewProps) {
+  const { songs, playSong, loadSongMedia } = useMusicStore();
   const timeTheme = useTimeTheme();
+  const [firstSongCover, setFirstSongCover] = useState<string | null>(null);
+  const [isShuffleActive, setIsShuffleActive] = useState(false);
+
+  // Load first song cover for header
+  useEffect(() => {
+    if (songs.length > 0) {
+      loadSongMedia(songs[0].id).then((media) => {
+        if (media?.coverUrl) {
+          setFirstSongCover(media.coverUrl);
+        }
+      });
+    }
+    return () => {
+      if (firstSongCover) URL.revokeObjectURL(firstSongCover);
+    };
+  }, [songs.length]);
 
   const handlePlayAll = () => {
     if (songs.length > 0) {
-      playSong(songs[0], songs);
+      const songsToPlay = isShuffleActive 
+        ? [...songs].sort(() => Math.random() - 0.5)
+        : songs;
+      playSong(songsToPlay[0], songsToPlay);
+    }
+  };
+
+  const handleShuffle = () => {
+    setIsShuffleActive(!isShuffleActive);
+    if (songs.length > 0) {
+      const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
+      playSong(shuffledSongs[0], shuffledSongs);
     }
   };
 
   return (
-    <div className="h-full overflow-y-auto pb-24">
-      <div className={`relative theme-transition bg-gradient-to-b ${timeTheme.gradient}`}>
-        <div className="h-32 sm:h-48 md:h-64" />
-        <div className="h-32 sm:h-48 md:h-64 bg-gradient-to-b from-primary/30 to-background" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 flex items-end gap-4 sm:gap-6">
-          <div className="w-24 h-24 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-gradient-to-br from-indigo-600 to-purple-400 rounded shadow-2xl flex items-center justify-center flex-shrink-0">
-            <Music2 size={40} className="text-white sm:hidden" />
-            <Music2 size={60} className="text-white hidden sm:block md:hidden" />
-            <Music2 size={80} className="text-white hidden md:block" />
+    <div className="h-full overflow-y-auto pb-24 bg-background">
+      {/* Header */}
+      <div className="px-4 pt-4 pb-2">
+        {/* Back button for mobile */}
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="mb-4 text-foreground hover:text-muted-foreground transition-colors"
+          >
+            <ArrowLeft size={24} />
+          </button>
+        )}
+
+        {/* Title and count */}
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1">All Songs</h1>
+        <p className="text-sm text-muted-foreground mb-4">
+          {songs.length} songs
+        </p>
+
+        {/* Action buttons row */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {/* First song cover thumbnail */}
+            <div className="w-12 h-12 rounded-md overflow-hidden bg-secondary flex-shrink-0 border border-border">
+              {firstSongCover ? (
+                <img 
+                  src={firstSongCover} 
+                  alt="Library cover"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
+                  <Music2 size={20} className="text-muted-foreground" />
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Playlist</p>
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4 truncate">All Songs</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {songs.length} songs
-            </p>
+
+          {/* Right side buttons */}
+          <div className="flex items-center gap-3">
+            {/* Shuffle button */}
+            <button
+              onClick={handleShuffle}
+              className={`p-2 transition-colors ${
+                isShuffleActive 
+                  ? timeTheme.accentColor 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Shuffle size={22} />
+            </button>
+
+            {/* Play button */}
+            <button
+              onClick={handlePlayAll}
+              className={`w-12 h-12 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg`}
+            >
+              <Play size={24} className={`${timeTheme.buttonText} ml-0.5`} fill="currentColor" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="px-4 sm:px-6 py-4 flex items-center gap-4">
-        <button
-          onClick={handlePlayAll}
-          className={`w-12 h-12 sm:w-14 sm:h-14 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg`}
-        >
-          <Play size={24} className={`theme-transition ${timeTheme.buttonText}`} fill="currentColor" />
+      {/* Add to playlist option */}
+      <div className="px-4 mb-2">
+        <button className="flex items-center gap-3 w-full py-3 hover:bg-accent rounded-md transition-colors px-2">
+          <div className="w-12 h-12 rounded-md bg-card border border-dashed border-muted-foreground/50 flex items-center justify-center">
+            <Plus size={20} className="text-muted-foreground" />
+          </div>
+          <span className="text-sm font-medium">Add to playlist</span>
         </button>
       </div>
 
-      {/* Track list header */}
-      <div className="px-6 border-b border-border">
-        <div className="flex items-center gap-4 py-2 text-sm text-muted-foreground">
-          <div className="w-8 text-center">#</div>
-          <div className="w-10" />
-          <div className="flex-1">Title</div>
-          <div className="hidden md:block flex-1">Album</div>
-          <div className="w-12" />
-          <div className="w-12 text-right">
-            <Clock size={16} />
-          </div>
-          <div className="w-8" />
-        </div>
-      </div>
-
-      {/* Track list */}
-      <div className="px-4 py-2">
+      {/* Song list */}
+      <div className="px-2">
         {songs.length === 0 ? (
           <div className="text-center py-20">
             <Music2 size={64} className="mx-auto text-muted-foreground/30 mb-4" />
@@ -74,12 +131,10 @@ export function LibraryView({ isDeleteMode }: LibraryViewProps) {
             </p>
           </div>
         ) : (
-          songs.map((song, index) => (
-            <SongCard 
+          songs.map((song) => (
+            <LibrarySongCard 
               key={song.id} 
               song={song} 
-              index={index}
-              showIndex
               queue={songs}
               isDeleteMode={isDeleteMode}
             />
