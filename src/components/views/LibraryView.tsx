@@ -48,8 +48,8 @@ export function LibraryView({ isDeleteMode, onBack }: LibraryViewProps) {
 
   return (
     <div className="h-full overflow-y-auto pb-24 bg-background">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2">
+      {/* Header with time-based gradient */}
+      <div className={`px-4 pt-4 pb-6 theme-transition bg-gradient-to-b ${timeTheme.gradient}`}>
         {/* Back button for mobile */}
         {onBack && (
           <button 
@@ -67,7 +67,7 @@ export function LibraryView({ isDeleteMode, onBack }: LibraryViewProps) {
         </p>
 
         {/* Action buttons row */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* First song cover thumbnail */}
             <div className="w-12 h-12 rounded-md overflow-hidden bg-secondary flex-shrink-0 border border-border">
