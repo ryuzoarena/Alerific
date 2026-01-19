@@ -246,7 +246,7 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const { queue, queueIndex, playerState, songs } = get();
+        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed } = get();
         const availableQueue = queue.length > 0 ? queue : songs;
         if (availableQueue.length === 0) return;
         
@@ -269,12 +269,17 @@ export const useMusicStore = create<MusicStore>()(
           }
         }
         
+        const nextSong = availableQueue[nextIndex];
+        
+        // Add next song to recently played
+        addToRecentlyPlayed(nextSong.id);
+        
         set({
           queueIndex: nextIndex,
           queue: availableQueue,
           playerState: {
             ...playerState,
-            currentSong: availableQueue[nextIndex],
+            currentSong: nextSong,
             currentTime: 0,
             isPlaying: true,
           },
@@ -283,7 +288,7 @@ export const useMusicStore = create<MusicStore>()(
       },
       
       prevSong: () => {
-        const { queue, queueIndex, playerState } = get();
+        const { queue, queueIndex, playerState, addToRecentlyPlayed } = get();
         if (queue.length === 0) return;
         
         // If more than 3 seconds in, restart song
@@ -300,11 +305,16 @@ export const useMusicStore = create<MusicStore>()(
           prevIndex = playerState.repeat === 'all' ? queue.length - 1 : 0;
         }
         
+        const prevSongItem = queue[prevIndex];
+        
+        // Add previous song to recently played
+        addToRecentlyPlayed(prevSongItem.id);
+        
         set({
           queueIndex: prevIndex,
           playerState: {
             ...playerState,
-            currentSong: queue[prevIndex],
+            currentSong: prevSongItem,
             currentTime: 0,
             isPlaying: true,
           },
