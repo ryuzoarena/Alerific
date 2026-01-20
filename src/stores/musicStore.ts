@@ -31,6 +31,8 @@ interface MusicStore {
   playerState: PlayerState;
   queue: Song[];
   queueIndex: number;
+  shuffledQueue: Song[]; // Fair shuffle queue - all songs play once before repeating
+  shuffledIndex: number;
   
   // Player actions
   playSong: (song: Song, queue?: Song[]) => void;
@@ -217,6 +219,8 @@ export const useMusicStore = create<MusicStore>()(
       
       queue: [],
       queueIndex: 0,
+      shuffledQueue: [],
+      shuffledIndex: 0,
       
       playSong: (song, queue) => {
         const newQueue = queue || get().songs;
@@ -246,37 +250,56 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed } = get();
+        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex } = get();
         const availableQueue = queue.length > 0 ? queue : songs;
         if (availableQueue.length === 0) return;
         
-        let nextIndex: number;
+        let nextSong: Song;
+        let newQueueIndex: number;
+        let newShuffledIndex: number = shuffledIndex;
+        let newShuffledQueue: Song[] = shuffledQueue;
         
         if (playerState.shuffle) {
-          // Pick a random song different from current
-          const randomIndex = Math.floor(Math.random() * availableQueue.length);
-          nextIndex = randomIndex === queueIndex && availableQueue.length > 1 
-            ? (randomIndex + 1) % availableQueue.length 
-            : randomIndex;
+          // Fair shuffle: use pre-shuffled queue, reshuffle when exhausted
+          newShuffledIndex = shuffledIndex + 1;
+          
+          // If we've played all songs, reshuffle for next round
+          if (newShuffledIndex >= newShuffledQueue.length) {
+            if (playerState.repeat === 'all' || newShuffledQueue.length === 0) {
+              // Reshuffle the queue for a new round
+              newShuffledQueue = shuffleArray([...availableQueue]);
+              newShuffledIndex = 0;
+            } else {
+              // No repeat, stop at the end
+              return;
+            }
+          }
+          
+          nextSong = newShuffledQueue[newShuffledIndex];
+          // Find the index in the original queue for consistency
+          newQueueIndex = availableQueue.findIndex(s => s.id === nextSong.id);
+          if (newQueueIndex === -1) newQueueIndex = 0;
         } else {
-          nextIndex = queueIndex + 1;
-          if (nextIndex >= availableQueue.length) {
+          // Normal sequential playback
+          newQueueIndex = queueIndex + 1;
+          if (newQueueIndex >= availableQueue.length) {
             if (playerState.repeat === 'all') {
-              nextIndex = 0;
+              newQueueIndex = 0;
             } else {
               return;
             }
           }
+          nextSong = availableQueue[newQueueIndex];
         }
-        
-        const nextSong = availableQueue[nextIndex];
         
         // Add next song to recently played
         addToRecentlyPlayed(nextSong.id);
         
         set({
-          queueIndex: nextIndex,
+          queueIndex: newQueueIndex,
           queue: availableQueue,
+          shuffledQueue: newShuffledQueue,
+          shuffledIndex: newShuffledIndex,
           playerState: {
             ...playerState,
             currentSong: nextSong,
@@ -341,12 +364,35 @@ export const useMusicStore = create<MusicStore>()(
         }
       })),
       
-      toggleShuffle: () => set((state) => ({
-        playerState: {
-          ...state.playerState,
-          shuffle: !state.playerState.shuffle,
+      toggleShuffle: () => {
+        const { playerState, queue, songs, playerState: { currentSong } } = get();
+        const newShuffle = !playerState.shuffle;
+        
+        if (newShuffle) {
+          // When enabling shuffle, create a fair shuffled queue
+          const availableQueue = queue.length > 0 ? queue : songs;
+          let shuffled = shuffleArray([...availableQueue]);
+          
+          // Put current song at the beginning so we don't skip it
+          if (currentSong) {
+            shuffled = shuffled.filter(s => s.id !== currentSong.id);
+            shuffled.unshift(currentSong);
+          }
+          
+          set({
+            playerState: { ...playerState, shuffle: true },
+            shuffledQueue: shuffled,
+            shuffledIndex: 0, // Start at 0 (current song)
+          });
+        } else {
+          // When disabling shuffle, clear the shuffled queue
+          set({
+            playerState: { ...playerState, shuffle: false },
+            shuffledQueue: [],
+            shuffledIndex: 0,
+          });
         }
-      })),
+      },
       
       toggleRepeat: () => set((state) => {
         const modes: ('off' | 'all' | 'one')[] = ['off', 'all', 'one'];
