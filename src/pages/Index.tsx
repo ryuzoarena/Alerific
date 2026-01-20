@@ -60,7 +60,7 @@ const Index = () => {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 bg-gradient-to-b from-card to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide">
+        <main className="flex-1 bg-transparent lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide">
           {renderMainContent()}
         </main>
 
