@@ -9,6 +9,7 @@ import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
 import { useMusicStore } from '@/stores/musicStore';
+import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { cn } from '@/lib/utils';
 
 type View = 'home' | 'search' | 'library' | 'playlist';
@@ -37,8 +38,14 @@ const Index = () => {
     }
   };
 
+  const timeTheme = useTimeTheme();
+
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden">
+    <div className={cn(
+      "h-screen flex flex-col overflow-hidden theme-transition",
+      "lg:bg-black", // Desktop keeps black background
+      `bg-gradient-to-b ${timeTheme.gradient}` // Mobile uses time-based gradient
+    )}>
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Sidebar - Desktop only */}
