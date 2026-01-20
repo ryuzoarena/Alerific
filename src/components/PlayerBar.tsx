@@ -7,6 +7,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { FullScreenPlayer } from './FullScreenPlayer';
 import { MiniPlayer } from './MiniPlayer';
+import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
@@ -115,6 +116,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       audioRef.current.pause();
     }
   }, [isPlaying, currentSong, loadedAudioUrl]);
+
+  // Background playback support - keeps music playing when screen is off
+  useBackgroundPlayback(audioRef, isPlaying);
 
   // Update volume
   useEffect(() => {
