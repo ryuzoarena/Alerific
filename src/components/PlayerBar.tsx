@@ -63,6 +63,48 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     });
   }, [currentSong?.id]);
 
+  // Setup Media Session API for background playback control
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentSong) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title,
+      artist: currentSong.artist,
+      album: currentSong.album || 'Unknown Album',
+      artwork: loadedCoverUrl ? [
+        { src: loadedCoverUrl, sizes: '512x512', type: 'image/jpeg' }
+      ] : []
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      audioRef.current?.play();
+      togglePlay();
+    });
+    
+    navigator.mediaSession.setActionHandler('pause', () => {
+      audioRef.current?.pause();
+      togglePlay();
+    });
+    
+    navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+    navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+    
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (audioRef.current && details.seekTime !== undefined) {
+        audioRef.current.currentTime = details.seekTime;
+        setCurrentTime(details.seekTime);
+      }
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+      navigator.mediaSession.setActionHandler('seekto', null);
+    };
+  }, [currentSong, loadedCoverUrl, togglePlay, prevSong, nextSong, setCurrentTime]);
+
   // Sync audio with player state
   useEffect(() => {
     if (!audioRef.current || !currentSong || !loadedAudioUrl) return;
@@ -129,12 +171,15 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const handleEnded = () => {
     if (repeat === 'one' && audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play();
+      audioRef.current.play().catch(() => {});
     } else {
       // Auto-play next song if available
       const availableQueue = queue.length > 0 ? queue : songs;
       if (availableQueue.length > 1 || repeat === 'all') {
-        nextSong();
+        // Use setTimeout to ensure state updates properly even in background
+        setTimeout(() => {
+          nextSong();
+        }, 0);
       }
     }
   };
