@@ -23,7 +23,8 @@ export function useTimeTheme(): TimeTheme {
       return {
         timeOfDay: 'morning',
         greeting: 'Good morning',
-        gradient: 'from-orange-500/30 via-rose-400/20 to-background',
+        // Keep color all the way down (avoid dull/gray bottom)
+        gradient: 'from-orange-500/35 via-rose-400/25 to-orange-950/45',
         accentColor: 'text-orange-400',
         accentColorHover: 'hover:text-orange-300',
         accentBg: 'bg-orange-500',
@@ -38,7 +39,8 @@ export function useTimeTheme(): TimeTheme {
       return {
         timeOfDay: 'afternoon',
         greeting: 'Good afternoon',
-        gradient: 'from-sky-500/30 via-cyan-400/20 to-background',
+        // Keep color all the way down (avoid dull/gray bottom)
+        gradient: 'from-sky-500/35 via-cyan-400/25 to-sky-950/45',
         accentColor: 'text-cyan-400',
         accentColorHover: 'hover:text-cyan-300',
         accentBg: 'bg-cyan-500',
@@ -53,7 +55,8 @@ export function useTimeTheme(): TimeTheme {
       return {
         timeOfDay: 'evening',
         greeting: 'Good evening',
-        gradient: 'from-amber-500/30 via-orange-400/20 to-background',
+        // Keep color all the way down (avoid dull/gray bottom)
+        gradient: 'from-amber-500/35 via-orange-400/25 to-amber-950/45',
         accentColor: 'text-amber-400',
         accentColorHover: 'hover:text-amber-300',
         accentBg: 'bg-amber-500',
@@ -67,7 +70,8 @@ export function useTimeTheme(): TimeTheme {
     return {
       timeOfDay: 'night',
       greeting: 'Good night',
-      gradient: 'from-indigo-600/30 via-purple-500/20 to-background',
+      // Keep color all the way down (avoid dull/gray bottom)
+      gradient: 'from-indigo-600/35 via-purple-500/25 to-indigo-950/50',
       accentColor: 'text-purple-400',
       accentColorHover: 'hover:text-purple-300',
       accentBg: 'bg-purple-500',
