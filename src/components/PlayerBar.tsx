@@ -9,6 +9,7 @@ import { applySafePlaybackSettings } from '@/lib/audio';
 import { FullScreenPlayer } from './FullScreenPlayer';
 import { MiniPlayer } from './MiniPlayer';
 import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
+import { useAudioStabilityGuard } from '@/hooks/useAudioStabilityGuard';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
@@ -127,6 +128,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
 
   // Background playback support - keeps music playing when screen is off
   useBackgroundPlayback(audioRef, isPlaying);
+
+  // Re-apply safe audio settings on each new src/track lifecycle (fix: only first song stable)
+  useAudioStabilityGuard(audioRef, Boolean(currentSong && loadedAudioUrl));
 
   // Update volume
   useEffect(() => {
