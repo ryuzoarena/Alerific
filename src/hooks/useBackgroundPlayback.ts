@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { applySafePlaybackSettings } from '@/lib/audio';
 
 /**
  * Hook to maintain background audio playback when screen is off or app is in background.
@@ -63,11 +64,13 @@ export function useBackgroundPlayback(
         
         // Force audio to continue by touching the element
         if (isPlaying && audioRef.current.paused) {
+          applySafePlaybackSettings(audioRef.current);
           audioRef.current.play().catch(() => {});
         }
       } else if (document.visibilityState === 'visible') {
         // Coming back to foreground
         if (wasPlayingBeforeHideRef.current && audioRef.current.paused) {
+          applySafePlaybackSettings(audioRef.current);
           audioRef.current.play().catch(() => {});
           onResume?.();
         }
@@ -80,6 +83,7 @@ export function useBackgroundPlayback(
       
       // Persisted means page was restored from bfcache
       if (e.persisted && wasPlayingBeforeHideRef.current) {
+        applySafePlaybackSettings(audioRef.current);
         audioRef.current.play().catch(() => {});
         onResume?.();
       }
@@ -93,6 +97,9 @@ export function useBackgroundPlayback(
     if (isPlaying) {
       keepAliveIntervalRef.current = window.setInterval(() => {
         if (audioRef.current && isPlaying && !audioRef.current.paused) {
+          // Defensive: some mobile browsers may drift playbackRate in background
+          applySafePlaybackSettings(audioRef.current);
+
           // Touch the audio element to keep it alive by accessing properties
           const currentTime = audioRef.current.currentTime;
           if (currentTime > 0) {
@@ -106,6 +113,7 @@ export function useBackgroundPlayback(
     // Strategy 5: Handle focus events
     const handleFocus = () => {
       if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
+        applySafePlaybackSettings(audioRef.current);
         audioRef.current.play().catch(() => {});
       }
     };
@@ -141,6 +149,7 @@ export function useBackgroundPlayback(
         // Small delay to avoid rapid pause/play cycles
         setTimeout(() => {
           if (isPlaying && audio.paused && audio.src) {
+            applySafePlaybackSettings(audio);
             audio.play().catch(() => {});
           }
         }, 100);
@@ -150,11 +159,20 @@ export function useBackgroundPlayback(
     // Handle audio stall (buffering issues in background)
     const handleStalled = () => {
       if (isPlaying && audio.src) {
-        // Try to resume from current position
-        const currentTime = audio.currentTime;
-        audio.load();
-        audio.currentTime = currentTime;
-        audio.play().catch(() => {});
+        // Avoid aggressive reloads in background (can cause speed/pitch glitches on mobile).
+        // Instead: re-apply safe settings and attempt resume.
+        applySafePlaybackSettings(audio);
+        if (audio.readyState < 2) {
+          try {
+            audio.load();
+          } catch {
+            // ignore
+          }
+        }
+        setTimeout(() => {
+          applySafePlaybackSettings(audio);
+          audio.play().catch(() => {});
+        }, 0);
       }
     };
 

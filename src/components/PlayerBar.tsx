@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
+import { applySafePlaybackSettings } from '@/lib/audio';
 import { FullScreenPlayer } from './FullScreenPlayer';
 import { MiniPlayer } from './MiniPlayer';
 import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
@@ -58,6 +59,12 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         setLoadedAudioUrl(media.audioUrl);
         setLoadedCoverUrl(media.coverUrl || null);
         onCoverUrlChange?.(media.coverUrl || null);
+
+        // Defensive: reset any browser-altered playback state before swapping src
+        applySafePlaybackSettings(audioRef.current);
+        audioRef.current.currentTime = 0;
+        setCurrentTime(0);
+
         audioRef.current.src = media.audioUrl;
         audioRef.current.load();
       }
@@ -111,6 +118,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     if (!audioRef.current || !currentSong || !loadedAudioUrl) return;
     
     if (isPlaying) {
+      applySafePlaybackSettings(audioRef.current);
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
@@ -175,6 +183,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const handleEnded = () => {
     if (repeat === 'one' && audioRef.current) {
       audioRef.current.currentTime = 0;
+      applySafePlaybackSettings(audioRef.current);
       audioRef.current.play().catch(() => {});
     } else {
       // Auto-play next song if available
