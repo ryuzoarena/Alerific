@@ -10,6 +10,7 @@ import { FullScreenPlayer } from './FullScreenPlayer';
 import { MiniPlayer } from './MiniPlayer';
 import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
 import { useAudioStabilityGuard } from '@/hooks/useAudioStabilityGuard';
+import { useNowPlayingNotification } from '@/hooks/useNowPlayingNotification';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
@@ -131,6 +132,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
 
   // Re-apply safe audio settings on each new src/track lifecycle (fix: only first song stable)
   useAudioStabilityGuard(audioRef, Boolean(currentSong && loadedAudioUrl));
+
+  // Show "Now Playing" notification when song changes
+  useNowPlayingNotification(currentSong, loadedCoverUrl, isPlaying);
 
   // Update volume
   useEffect(() => {
