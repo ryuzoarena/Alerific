@@ -12,25 +12,16 @@ export function useNowPlayingNotification(
   isPlaying: boolean
 ) {
   const lastNotifiedSongId = useRef<string | null>(null);
-  const hasShownForCurrentSong = useRef(false);
-
-  // Reset the flag when song changes
-  useEffect(() => {
-    if (currentSong?.id !== lastNotifiedSongId.current) {
-      hasShownForCurrentSong.current = false;
-    }
-  }, [currentSong?.id]);
 
   useEffect(() => {
     // Only show notification when:
     // 1. There's a current song
     // 2. Music is playing
-    // 3. We haven't shown notification for this song yet
+    // 3. This is a different song than the last one we notified about
     if (!currentSong || !isPlaying) return;
-    if (hasShownForCurrentSong.current) return;
+    if (currentSong.id === lastNotifiedSongId.current) return;
 
-    // Mark as shown and update last notified
-    hasShownForCurrentSong.current = true;
+    // Update the last notified song
     lastNotifiedSongId.current = currentSong.id;
 
     // Small delay to ensure coverUrl is available
@@ -72,5 +63,5 @@ export function useNowPlayingNotification(
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [currentSong?.id, isPlaying, coverUrl, currentSong]);
+  }, [currentSong?.id, isPlaying, coverUrl, currentSong?.title, currentSong?.artist]);
 }
