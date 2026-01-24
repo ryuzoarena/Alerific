@@ -73,19 +73,26 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     });
   }, [currentSong?.id]);
 
-  // Setup Media Session API for background playback control
+  // Setup Media Session API for background playback control (notification bar)
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentSong) return;
 
+    // Set metadata for the notification bar
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentSong.title,
       artist: currentSong.artist,
       album: currentSong.album || 'Unknown Album',
       artwork: loadedCoverUrl ? [
+        { src: loadedCoverUrl, sizes: '96x96', type: 'image/jpeg' },
+        { src: loadedCoverUrl, sizes: '128x128', type: 'image/jpeg' },
+        { src: loadedCoverUrl, sizes: '192x192', type: 'image/jpeg' },
+        { src: loadedCoverUrl, sizes: '256x256', type: 'image/jpeg' },
+        { src: loadedCoverUrl, sizes: '384x384', type: 'image/jpeg' },
         { src: loadedCoverUrl, sizes: '512x512', type: 'image/jpeg' }
       ] : []
     });
 
+    // Set action handlers for media controls
     navigator.mediaSession.setActionHandler('play', () => {
       audioRef.current?.play();
       togglePlay();
@@ -106,14 +113,57 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       }
     });
 
+    // Seek backward/forward handlers for some devices
+    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+      if (audioRef.current) {
+        const skipTime = details.seekOffset || 10;
+        audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - skipTime);
+        setCurrentTime(audioRef.current.currentTime);
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('seekforward', (details) => {
+      if (audioRef.current) {
+        const skipTime = details.seekOffset || 10;
+        audioRef.current.currentTime = Math.min(duration, audioRef.current.currentTime + skipTime);
+        setCurrentTime(audioRef.current.currentTime);
+      }
+    });
+
     return () => {
       navigator.mediaSession.setActionHandler('play', null);
       navigator.mediaSession.setActionHandler('pause', null);
       navigator.mediaSession.setActionHandler('previoustrack', null);
       navigator.mediaSession.setActionHandler('nexttrack', null);
       navigator.mediaSession.setActionHandler('seekto', null);
+      navigator.mediaSession.setActionHandler('seekbackward', null);
+      navigator.mediaSession.setActionHandler('seekforward', null);
     };
-  }, [currentSong, loadedCoverUrl, togglePlay, prevSong, nextSong, setCurrentTime]);
+  }, [currentSong, loadedCoverUrl, togglePlay, prevSong, nextSong, setCurrentTime, duration]);
+
+  // Sync playback state with Media Session API (for notification bar)
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
+
+  // Update position state for seek bar in notification
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+    if (!currentSong || duration <= 0) return;
+
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: duration,
+        playbackRate: 1,
+        position: Math.min(currentTime, duration),
+      });
+    } catch (e) {
+      // Some browsers may throw if position > duration
+      console.warn('Media Session position state error:', e);
+    }
+  }, [currentTime, duration, currentSong]);
 
   // Sync audio with player state
   useEffect(() => {
