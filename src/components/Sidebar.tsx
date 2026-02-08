@@ -1,12 +1,12 @@
-import { Home, Search, Library, Plus, Heart, Music2, Upload } from 'lucide-react';
+import { Home, Search, Library, Plus, Heart, Music2, Upload, Settings } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface SidebarProps {
-  activeView: 'home' | 'search' | 'library' | 'playlist';
-  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist') => void;
+  activeView: 'home' | 'search' | 'library' | 'playlist' | 'settings';
+  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist' | 'settings') => void;
   selectedPlaylistId?: string;
   onSelectPlaylist: (id: string) => void;
   onUploadClick: () => void;
@@ -26,7 +26,7 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
     }
   };
 
-  const handleNavClick = (view: 'home' | 'search' | 'library' | 'playlist') => {
+  const handleNavClick = (view: 'home' | 'search' | 'library' | 'playlist' | 'settings') => {
     onViewChange(view);
   };
 
@@ -60,6 +60,17 @@ export function Sidebar({ activeView, onViewChange, selectedPlaylistId, onSelect
           >
             <Search size={24} />
             <span>Search</span>
+          </button>
+
+          <button
+            onClick={() => handleNavClick('settings')}
+            className={cn(
+              "flex items-center gap-4 text-sm font-semibold transition-colors",
+              activeView === 'settings' ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Settings size={24} />
+            <span>Settings</span>
           </button>
         </nav>
         

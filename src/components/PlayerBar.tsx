@@ -4,6 +4,7 @@ import {
   Shuffle, Repeat, Repeat1, Mic2, ListMusic, Maximize2, Trash2 
 } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { applySafePlaybackSettings } from '@/lib/audio';
 import { FullScreenPlayer } from './FullScreenPlayer';
@@ -11,6 +12,7 @@ import { MiniPlayer } from './MiniPlayer';
 import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
 import { useAudioStabilityGuard } from '@/hooks/useAudioStabilityGuard';
 import { useNowPlayingNotification } from '@/hooks/useNowPlayingNotification';
+import { useAudioEngine } from '@/hooks/useAudioEngine';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
@@ -46,6 +48,10 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
+  const { autoplay } = useSettingsStore();
+
+  // Web Audio API engine for mono & equalizer
+  useAudioEngine(audioRef);
 
   // Load audio from IndexedDB when song changes
   useEffect(() => {
@@ -243,11 +249,10 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       audioRef.current.currentTime = 0;
       applySafePlaybackSettings(audioRef.current);
       audioRef.current.play().catch(() => {});
-    } else {
-      // Auto-play next song if available
+    } else if (autoplay) {
+      // Auto-play next song if autoplay is enabled
       const availableQueue = queue.length > 0 ? queue : songs;
       if (availableQueue.length > 1 || repeat === 'all') {
-        // Use setTimeout to ensure state updates properly even in background
         setTimeout(() => {
           nextSong();
         }, 0);

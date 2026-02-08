@@ -8,11 +8,12 @@ import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
+import { SettingsView } from '@/components/views/SettingsView';
 import { useMusicStore } from '@/stores/musicStore';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { cn } from '@/lib/utils';
 
-type View = 'home' | 'search' | 'library' | 'playlist';
+type View = 'home' | 'search' | 'library' | 'playlist' | 'settings';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<View>('home');
@@ -33,6 +34,8 @@ const Index = () => {
         return <LibraryView isDeleteMode={isDeleteMode} />;
       case 'playlist':
         return <PlaylistView playlistId={selectedPlaylistId} isDeleteMode={isDeleteMode} />;
+      case 'settings':
+        return <SettingsView />;
       default:
         return <HomeView isDeleteMode={isDeleteMode} />;
     }
