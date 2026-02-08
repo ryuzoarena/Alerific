@@ -96,4 +96,11 @@ export function useBackgroundPlayback(
       window.removeEventListener('focus', handleFocus);
     };
   }, [audioRef, isPlaying, onResume]);
+
+  // Second useEffect: apply safe settings once when playback starts
+  // (keeps hook count stable across renders)
+  useEffect(() => {
+    if (!audioRef.current || !isPlaying) return;
+    applySafePlaybackSettings(audioRef.current);
+  }, [audioRef, isPlaying]);
 }
