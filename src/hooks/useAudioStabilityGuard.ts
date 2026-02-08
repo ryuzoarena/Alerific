@@ -3,8 +3,14 @@ import { applySafePlaybackSettings } from "@/lib/audio";
 
 /**
  * Ensures safe playback settings stay applied across track transitions.
- * Some mobile browsers can reset playbackRate/pitch after a new src is loaded
- * or when playback resumes in the background.
+ * 
+ * MINIMAL approach: only enforce on the two critical moments:
+ * - loadedmetadata: when a new track source is loaded
+ * - play: right before playback begins
+ * 
+ * We intentionally avoid listening to too many events (canplay, canplaythrough,
+ * playing, ratechange, etc.) as over-enforcement can conflict with browser
+ * audio management on mobile, causing crackling and distortion.
  */
 export function useAudioStabilityGuard(
   audioRef: React.RefObject<HTMLAudioElement>,
@@ -18,17 +24,13 @@ export function useAudioStabilityGuard(
       applySafePlaybackSettings(audio);
     };
 
-    // Apply once immediately, then keep re-applying on key lifecycle events.
+    // Apply once immediately for the current track
     enforce();
 
+    // Only enforce on the two most critical lifecycle moments
     const events: Array<keyof HTMLMediaElementEventMap> = [
       "loadedmetadata",
-      "loadeddata",
-      "canplay",
-      "canplaythrough",
       "play",
-      "playing",
-      "ratechange",
     ];
 
     events.forEach((evt) => audio.addEventListener(evt, enforce));
