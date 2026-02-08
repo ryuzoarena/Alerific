@@ -3,89 +3,68 @@ import { applySafePlaybackSettings } from '@/lib/audio';
 
 /**
  * Hook to maintain background audio playback when screen is off or app is in background.
- * Uses multiple strategies:
- * 1. Web Locks API - prevents browser from suspending the tab
- * 2. Visibility change handling - resumes playback when coming back
- * 3. Page show/hide events - handles mobile browser behavior
- * 4. Periodic keep-alive - prevents audio context suspension
+ * 
+ * IMPORTANT: This hook uses a MINIMAL approach to avoid fighting the browser's
+ * audio management, which causes crackling/distortion on mobile devices.
+ * 
+ * Strategies:
+ * 1. Visibility change handling - resumes playback when returning to foreground
+ * 2. Page show/hide events - handles iOS Safari bfcache restoration
+ * 3. Focus events - handles tab focus restoration
+ * 
+ * We intentionally DO NOT:
+ * - Intercept pause events (causes rapid play/pause = crackling)
+ * - Call audio.load() on stall (resets buffer = distortion)  
+ * - Use keep-alive pings (interferes with browser audio management)
+ * - Use Web Locks API (unnecessary overhead, doesn't prevent audio issues)
+ * 
+ * Background playback is primarily handled by the Media Session API
+ * configured in PlayerBar.tsx, which is the correct browser-native approach.
  */
 export function useBackgroundPlayback(
   audioRef: React.RefObject<HTMLAudioElement>,
   isPlaying: boolean,
   onResume?: () => void
 ) {
-  const lockRef = useRef<any>(null);
-  const keepAliveIntervalRef = useRef<number | null>(null);
   const wasPlayingBeforeHideRef = useRef(false);
 
   useEffect(() => {
     if (!audioRef.current) return;
 
-    // Strategy 1: Web Locks API to prevent tab suspension
-    const acquireLock = async () => {
-      if ('locks' in navigator && isPlaying) {
-        try {
-          // Request a lock that keeps the tab alive
-          navigator.locks.request(
-            'audio-playback-lock',
-            { mode: 'exclusive', ifAvailable: true },
-            async (lock) => {
-              lockRef.current = lock;
-              // Keep the lock held while playing
-              return new Promise<void>((resolve) => {
-                const checkInterval = setInterval(() => {
-                  const store = (window as any).__musicStoreState;
-                  if (!store?.playerState?.isPlaying) {
-                    clearInterval(checkInterval);
-                    resolve();
-                  }
-                }, 1000);
-              });
-            }
-          );
-        } catch {
-          // Web Locks not supported or failed, continue with other strategies
-          console.log('Web Locks not available');
-        }
-      }
-    };
-
-    if (isPlaying) {
-      acquireLock();
-    }
-
-    // Strategy 2: Visibility change - resume when coming back to foreground
+    // Strategy 1: Visibility change - resume only when RETURNING to foreground
     const handleVisibilityChange = () => {
       if (!audioRef.current) return;
 
       if (document.visibilityState === 'hidden') {
-        // Store playing state before going to background
+        // Just remember the state, don't touch the audio element
         wasPlayingBeforeHideRef.current = isPlaying;
-        
-        // Force audio to continue by touching the element
-        if (isPlaying && audioRef.current.paused) {
-          applySafePlaybackSettings(audioRef.current);
-          audioRef.current.play().catch(() => {});
-        }
       } else if (document.visibilityState === 'visible') {
-        // Coming back to foreground
+        // Returning to foreground - only resume if we were playing before
         if (wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-          applySafePlaybackSettings(audioRef.current);
-          audioRef.current.play().catch(() => {});
-          onResume?.();
+          // Small delay to let the browser stabilize after coming to foreground
+          setTimeout(() => {
+            if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
+              applySafePlaybackSettings(audioRef.current);
+              audioRef.current.play().catch(() => {});
+              onResume?.();
+            }
+          }, 200);
         }
       }
     };
 
-    // Strategy 3: Page show/hide for iOS Safari and mobile browsers
+    // Strategy 2: Page show for iOS Safari bfcache restoration
     const handlePageShow = (e: PageTransitionEvent) => {
       if (!audioRef.current) return;
       
-      // Persisted means page was restored from bfcache
-      if (e.persisted && wasPlayingBeforeHideRef.current) {
-        applySafePlaybackSettings(audioRef.current);
-        audioRef.current.play().catch(() => {});
-        onResume?.();
+      if (e.persisted && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
+        setTimeout(() => {
+          if (audioRef.current && audioRef.current.paused) {
+            applySafePlaybackSettings(audioRef.current);
+            audioRef.current.play().catch(() => {});
+            onResume?.();
+          }
+        }, 200);
       }
     };
 
@@ -93,32 +72,18 @@ export function useBackgroundPlayback(
       wasPlayingBeforeHideRef.current = isPlaying;
     };
 
-    // Strategy 4: Keep-alive ping to prevent audio context suspension
-    if (isPlaying) {
-      keepAliveIntervalRef.current = window.setInterval(() => {
-        if (audioRef.current && isPlaying && !audioRef.current.paused) {
-          // Defensive: some mobile browsers may drift playbackRate in background
-          applySafePlaybackSettings(audioRef.current);
-
-          // Touch the audio element to keep it alive by accessing properties
-          const currentTime = audioRef.current.currentTime;
-          if (currentTime > 0) {
-            // Access volume to keep audio context active (read-only touch)
-            void audioRef.current.volume;
-          }
-        }
-      }, 10000); // Every 10 seconds
-    }
-
-    // Strategy 5: Handle focus events
+    // Strategy 3: Focus event - resume when window regains focus
     const handleFocus = () => {
       if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-        applySafePlaybackSettings(audioRef.current);
-        audioRef.current.play().catch(() => {});
+        setTimeout(() => {
+          if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
+            applySafePlaybackSettings(audioRef.current);
+            audioRef.current.play().catch(() => {});
+          }
+        }, 200);
       }
     };
 
-    // Add event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('pagehide', handlePageHide);
@@ -129,59 +94,6 @@ export function useBackgroundPlayback(
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('focus', handleFocus);
-      
-      if (keepAliveIntervalRef.current) {
-        clearInterval(keepAliveIntervalRef.current);
-      }
     };
   }, [audioRef, isPlaying, onResume]);
-
-  // Strategy 6: Prevent audio element from pausing on screen lock (mobile)
-  useEffect(() => {
-    if (!audioRef.current || !isPlaying) return;
-
-    const audio = audioRef.current;
-
-    // Intercept pause events that might be triggered by system
-    const handlePause = () => {
-      // If we should be playing but audio paused, resume
-      if (isPlaying && audio.paused) {
-        // Small delay to avoid rapid pause/play cycles
-        setTimeout(() => {
-          if (isPlaying && audio.paused && audio.src) {
-            applySafePlaybackSettings(audio);
-            audio.play().catch(() => {});
-          }
-        }, 100);
-      }
-    };
-
-    // Handle audio stall (buffering issues in background)
-    const handleStalled = () => {
-      if (isPlaying && audio.src) {
-        // Avoid aggressive reloads in background (can cause speed/pitch glitches on mobile).
-        // Instead: re-apply safe settings and attempt resume.
-        applySafePlaybackSettings(audio);
-        if (audio.readyState < 2) {
-          try {
-            audio.load();
-          } catch {
-            // ignore
-          }
-        }
-        setTimeout(() => {
-          applySafePlaybackSettings(audio);
-          audio.play().catch(() => {});
-        }, 0);
-      }
-    };
-
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('stalled', handleStalled);
-
-    return () => {
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('stalled', handleStalled);
-    };
-  }, [audioRef, isPlaying]);
 }
