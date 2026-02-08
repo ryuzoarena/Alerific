@@ -1,4 +1,4 @@
-import { Settings, ChevronRight } from 'lucide-react';
+import { Settings, ChevronRight, Info } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSettingsStore, EQ_PRESET_LABELS, EQPreset } from '@/stores/settingsStore';
@@ -28,6 +28,7 @@ export function SettingsView() {
   const {
     autoplay, setAutoplay,
     monoAudio, setMonoAudio,
+    pictureInPicture, setPictureInPicture,
     eqEnabled, setEqEnabled,
     eqPreset, setEqPreset,
     eqBands, setEqBandGain,
@@ -60,6 +61,28 @@ export function SettingsView() {
             checked={monoAudio}
             onCheckedChange={setMonoAudio}
           />
+        </div>
+      </section>
+
+      {/* Kontrol Video */}
+      <section className="mb-8">
+        <h2 className="text-lg font-bold text-foreground mb-2">Kontrol video</h2>
+        <div className="divide-y divide-border">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex-1 pr-4">
+              <h3 className="text-base font-semibold text-foreground">Picture in picture</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Kecilkan video di pemutar mini saat kamu menutup app, agar kamu bisa terus menonton sambil memakai app.
+              </p>
+            </div>
+            <Switch checked={pictureInPicture} onCheckedChange={setPictureInPicture} />
+          </div>
+        </div>
+        <div className="flex items-start gap-2 mt-3 px-1">
+          <Info size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            Di pengaturan Android, buka Apps (Aplikasi) &gt; Special app access (Akses aplikasi khusus) &gt; Picture-in-picture (Gambar dalam gambar) untuk mengizinkan picture in picture.
+          </p>
         </div>
       </section>
 
