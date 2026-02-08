@@ -1,4 +1,4 @@
-import { Home, Search, Library, Sparkles, Plus, Trash2, Music } from 'lucide-react';
+import { Home, Search, Library, Sparkles, Plus, Trash2, Music, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Popover,
@@ -9,8 +9,8 @@ import { useState } from 'react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface MobileNavBarProps {
-  activeView: 'home' | 'search' | 'library' | 'playlist';
-  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist') => void;
+  activeView: 'home' | 'search' | 'library' | 'playlist' | 'settings';
+  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist' | 'settings') => void;
   onUploadClick: () => void;
   onDeleteModeToggle?: () => void;
   isDeleteMode?: boolean;
@@ -154,6 +154,23 @@ export function MobileNavBar({
                   <span className="text-xs text-muted-foreground">
                     {isDeleteMode ? "Return to normal view" : "Remove songs from library"}
                   </span>
+                </div>
+              </button>
+
+              {/* Settings Option */}
+              <button
+                onClick={() => {
+                  handleOpenChange(false);
+                  onViewChange('settings');
+                }}
+                className="flex items-center gap-4 p-2 rounded-xl hover:bg-accent/50 transition-colors text-left"
+              >
+                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-muted">
+                  <Settings size={22} className="text-muted-foreground" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">Settings</span>
+                  <span className="text-xs text-muted-foreground">Audio controls & preferences</span>
                 </div>
               </button>
             </div>
