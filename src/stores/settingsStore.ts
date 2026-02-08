@@ -37,10 +37,6 @@ interface SettingsStore {
   monoAudio: boolean;
   setMonoAudio: (v: boolean) => void;
 
-  // Picture in Picture
-  pictureInPicture: boolean;
-  setPictureInPicture: (v: boolean) => void;
-
   // Equalizer
   eqEnabled: boolean;
   setEqEnabled: (v: boolean) => void;
@@ -68,9 +64,6 @@ export const useSettingsStore = create<SettingsStore>()(
 
       monoAudio: false,
       setMonoAudio: (v) => set({ monoAudio: v }),
-
-      pictureInPicture: false,
-      setPictureInPicture: (v) => set({ pictureInPicture: v }),
 
       eqEnabled: false,
       setEqEnabled: (v) => set({ eqEnabled: v }),
