@@ -282,6 +282,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
+        crossOrigin="anonymous"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
