@@ -17,7 +17,10 @@ export const uploadAudioFile = async (songId: string, file: File): Promise<strin
   
   const { error } = await supabase.storage
     .from(AUDIO_BUCKET)
-    .upload(path, file, { upsert: true });
+    .upload(path, file, { 
+      upsert: true,
+      contentType: file.type || 'audio/mpeg',
+    });
   
   if (error) throw error;
   return path;
@@ -29,7 +32,10 @@ export const uploadCoverImage = async (songId: string, file: File): Promise<stri
   
   const { error } = await supabase.storage
     .from(COVER_BUCKET)
-    .upload(path, file, { upsert: true });
+    .upload(path, file, { 
+      upsert: true,
+      contentType: file.type || 'image/jpeg',
+    });
   
   if (error) throw error;
   return path;
