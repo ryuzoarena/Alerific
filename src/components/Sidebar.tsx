@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface SidebarProps {
-  activeView: 'home' | 'search' | 'library' | 'playlist' | 'settings';
-  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist' | 'settings') => void;
+  activeView: string;
+  onViewChange: (view: any) => void;
   selectedPlaylistId?: string;
   onSelectPlaylist: (id: string) => void;
   onUploadClick: () => void;

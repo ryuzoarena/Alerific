@@ -1,15 +1,18 @@
 import { SongGridCard } from '@/components/SongCard';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
+import { ArtistCard } from '@/components/ArtistCard';
 import { useMusicStore } from '@/stores/musicStore';
-import { Music2, TrendingUp, Clock, Sparkles, Library } from 'lucide-react';
+import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2 } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { Song } from '@/types/music';
 
 interface HomeViewProps {
   isDeleteMode?: boolean;
+  onArtistClick?: (artistName: string) => void;
 }
 
-export function HomeView({ isDeleteMode }: HomeViewProps) {
+export function HomeView({ isDeleteMode, onArtistClick }: HomeViewProps) {
   const { 
     songs, 
     playlists, 
@@ -38,6 +41,19 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
   const recommendedSongs = dailyRecommendationIds
     .map(id => songs.find(s => s.id === id))
     .filter(Boolean) as typeof songs;
+
+  // Group songs by artist (only artists with 2+ songs)
+  const artistGroups = useMemo(() => {
+    const groups: Record<string, Song[]> = {};
+    songs.forEach(song => {
+      const artist = song.artist;
+      if (!groups[artist]) groups[artist] = [];
+      groups[artist].push(song);
+    });
+    return Object.entries(groups)
+      .filter(([, songs]) => songs.length >= 2)
+      .sort((a, b) => b[1].length - a[1].length);
+  }, [songs]);
 
   const madeForYou = songs.slice(0, 6);
 
@@ -76,6 +92,25 @@ export function HomeView({ isDeleteMode }: HomeViewProps) {
           <div className="space-y-1">
             {recentlyPlayedSongs.map((song) => (
               <RecentlyPlayedCard key={song.id} song={song} queue={recentlyPlayedSongs} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {artistGroups.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Mic2 size={20} className={`theme-transition ${timeTheme.accentColor}`} />
+            <h2 className="text-xl sm:text-2xl font-bold">Artis Favoritmu</h2>
+          </div>
+          <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-0">
+            {artistGroups.map(([artistName, artistSongs]) => (
+              <ArtistCard
+                key={artistName}
+                artistName={artistName}
+                songs={artistSongs}
+                onClick={() => onArtistClick?.(artistName)}
+              />
             ))}
           </div>
         </section>
