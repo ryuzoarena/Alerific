@@ -5,8 +5,6 @@ import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAudioFile, uploadCoverImage, getAudioUrl, getCoverUrl } from '@/lib/cloudStorage';
-import { compressAudioToMp3 } from '@/lib/audioCompressor';
-import { Progress } from '@/components/ui/progress';
 
 interface UploadDialogProps {
   isOpen: boolean;
@@ -29,8 +27,6 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const [album, setAlbum] = useState('');
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [compressionProgress, setCompressionProgress] = useState(0);
-  const [statusText, setStatusText] = useState('');
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,22 +86,12 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const handleSubmit = async () => {
     if (!audioFile || !title) return;
     setIsProcessing(true);
-    setCompressionProgress(0);
-    setStatusText('Mengompresi audio...');
 
     try {
       const songId = crypto.randomUUID();
-
-      // Compress audio first
-      const compressedFile = await compressAudioToMp3(audioFile, (p) => setCompressionProgress(p));
-      const sizeBefore = (audioFile.size / (1024 * 1024)).toFixed(1);
-      const sizeAfter = (compressedFile.size / (1024 * 1024)).toFixed(1);
-      console.log(`Audio compressed: ${sizeBefore}MB → ${sizeAfter}MB`);
-
-      setStatusText('Menambahkan lagu...');
       
       // Create local blob URLs for instant playback
-      const localAudioUrl = URL.createObjectURL(compressedFile);
+      const localAudioUrl = URL.createObjectURL(audioFile);
       const localCoverUrl = coverFile ? URL.createObjectURL(coverFile) : undefined;
 
       // Add song immediately with local URLs for instant playback
@@ -130,7 +116,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       // Upload to cloud in background (non-blocking)
       (async () => {
         try {
-          const audioPath = await uploadAudioFile(songId, compressedFile);
+          const audioPath = await uploadAudioFile(songId, audioFile);
           
           let coverPath: string | undefined;
           if (coverFile) {
@@ -171,8 +157,6 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       console.error('Error adding song:', error);
     } finally {
       setIsProcessing(false);
-      setStatusText('');
-      setCompressionProgress(0);
     }
   };
 
@@ -294,14 +278,9 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         <div className="flex gap-3">
           <button onClick={handleClose} className="flex-1 px-4 py-2 text-sm font-medium rounded-full hover:bg-accent transition-colors">Cancel</button>
           <button onClick={handleSubmit} disabled={!audioFile || !title || isProcessing} className="flex-1 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100">
-            {isProcessing ? statusText || 'Processing...' : 'Add Song'}
+            {isProcessing ? 'Uploading...' : 'Add Song'}
           </button>
         </div>
-        {isProcessing && compressionProgress > 0 && compressionProgress < 100 && (
-          <div className="mt-2">
-            <Progress value={compressionProgress} className="h-1" />
-          </div>
-        )}
       </div>
     </div>
   );
