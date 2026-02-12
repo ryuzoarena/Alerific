@@ -40,11 +40,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     toggleShuffle,
     toggleRepeat,
     setCurrentLyricIndex,
-    loadSongMedia,
     removeSong,
     songs,
     queue,
-    queueIndex,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
@@ -53,30 +51,24 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   // Web Audio API engine for mono & equalizer
   useAudioEngine(audioRef);
 
-  // Load audio from IndexedDB when song changes
+  // Load audio from cloud URL when song changes
   useEffect(() => {
     if (!audioRef.current || !currentSong) return;
     
-    // Revoke previous URLs to prevent memory leaks
-    if (loadedAudioUrl) URL.revokeObjectURL(loadedAudioUrl);
-    if (loadedCoverUrl) URL.revokeObjectURL(loadedCoverUrl);
+    const audioUrl = currentSong.audioUrl || null;
+    const coverUrl = currentSong.coverUrl || null;
     
-    // Load from IndexedDB
-    loadSongMedia(currentSong.id).then((media) => {
-      if (media && audioRef.current) {
-        setLoadedAudioUrl(media.audioUrl);
-        setLoadedCoverUrl(media.coverUrl || null);
-        onCoverUrlChange?.(media.coverUrl || null);
+    setLoadedAudioUrl(audioUrl);
+    setLoadedCoverUrl(coverUrl);
+    onCoverUrlChange?.(coverUrl);
 
-        // Defensive: reset any browser-altered playback state before swapping src
-        applySafePlaybackSettings(audioRef.current);
-        audioRef.current.currentTime = 0;
-        setCurrentTime(0);
-
-        audioRef.current.src = media.audioUrl;
-        audioRef.current.load();
-      }
-    });
+    if (audioUrl) {
+      applySafePlaybackSettings(audioRef.current);
+      audioRef.current.currentTime = 0;
+      setCurrentTime(0);
+      audioRef.current.src = audioUrl;
+      audioRef.current.load();
+    }
   }, [currentSong?.id]);
 
   // Setup Media Session API for background playback control (notification bar)
