@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { PlayerBar } from '@/components/PlayerBar';
 import { LyricsPanel } from '@/components/LyricsPanel';
@@ -9,11 +9,11 @@ import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
 import { SettingsView } from '@/components/views/SettingsView';
-import { useMusicStore } from '@/stores/musicStore';
+import { ArtistView } from '@/components/views/ArtistView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { cn } from '@/lib/utils';
 
-type View = 'home' | 'search' | 'library' | 'playlist' | 'settings';
+type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<View>('home');
@@ -23,11 +23,17 @@ const Index = () => {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isFeaturedMenuOpen, setIsFeaturedMenuOpen] = useState(false);
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
+  const [selectedArtist, setSelectedArtist] = useState<string>('');
+
+  const handleArtistClick = (artistName: string) => {
+    setSelectedArtist(artistName);
+    setActiveView('artist');
+  };
 
   const renderMainContent = () => {
     switch (activeView) {
       case 'home':
-        return <HomeView isDeleteMode={isDeleteMode} />;
+        return <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} />;
       case 'search':
         return <SearchView isDeleteMode={isDeleteMode} />;
       case 'library':
@@ -36,8 +42,10 @@ const Index = () => {
         return <PlaylistView playlistId={selectedPlaylistId} isDeleteMode={isDeleteMode} />;
       case 'settings':
         return <SettingsView />;
+      case 'artist':
+        return <ArtistView artistName={selectedArtist} onBack={() => setActiveView('home')} isDeleteMode={isDeleteMode} />;
       default:
-        return <HomeView isDeleteMode={isDeleteMode} />;
+        return <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} />;
     }
   };
 

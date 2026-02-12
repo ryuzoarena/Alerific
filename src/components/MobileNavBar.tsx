@@ -9,8 +9,8 @@ import { useState } from 'react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 
 interface MobileNavBarProps {
-  activeView: 'home' | 'search' | 'library' | 'playlist' | 'settings';
-  onViewChange: (view: 'home' | 'search' | 'library' | 'playlist' | 'settings') => void;
+  activeView: string;
+  onViewChange: (view: any) => void;
   onUploadClick: () => void;
   onDeleteModeToggle?: () => void;
   isDeleteMode?: boolean;
