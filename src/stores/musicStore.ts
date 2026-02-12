@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Song, Playlist, PlayerState } from '@/types/music';
-import { getAudioFile, getCoverImage, deleteAudioFile, deleteCoverImage, initDB } from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
+import { getAudioUrl, getCoverUrl, deleteAudioFromCloud, deleteCoverFromCloud } from '@/lib/cloudStorage';
 
 interface MusicStore {
   // Songs
   songs: Song[];
+  songsLoaded: boolean;
+  fetchSongs: () => Promise<void>;
   addSong: (song: Song) => void;
   removeSong: (id: string) => void;
-  loadSongMedia: (songId: string) => Promise<{ audioUrl: string; coverUrl?: string } | null>;
   
   // Recently Played (max 3, ordered by most recent)
   recentlyPlayedIds: string[];
@@ -31,7 +33,7 @@ interface MusicStore {
   playerState: PlayerState;
   queue: Song[];
   queueIndex: number;
-  shuffledQueue: Song[]; // Fair shuffle queue - all songs play once before repeating
+  shuffledQueue: Song[];
   shuffledIndex: number;
   
   // Player actions
@@ -73,20 +75,14 @@ const defaultPlaylists: Playlist[] = [
   },
 ];
 
-// Initialize the IndexedDB on load
-initDB().catch(console.error);
-
 // Helper to check if we need to reset (past 3 AM today)
 const shouldResetRecommendations = (lastReset: number): boolean => {
   const now = new Date();
   const today3AM = new Date(now);
   today3AM.setHours(3, 0, 0, 0);
-  
-  // If current time is before 3 AM, use yesterday's 3 AM
   if (now.getHours() < 3) {
     today3AM.setDate(today3AM.getDate() - 1);
   }
-  
   return lastReset < today3AM.getTime();
 };
 
@@ -100,28 +96,57 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
-// Build a fair shuffled queue that starts with the current song and contains
-// every other song exactly once in random order.
 const buildFairShuffleQueue = (all: Song[], current: Song | null): Song[] => {
   if (all.length === 0) return [];
   if (!current) return shuffleArray([...all]);
-
   const rest = all.filter((s) => s.id !== current.id);
   return [current, ...shuffleArray(rest)];
 };
+
+// Convert a DB row to a Song with public URLs
+const dbRowToSong = (row: any): Song => ({
+  id: row.id,
+  title: row.title,
+  artist: row.artist,
+  album: row.album || undefined,
+  duration: row.duration,
+  audio_path: row.audio_path,
+  cover_path: row.cover_path || undefined,
+  audioUrl: row.audio_path ? getAudioUrl(row.audio_path) : undefined,
+  coverUrl: row.cover_path ? getCoverUrl(row.cover_path) : undefined,
+  lyrics: row.lyrics ? JSON.parse(row.lyrics) : [],
+  addedAt: new Date(row.created_at).getTime(),
+});
 
 export const useMusicStore = create<MusicStore>()(
   persist(
     (set, get) => ({
       songs: [],
+      songsLoaded: false,
       playlists: defaultPlaylists,
       recentlyPlayedIds: [],
       dailyRecommendationIds: [],
       lastRecommendationReset: 0,
+
+      fetchSongs: async () => {
+        try {
+          const { data, error } = await supabase
+            .from('songs')
+            .select('*')
+            .order('created_at', { ascending: false });
+          
+          if (error) throw error;
+          
+          const songs = (data || []).map(dbRowToSong);
+          set({ songs, songsLoaded: true });
+        } catch (error) {
+          console.error('Error fetching songs:', error);
+          set({ songsLoaded: true });
+        }
+      },
       
       addToRecentlyPlayed: (songId: string) => {
         set((state) => {
-          // Remove if exists, add to front, keep max 3
           const filtered = state.recentlyPlayedIds.filter(id => id !== songId);
           return { recentlyPlayedIds: [songId, ...filtered].slice(0, 3) };
         });
@@ -138,8 +163,6 @@ export const useMusicStore = create<MusicStore>()(
       
       checkAndRefreshRecommendations: () => {
         const { lastRecommendationReset, songs, dailyRecommendationIds } = get();
-        
-        // Also refresh if we have songs but no recommendations
         if (shouldResetRecommendations(lastRecommendationReset) || 
             (songs.length > 0 && dailyRecommendationIds.length === 0)) {
           get().refreshDailyRecommendations();
@@ -147,15 +170,24 @@ export const useMusicStore = create<MusicStore>()(
       },
       
       addSong: (song) => {
-        // Don't persist audioUrl and coverUrl (they're blob URLs that expire)
-        const songToStore = { ...song, audioUrl: undefined, coverUrl: undefined };
-        set((state) => ({ songs: [...state.songs, songToStore] }));
+        set((state) => ({ songs: [song, ...state.songs] }));
       },
       
       removeSong: async (id) => {
-        // Delete from IndexedDB
-        await deleteAudioFile(id).catch(console.error);
-        await deleteCoverImage(id).catch(console.error);
+        const song = get().songs.find(s => s.id === id);
+        
+        // Delete from cloud storage
+        if (song?.audio_path) {
+          await deleteAudioFromCloud(song.audio_path).catch(console.error);
+        }
+        if (song?.cover_path) {
+          await deleteCoverFromCloud(song.cover_path).catch(console.error);
+        }
+        
+        // Delete from database
+        await supabase.from('songs').delete().eq('id', id).then(({ error }) => {
+          if (error) console.error('Error deleting song from DB:', error);
+        });
         
         set((state) => ({
           songs: state.songs.filter(s => s.id !== id),
@@ -164,23 +196,6 @@ export const useMusicStore = create<MusicStore>()(
             songIds: p.songIds.filter(sid => sid !== id)
           }))
         }));
-      },
-      
-      loadSongMedia: async (songId: string) => {
-        try {
-          const audioBlob = await getAudioFile(songId);
-          if (!audioBlob) return null;
-          
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          const coverBlob = await getCoverImage(songId);
-          const coverUrl = coverBlob ? URL.createObjectURL(coverBlob) : undefined;
-          
-          return { audioUrl, coverUrl };
-        } catch (error) {
-          console.error('Error loading song media:', error);
-          return null;
-        }
       },
       
       createPlaylist: (name, description) => {
@@ -236,11 +251,7 @@ export const useMusicStore = create<MusicStore>()(
         const state = get();
         const newQueue = queue || state.songs;
         const index = newQueue.findIndex(s => s.id === song.id);
-
-        // Add to recently played
         state.addToRecentlyPlayed(song.id);
-
-        // If shuffle is enabled, rebuild a fair shuffle queue starting from this song
         const availableQueue = newQueue.length > 0 ? newQueue : state.songs;
         const nextShuffledQueue = state.playerState.shuffle
           ? buildFairShuffleQueue(availableQueue, song)
@@ -269,31 +280,17 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const {
-          queue,
-          queueIndex,
-          playerState,
-          songs,
-          addToRecentlyPlayed,
-          shuffledQueue,
-          shuffledIndex,
-        } = get();
-
+        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex } = get();
         const availableQueue = queue.length > 0 ? queue : songs;
         if (availableQueue.length === 0) return;
 
         const current = playerState.currentSong;
-
-        // Ensure shuffle queue is in sync with the current song when shuffle is ON
         let activeShuffleQueue = shuffledQueue;
         let activeShuffleIndex = shuffledIndex;
+        
         if (playerState.shuffle) {
           const expectedId = current?.id;
-          const foundIndex = expectedId
-            ? activeShuffleQueue.findIndex((s) => s.id === expectedId)
-            : -1;
-
-          // If not found / empty, rebuild a fair shuffle queue from current song
+          const foundIndex = expectedId ? activeShuffleQueue.findIndex((s) => s.id === expectedId) : -1;
           if (activeShuffleQueue.length === 0 || foundIndex === -1) {
             activeShuffleQueue = buildFairShuffleQueue(availableQueue, current);
             activeShuffleIndex = 0;
@@ -309,21 +306,13 @@ export const useMusicStore = create<MusicStore>()(
 
         if (playerState.shuffle) {
           newShuffledIndex = activeShuffleIndex + 1;
-
-          // If we've played all songs, start a new shuffled round (avoid repeating current immediately)
           if (newShuffledIndex >= newShuffledQueue.length) {
-            // Always continue in shuffle mode by starting a new fair round
             newShuffledQueue = shuffleArray([...availableQueue]);
-
-            // Avoid selecting the same song again as the first of the new round
             if (current && newShuffledQueue.length > 1 && newShuffledQueue[0].id === current.id) {
-              // rotate by 1
               newShuffledQueue = [...newShuffledQueue.slice(1), newShuffledQueue[0]];
             }
-
             newShuffledIndex = 0;
           }
-
           nextSong = newShuffledQueue[newShuffledIndex];
           newQueueIndex = availableQueue.findIndex((s) => s.id === nextSong.id);
           if (newQueueIndex === -1) newQueueIndex = 0;
@@ -339,9 +328,7 @@ export const useMusicStore = create<MusicStore>()(
           nextSong = availableQueue[newQueueIndex];
         }
 
-        // Add next song to recently played
         addToRecentlyPlayed(nextSong.id);
-
         set({
           queueIndex: newQueueIndex,
           queue: availableQueue,
@@ -360,34 +347,19 @@ export const useMusicStore = create<MusicStore>()(
       prevSong: () => {
         const { queue, queueIndex, playerState, addToRecentlyPlayed } = get();
         if (queue.length === 0) return;
-        
-        // If more than 3 seconds in, restart song
         if (playerState.currentTime > 3) {
-          set({
-            playerState: { ...playerState, currentTime: 0 },
-            currentLyricIndex: 0,
-          });
+          set({ playerState: { ...playerState, currentTime: 0 }, currentLyricIndex: 0 });
           return;
         }
-        
         let prevIndex = queueIndex - 1;
         if (prevIndex < 0) {
           prevIndex = playerState.repeat === 'all' ? queue.length - 1 : 0;
         }
-        
         const prevSongItem = queue[prevIndex];
-        
-        // Add previous song to recently played
         addToRecentlyPlayed(prevSongItem.id);
-        
         set({
           queueIndex: prevIndex,
-          playerState: {
-            ...playerState,
-            currentSong: prevSongItem,
-            currentTime: 0,
-            isPlaying: true,
-          },
+          playerState: { ...playerState, currentSong: prevSongItem, currentTime: 0, isPlaying: true },
           currentLyricIndex: 0,
         });
       },
@@ -395,54 +367,32 @@ export const useMusicStore = create<MusicStore>()(
       setCurrentTime: (time) => set((state) => ({
         playerState: { ...state.playerState, currentTime: time }
       })),
-      
       setDuration: (duration) => set((state) => ({
         playerState: { ...state.playerState, duration }
       })),
-      
       setVolume: (volume) => set((state) => ({
         playerState: { ...state.playerState, volume, isMuted: volume === 0 }
       })),
-      
       toggleMute: () => set((state) => ({
-        playerState: {
-          ...state.playerState,
-          isMuted: !state.playerState.isMuted,
-        }
+        playerState: { ...state.playerState, isMuted: !state.playerState.isMuted }
       })),
       
       toggleShuffle: () => {
         const state = get();
         const newShuffle = !state.playerState.shuffle;
-
         if (newShuffle) {
           const availableQueue = state.queue.length > 0 ? state.queue : state.songs;
           const shuffled = buildFairShuffleQueue(availableQueue, state.playerState.currentSong);
-
-          set({
-            playerState: { ...state.playerState, shuffle: true },
-            shuffledQueue: shuffled,
-            shuffledIndex: 0,
-          });
+          set({ playerState: { ...state.playerState, shuffle: true }, shuffledQueue: shuffled, shuffledIndex: 0 });
         } else {
-          set({
-            playerState: { ...state.playerState, shuffle: false },
-            shuffledQueue: [],
-            shuffledIndex: 0,
-          });
+          set({ playerState: { ...state.playerState, shuffle: false }, shuffledQueue: [], shuffledIndex: 0 });
         }
       },
       
       toggleRepeat: () => set((state) => {
         const modes: ('off' | 'all' | 'one')[] = ['off', 'all', 'one'];
         const currentIndex = modes.indexOf(state.playerState.repeat);
-        const nextIndex = (currentIndex + 1) % modes.length;
-        return {
-          playerState: {
-            ...state.playerState,
-            repeat: modes[nextIndex],
-          }
-        };
+        return { playerState: { ...state.playerState, repeat: modes[(currentIndex + 1) % modes.length] } };
       }),
       
       showLyrics: false,
@@ -453,7 +403,6 @@ export const useMusicStore = create<MusicStore>()(
       searchQuery: '',
       setSearchQuery: (query) => set({ searchQuery: query }),
       
-      // Mobile sidebar
       isSidebarOpen: false,
       toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       closeSidebar: () => set({ isSidebarOpen: false }),
@@ -461,7 +410,6 @@ export const useMusicStore = create<MusicStore>()(
     {
       name: 'sybau-music-storage',
       partialize: (state) => ({
-        songs: state.songs,
         playlists: state.playlists,
         recentlyPlayedIds: state.recentlyPlayedIds,
         dailyRecommendationIds: state.dailyRecommendationIds,

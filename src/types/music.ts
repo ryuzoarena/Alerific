@@ -10,8 +10,10 @@ export interface Song {
   album?: string;
   duration: number;
   coverUrl?: string;
-  audioBlob?: Blob;
   audioUrl?: string;
+  // Cloud storage paths
+  audio_path?: string;
+  cover_path?: string;
   lyrics?: LyricLine[];
   addedAt: number;
 }
