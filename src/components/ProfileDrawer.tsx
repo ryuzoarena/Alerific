@@ -1,6 +1,6 @@
 import { 
   Zap, Clock, Megaphone, Settings, Trash2, Music, 
-  MessageSquarePlus
+  MessageSquarePlus, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
@@ -15,6 +15,7 @@ interface ProfileDrawerProps {
   isDeleteMode?: boolean;
   onViewChange: (view: any) => void;
   onGetStarted?: () => void;
+  onSignOut?: () => void;
 }
 
 export function ProfileDrawer({
@@ -27,6 +28,7 @@ export function ProfileDrawer({
   isDeleteMode,
   onViewChange,
   onGetStarted,
+  onSignOut,
 }: ProfileDrawerProps) {
   const timeTheme = useTimeTheme();
   const initial = userName.charAt(0).toUpperCase();
@@ -155,6 +157,17 @@ export function ProfileDrawer({
               <span className="text-base text-foreground font-medium">Pesan baru</span>
             </button>
           </div>
+
+          {/* Sign out */}
+          {isLoggedIn && (
+            <button
+              onClick={() => handleAction(() => onSignOut?.())}
+              className="w-full flex items-center gap-4 px-5 py-4 hover:bg-accent/50 transition-colors mt-2"
+            >
+              <LogOut size={24} className="text-muted-foreground" />
+              <span className="text-base text-muted-foreground">Keluar</span>
+            </button>
+          )}
         </div>
       </div>
     </>

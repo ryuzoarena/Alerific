@@ -5,6 +5,7 @@ import { LyricsPanel } from '@/components/LyricsPanel';
 import { UploadDialog } from '@/components/UploadDialog';
 import { MobileNavBar } from '@/components/MobileNavBar';
 import { ProfileDrawer } from '@/components/ProfileDrawer';
+import { AuthPage } from '@/components/AuthPage';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
@@ -12,6 +13,7 @@ import { PlaylistView } from '@/components/views/PlaylistView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { ArtistView } from '@/components/views/ArtistView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist';
@@ -25,15 +27,26 @@ const Index = () => {
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
   const [selectedArtist, setSelectedArtist] = useState<string>('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
-  // Mock login state - will be replaced with real auth later
-  const isLoggedIn = false;
-  const userName = 'Shura';
+  const { isLoggedIn, displayName, signIn, signUp, signOut } = useAuth();
+  const timeTheme = useTimeTheme();
 
   const handleArtistClick = (artistName: string) => {
     setSelectedArtist(artistName);
     setActiveView('artist');
   };
+
+  // Show auth page
+  if (showAuth && !isLoggedIn) {
+    return (
+      <AuthPage
+        onBack={() => setShowAuth(false)}
+        onSignIn={signIn}
+        onSignUp={signUp}
+      />
+    );
+  }
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -44,8 +57,8 @@ const Index = () => {
             onArtistClick={handleArtistClick}
             onAvatarClick={() => setIsDrawerOpen(true)}
             isLoggedIn={isLoggedIn}
-            userName={userName}
-            onGetStarted={() => setIsDrawerOpen(true)}
+            userName={displayName}
+            onGetStarted={() => setShowAuth(true)}
           />
         );
       case 'search':
@@ -65,14 +78,12 @@ const Index = () => {
             onArtistClick={handleArtistClick}
             onAvatarClick={() => setIsDrawerOpen(true)}
             isLoggedIn={isLoggedIn}
-            userName={userName}
-            onGetStarted={() => setIsDrawerOpen(true)}
+            userName={displayName}
+            onGetStarted={() => setShowAuth(true)}
           />
         );
     }
   };
-
-  const timeTheme = useTimeTheme();
 
   return (
     <div className={cn(
@@ -80,9 +91,7 @@ const Index = () => {
       "lg:bg-black",
       `bg-gradient-to-b ${timeTheme.gradient}`
     )}>
-      {/* Main content area */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Sidebar - Desktop only */}
         <div className="hidden lg:block">
           <Sidebar 
             activeView={activeView}
@@ -93,12 +102,10 @@ const Index = () => {
           />
         </div>
 
-        {/* Main content */}
         <main className="flex-1 bg-transparent lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide">
           {renderMainContent()}
         </main>
 
-        {/* Lyrics panel - Desktop only */}
         <div className="hidden lg:block h-full min-h-0">
           <LyricsPanel 
             isOpen={showLyrics} 
@@ -108,33 +115,30 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Player bar */}
       <PlayerBar 
         showLyrics={showLyrics}
         onToggleLyrics={() => setShowLyrics(!showLyrics)}
         onCoverUrlChange={setCurrentCoverUrl}
       />
 
-      {/* Mobile bottom navigation */}
       <MobileNavBar 
         activeView={activeView}
         onViewChange={setActiveView}
       />
 
-      {/* Profile Drawer - Mobile */}
       <ProfileDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         isLoggedIn={isLoggedIn}
-        userName={userName}
+        userName={displayName}
         onUploadClick={() => setShowUpload(true)}
         onDeleteModeToggle={() => setIsDeleteMode(!isDeleteMode)}
         isDeleteMode={isDeleteMode}
         onViewChange={setActiveView}
-        onGetStarted={() => {/* will navigate to auth later */}}
+        onGetStarted={() => { setIsDrawerOpen(false); setShowAuth(true); }}
+        onSignOut={signOut}
       />
 
-      {/* Upload dialog */}
       <UploadDialog 
         isOpen={showUpload} 
         onClose={() => setShowUpload(false)} 
