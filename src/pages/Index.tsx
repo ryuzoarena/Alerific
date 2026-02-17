@@ -4,6 +4,7 @@ import { PlayerBar } from '@/components/PlayerBar';
 import { LyricsPanel } from '@/components/LyricsPanel';
 import { UploadDialog } from '@/components/UploadDialog';
 import { MobileNavBar } from '@/components/MobileNavBar';
+import { ProfileDrawer } from '@/components/ProfileDrawer';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
@@ -21,9 +22,13 @@ const Index = () => {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const [isFeaturedMenuOpen, setIsFeaturedMenuOpen] = useState(false);
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
   const [selectedArtist, setSelectedArtist] = useState<string>('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Mock login state - will be replaced with real auth later
+  const isLoggedIn = false;
+  const userName = 'Shura';
 
   const handleArtistClick = (artistName: string) => {
     setSelectedArtist(artistName);
@@ -33,7 +38,16 @@ const Index = () => {
   const renderMainContent = () => {
     switch (activeView) {
       case 'home':
-        return <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} />;
+        return (
+          <HomeView 
+            isDeleteMode={isDeleteMode} 
+            onArtistClick={handleArtistClick}
+            onAvatarClick={() => setIsDrawerOpen(true)}
+            isLoggedIn={isLoggedIn}
+            userName={userName}
+            onGetStarted={() => setIsDrawerOpen(true)}
+          />
+        );
       case 'search':
         return <SearchView isDeleteMode={isDeleteMode} />;
       case 'library':
@@ -45,7 +59,16 @@ const Index = () => {
       case 'artist':
         return <ArtistView artistName={selectedArtist} onBack={() => setActiveView('home')} isDeleteMode={isDeleteMode} />;
       default:
-        return <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} />;
+        return (
+          <HomeView 
+            isDeleteMode={isDeleteMode} 
+            onArtistClick={handleArtistClick}
+            onAvatarClick={() => setIsDrawerOpen(true)}
+            isLoggedIn={isLoggedIn}
+            userName={userName}
+            onGetStarted={() => setIsDrawerOpen(true)}
+          />
+        );
     }
   };
 
@@ -54,8 +77,8 @@ const Index = () => {
   return (
     <div className={cn(
       "h-screen flex flex-col overflow-hidden theme-transition",
-      "lg:bg-black", // Desktop keeps black background
-      `bg-gradient-to-b ${timeTheme.gradient}` // Mobile uses time-based gradient
+      "lg:bg-black",
+      `bg-gradient-to-b ${timeTheme.gradient}`
     )}>
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden min-h-0">
@@ -85,26 +108,30 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Player bar - hide on mobile when Featured menu is open */}
-      <div className={cn(
-        "transition-opacity duration-200",
-        isFeaturedMenuOpen ? "lg:opacity-100 opacity-0 pointer-events-none lg:pointer-events-auto" : "opacity-100"
-      )}>
-        <PlayerBar 
-          showLyrics={showLyrics}
-          onToggleLyrics={() => setShowLyrics(!showLyrics)}
-          onCoverUrlChange={setCurrentCoverUrl}
-        />
-      </div>
+      {/* Player bar */}
+      <PlayerBar 
+        showLyrics={showLyrics}
+        onToggleLyrics={() => setShowLyrics(!showLyrics)}
+        onCoverUrlChange={setCurrentCoverUrl}
+      />
 
       {/* Mobile bottom navigation */}
       <MobileNavBar 
         activeView={activeView}
         onViewChange={setActiveView}
+      />
+
+      {/* Profile Drawer - Mobile */}
+      <ProfileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
         onUploadClick={() => setShowUpload(true)}
         onDeleteModeToggle={() => setIsDeleteMode(!isDeleteMode)}
         isDeleteMode={isDeleteMode}
-        onMenuOpenChange={setIsFeaturedMenuOpen}
+        onViewChange={setActiveView}
+        onGetStarted={() => {/* will navigate to auth later */}}
       />
 
       {/* Upload dialog */}
