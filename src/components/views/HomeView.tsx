@@ -4,15 +4,20 @@ import { ArtistCard } from '@/components/ArtistCard';
 import { useMusicStore } from '@/stores/musicStore';
 import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2 } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Song } from '@/types/music';
+import { cn } from '@/lib/utils';
 
 interface HomeViewProps {
   isDeleteMode?: boolean;
   onArtistClick?: (artistName: string) => void;
+  onAvatarClick?: () => void;
+  isLoggedIn?: boolean;
+  userName?: string;
+  onGetStarted?: () => void;
 }
 
-export function HomeView({ isDeleteMode, onArtistClick }: HomeViewProps) {
+export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedIn, userName, onGetStarted }: HomeViewProps) {
   const { 
     songs, 
     playlists, 
@@ -57,8 +62,54 @@ export function HomeView({ isDeleteMode, onArtistClick }: HomeViewProps) {
 
   const madeForYou = songs.slice(0, 6);
 
+  const [activeFilter, setActiveFilter] = useState<'semua' | 'musik' | 'podcast'>('semua');
+  const filters = [
+    { id: 'semua' as const, label: 'Semua' },
+    { id: 'musik' as const, label: 'Musik' },
+    { id: 'podcast' as const, label: 'Podcast' },
+  ];
+
   return (
     <div className={`p-3 sm:p-4 md:p-6 pb-24 overflow-y-auto h-full bg-gradient-to-b theme-transition ${timeTheme.gradient}`}>
+      {/* Mobile header with avatar + filter chips */}
+      <div className="lg:hidden flex items-center gap-3 mb-4">
+        {isLoggedIn ? (
+          <button
+            onClick={onAvatarClick}
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: 'hsl(25, 40%, 40%)' }}
+          >
+            <span className="text-foreground text-sm font-bold">{userName?.charAt(0).toUpperCase() || 'U'}</span>
+          </button>
+        ) : (
+          <button
+            onClick={onGetStarted}
+            className={cn(
+              "px-4 py-2 rounded-full text-xs font-bold flex-shrink-0 transition-transform hover:scale-[1.02]",
+              timeTheme.accentBg, timeTheme.buttonText
+            )}
+          >
+            Get Started
+          </button>
+        )}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {filters.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setActiveFilter(f.id)}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors",
+                activeFilter === f.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <section className="mb-8">
         <h1 className="text-3xl font-bold mb-6">{timeTheme.greeting}</h1>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
