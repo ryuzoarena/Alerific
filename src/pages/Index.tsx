@@ -12,11 +12,13 @@ import { LibraryView } from '@/components/views/LibraryView';
 import { PlaylistView } from '@/components/views/PlaylistView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { ArtistView } from '@/components/views/ArtistView';
+import { AdminView } from '@/components/views/AdminView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 
-type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist';
+type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<View>('home');
@@ -30,6 +32,7 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   const { isLoggedIn, displayName, signIn, signUp, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const timeTheme = useTimeTheme();
 
   const handleArtistClick = (artistName: string) => {
@@ -71,6 +74,8 @@ const Index = () => {
         return <SettingsView />;
       case 'artist':
         return <ArtistView artistName={selectedArtist} onBack={() => setActiveView('home')} isDeleteMode={isDeleteMode} />;
+      case 'admin':
+        return isAdmin ? <AdminView /> : <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} onAvatarClick={() => setIsDrawerOpen(true)} isLoggedIn={isLoggedIn} userName={displayName} onGetStarted={() => setShowAuth(true)} />;
       default:
         return (
           <HomeView 
@@ -137,6 +142,7 @@ const Index = () => {
         onViewChange={setActiveView}
         onGetStarted={() => { setIsDrawerOpen(false); setShowAuth(true); }}
         onSignOut={signOut}
+        isAdmin={isAdmin}
       />
 
       <UploadDialog 
