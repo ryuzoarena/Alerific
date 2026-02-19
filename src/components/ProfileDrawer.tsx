@@ -1,6 +1,6 @@
 import { 
   Zap, Clock, Megaphone, Settings, Trash2, Music, 
-  MessageSquarePlus, LogOut
+  MessageSquarePlus, LogOut, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
@@ -16,6 +16,7 @@ interface ProfileDrawerProps {
   onViewChange: (view: any) => void;
   onGetStarted?: () => void;
   onSignOut?: () => void;
+  isAdmin?: boolean;
 }
 
 export function ProfileDrawer({
@@ -29,6 +30,7 @@ export function ProfileDrawer({
   onViewChange,
   onGetStarted,
   onSignOut,
+  isAdmin,
 }: ProfileDrawerProps) {
   const timeTheme = useTimeTheme();
   const initial = userName.charAt(0).toUpperCase();
@@ -143,6 +145,17 @@ export function ProfileDrawer({
             <Settings size={24} className="text-foreground" />
             <span className="text-base text-foreground">Pengaturan dan privasi</span>
           </button>
+
+          {/* Admin Panel */}
+          {isAdmin && (
+            <button
+              onClick={() => handleAction(() => onViewChange('admin'))}
+              className="w-full flex items-center gap-4 px-5 py-4 hover:bg-accent/50 transition-colors"
+            >
+              <Shield size={24} className="text-primary" />
+              <span className="text-base text-primary font-semibold">Admin Panel</span>
+            </button>
+          )}
 
           {/* Pesan section */}
           <div className="mt-4 px-5 pt-4 border-t border-border">
