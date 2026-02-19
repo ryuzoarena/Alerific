@@ -68,7 +68,12 @@ export function ProfileDrawer({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-lg font-bold text-foreground truncate">{userName}</p>
-                <p className="text-sm text-muted-foreground">Lihat profil</p>
+                <button 
+                  onClick={() => handleAction(() => onViewChange('profile'))}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Lihat profil
+                </button>
               </div>
             </div>
           ) : (

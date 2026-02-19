@@ -13,12 +13,13 @@ import { PlaylistView } from '@/components/views/PlaylistView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { ArtistView } from '@/components/views/ArtistView';
 import { AdminView } from '@/components/views/AdminView';
+import { ProfileView } from '@/components/views/ProfileView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 
-type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin';
+type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<View>('home');
@@ -31,7 +32,8 @@ const Index = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
-  const { isLoggedIn, displayName, signIn, signUp, signOut } = useAuth();
+  const auth = useAuth();
+  const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
   const { isAdmin } = useUserRole();
   const timeTheme = useTimeTheme();
 
@@ -74,6 +76,20 @@ const Index = () => {
         return <SettingsView />;
       case 'artist':
         return <ArtistView artistName={selectedArtist} onBack={() => setActiveView('home')} isDeleteMode={isDeleteMode} />;
+      case 'profile':
+        return (
+          <ProfileView
+            onBack={() => setActiveView('home')}
+            userName={displayName}
+            avatarUrl={profile?.avatar_url}
+            onProfileUpdate={() => {
+              // Re-fetch profile by triggering auth refresh
+              if (user) {
+                auth.loading; // trigger re-render
+              }
+            }}
+          />
+        );
       case 'admin':
         return isAdmin ? <AdminView /> : <HomeView isDeleteMode={isDeleteMode} onArtistClick={handleArtistClick} onAvatarClick={() => setIsDrawerOpen(true)} isLoggedIn={isLoggedIn} userName={displayName} onGetStarted={() => setShowAuth(true)} />;
       default:
