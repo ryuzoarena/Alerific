@@ -57,8 +57,12 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     e.target.value = '';
   };
 
+  const isRawGif = rawImageSrc.startsWith('data:image/gif');
+
   const handleCropComplete = (croppedBlob: Blob) => {
-    const file = new File([croppedBlob], 'cover.jpg', { type: 'image/jpeg' });
+    const ext = isRawGif ? 'gif' : 'jpg';
+    const mime = isRawGif ? 'image/gif' : 'image/jpeg';
+    const file = new File([croppedBlob], `cover.${ext}`, { type: mime });
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(croppedBlob));
     setShowCropDialog(false);
@@ -303,6 +307,7 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       <CoverCropDialog
         open={showCropDialog}
         imageSrc={rawImageSrc}
+        isGif={isRawGif}
         onClose={() => { setShowCropDialog(false); setRawImageSrc(''); }}
         onCropComplete={handleCropComplete}
       />

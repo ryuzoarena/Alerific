@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 interface CoverCropDialogProps {
   open: boolean;
   imageSrc: string;
+  isGif?: boolean;
   onClose: () => void;
   onCropComplete: (croppedBlob: Blob) => void;
 }
@@ -48,20 +49,33 @@ function createCroppedImage(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   });
 }
 
-export function CoverCropDialog({ open, imageSrc, onClose, onCropComplete }: CoverCropDialogProps) {
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+export function CoverCropDialog({ open, imageSrc, isGif, onClose, onCropComplete }: CoverCropDialogProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [croppedAreaPercent, setCroppedAreaPercent] = useState<Area | null>(null);
 
-  const onCropAreaChange = useCallback((_: Area, areaPixels: Area) => {
+  const onCropAreaChange = useCallback((areaPercent: Area, areaPixels: Area) => {
     setCroppedAreaPixels(areaPixels);
+    setCroppedAreaPercent(areaPercent);
   }, []);
 
   const handleDone = async () => {
-    if (!croppedAreaPixels) return;
     try {
-      const blob = await createCroppedImage(imageSrc, croppedAreaPixels);
-      onCropComplete(blob);
+      if (isGif) {
+        // For GIFs: keep original file to preserve animation
+        const blob = await dataUrlToBlob(imageSrc);
+        onCropComplete(blob);
+      } else {
+        if (!croppedAreaPixels) return;
+        const blob = await createCroppedImage(imageSrc, croppedAreaPixels);
+        onCropComplete(blob);
+      }
     } catch (err) {
       console.error('Crop error:', err);
     }
@@ -83,21 +97,31 @@ export function CoverCropDialog({ open, imageSrc, onClose, onCropComplete }: Cov
 
         {/* Crop area */}
         <div className="relative w-full aspect-square bg-black">
-          <Cropper
-            image={imageSrc}
-            crop={crop}
-            zoom={zoom}
-            aspect={1}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropAreaChange}
-            cropShape="rect"
-            showGrid={false}
-            style={{
-              containerStyle: { width: '100%', height: '100%' },
-              cropAreaStyle: { border: '2px solid hsl(var(--primary))', borderRadius: '8px' },
-            }}
-          />
+          {isGif ? (
+            // Custom GIF cropper that preserves animation
+            <GifCropper
+              src={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              onCropChange={setCrop}
+            />
+          ) : (
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropAreaChange}
+              cropShape="rect"
+              showGrid={false}
+              style={{
+                containerStyle: { width: '100%', height: '100%' },
+                cropAreaStyle: { border: '2px solid hsl(var(--primary))', borderRadius: '8px' },
+              }}
+            />
+          )}
         </div>
 
         {/* Zoom slider */}
@@ -115,5 +139,71 @@ export function CoverCropDialog({ open, imageSrc, onClose, onCropComplete }: Cov
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Lightweight GIF-friendly cropper using CSS transform so the animation stays alive */
+function GifCropper({
+  src,
+  crop,
+  zoom,
+  onCropChange,
+}: {
+  src: string;
+  crop: { x: number; y: number };
+  zoom: number;
+  onCropChange: (c: { x: number; y: number }) => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setDragging(true);
+    setLastPos({ x: e.clientX, y: e.clientY });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragging) return;
+    const dx = e.clientX - lastPos.x;
+    const dy = e.clientY - lastPos.y;
+    setLastPos({ x: e.clientX, y: e.clientY });
+    onCropChange({ x: crop.x + dx, y: crop.y + dy });
+  };
+
+  const handlePointerUp = () => setDragging(false);
+
+  return (
+    <div
+      className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      <img
+        src={src}
+        alt="GIF preview"
+        draggable={false}
+        className="pointer-events-none"
+        style={{
+          transform: `translate(${crop.x}px, ${crop.y}px) scale(${zoom})`,
+          transformOrigin: 'center center',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+        }}
+      />
+      {/* Crop frame overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute border-2 rounded-lg"
+          style={{
+            border: '2px solid hsl(var(--primary))',
+            inset: '0',
+          }}
+        />
+      </div>
+    </div>
   );
 }
