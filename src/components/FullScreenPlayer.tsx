@@ -159,7 +159,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
         </div>
 
         {/* Album Art - Desktop shows larger */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16 max-h-[40vh] md:max-h-[45vh]">
+        <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16">
           <div className="w-full max-w-[280px] md:max-w-[400px] aspect-square rounded-lg overflow-hidden shadow-2xl">
             {loadedCoverUrl ? (
               <img 
