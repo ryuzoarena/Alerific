@@ -5,6 +5,7 @@ import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAudioFile, uploadCoverImage, getAudioUrl, getCoverUrl } from '@/lib/cloudStorage';
+import { CoverCropDialog } from '@/components/CoverCropDialog';
 
 interface UploadDialogProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
+  const [rawImageSrc, setRawImageSrc] = useState<string>('');
+  const [showCropDialog, setShowCropDialog] = useState(false);
   const [lyricsFile, setLyricsFile] = useState<File | null>(null);
   const [parsedLyrics, setParsedLyrics] = useState<LyricLine[]>([]);
   const [title, setTitle] = useState('');
@@ -45,10 +48,21 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setCoverFile(file);
     const reader = new FileReader();
-    reader.onload = (e) => setCoverPreview(e.target?.result as string);
+    reader.onload = (ev) => {
+      setRawImageSrc(ev.target?.result as string);
+      setShowCropDialog(true);
+    };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const file = new File([croppedBlob], 'cover.jpg', { type: 'image/jpeg' });
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(croppedBlob));
+    setShowCropDialog(false);
+    setRawImageSrc('');
   };
 
   const parseLyrics = (content: string): LyricLine[] => {
@@ -164,6 +178,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setAudioFile(null);
     setCoverFile(null);
     setCoverPreview('');
+    setRawImageSrc('');
+    setShowCropDialog(false);
     setLyricsFile(null);
     setParsedLyrics([]);
     setTitle('');
@@ -282,6 +298,14 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
           </button>
         </div>
       </div>
+
+      {/* Cover Crop Dialog */}
+      <CoverCropDialog
+        open={showCropDialog}
+        imageSrc={rawImageSrc}
+        onClose={() => { setShowCropDialog(false); setRawImageSrc(''); }}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
