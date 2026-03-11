@@ -235,22 +235,31 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     }
   };
 
-  // Auto-play next song when current ends
-  const handleEnded = () => {
-    if (repeat === 'one' && audioRef.current) {
+  // Auto-play next song when current ends — use a ref so the handler
+  // always reads the latest store / settings state, avoiding stale closures.
+  const handleEndedRef = useRef<() => void>(() => {});
+  handleEndedRef.current = () => {
+    const latestRepeat = useMusicStore.getState().playerState.repeat;
+    const latestAutoplay = useSettingsStore.getState().autoplay;
+    const latestQueue = useMusicStore.getState().queue;
+    const latestSongs = useMusicStore.getState().songs;
+    const latestNextSong = useMusicStore.getState().nextSong;
+
+    if (latestRepeat === 'one' && audioRef.current) {
       audioRef.current.currentTime = 0;
       applySafePlaybackSettings(audioRef.current);
       audioRef.current.play().catch(() => {});
-    } else if (autoplay) {
-      // Auto-play next song if autoplay is enabled
-      const availableQueue = queue.length > 0 ? queue : songs;
-      if (availableQueue.length > 1 || repeat === 'all') {
+    } else if (latestAutoplay) {
+      const availableQueue = latestQueue.length > 0 ? latestQueue : latestSongs;
+      if (availableQueue.length > 1 || latestRepeat === 'all') {
         setTimeout(() => {
-          nextSong();
+          latestNextSong();
         }, 0);
       }
     }
   };
+
+  const handleEnded = () => handleEndedRef.current();
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !audioRef.current) return;
