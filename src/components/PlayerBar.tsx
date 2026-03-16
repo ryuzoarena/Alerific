@@ -252,9 +252,25 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     } else if (latestAutoplay) {
       const availableQueue = latestQueue.length > 0 ? latestQueue : latestSongs;
       if (availableQueue.length > 1 || latestRepeat === 'all') {
-        setTimeout(() => {
-          latestNextSong();
-        }, 0);
+        // Call nextSong() synchronously to update store state
+        latestNextSong();
+        
+        // Immediately read the new song and play directly on the audio element.
+        // This keeps playback within the 'ended' event context, preventing
+        // browsers from blocking auto-play when the screen is off.
+        const newSong = useMusicStore.getState().playerState.currentSong;
+        if (audioRef.current && newSong) {
+          const newAudioUrl = newSong.audioUrl || null;
+          if (newAudioUrl) {
+            applySafePlaybackSettings(audioRef.current);
+            audioRef.current.src = newAudioUrl;
+            audioRef.current.load();
+            audioRef.current.play().catch(() => {});
+            setLoadedAudioUrl(newAudioUrl);
+            setLoadedCoverUrl(newSong.coverUrl || null);
+            onCoverUrlChange?.(newSong.coverUrl || null);
+          }
+        }
       }
     }
   };
