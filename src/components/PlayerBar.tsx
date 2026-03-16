@@ -41,12 +41,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     toggleRepeat,
     setCurrentLyricIndex,
     removeSong,
-    songs,
-    queue,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
-  const { autoplay } = useSettingsStore();
 
   // Web Audio API engine for mono & equalizer
   useAudioEngine(audioRef);
