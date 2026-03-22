@@ -29,6 +29,15 @@ interface MusicStore {
   addSongToPlaylist: (playlistId: string, songId: string) => void;
   removeSongFromPlaylist: (playlistId: string, songId: string) => void;
   
+  // User Queue (manual queue - plays before auto queue)
+  userQueue: Song[];
+  addToUserQueue: (song: Song) => void;
+  removeFromUserQueue: (index: number) => void;
+  clearUserQueue: () => void;
+  reorderUserQueue: (fromIndex: number, toIndex: number) => void;
+  showQueuePanel: boolean;
+  setShowQueuePanel: (show: boolean) => void;
+  
   // Player
   playerState: PlayerState;
   queue: Song[];
