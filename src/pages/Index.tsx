@@ -166,6 +166,8 @@ const Index = () => {
         isOpen={showUpload} 
         onClose={() => setShowUpload(false)} 
       />
+
+      <QueuePanel />
     </div>
   );
 };
