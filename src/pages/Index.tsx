@@ -6,6 +6,7 @@ import { UploadDialog } from '@/components/UploadDialog';
 import { MobileNavBar } from '@/components/MobileNavBar';
 import { ProfileDrawer } from '@/components/ProfileDrawer';
 import { AuthPage } from '@/components/AuthPage';
+import { QueuePanel } from '@/components/QueuePanel';
 import { HomeView } from '@/components/views/HomeView';
 import { SearchView } from '@/components/views/SearchView';
 import { LibraryView } from '@/components/views/LibraryView';
