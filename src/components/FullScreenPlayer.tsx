@@ -35,6 +35,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
     toggleRepeat,
     setCurrentTime,
     removeSong,
+    setShowQueuePanel,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, shuffle, repeat } = playerState;
