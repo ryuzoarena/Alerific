@@ -1,4 +1,4 @@
-import { X, GripVertical, Trash2, ListMusic, Music2 } from 'lucide-react';
+import { X, GripVertical, ListMusic, Music2 } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
