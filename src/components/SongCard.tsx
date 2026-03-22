@@ -1,8 +1,15 @@
-import { Play, Heart, Trash2 } from 'lucide-react';
+import { Play, Heart, Trash2, MoreVertical, ListPlus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface SongCardProps {
   song: Song;
