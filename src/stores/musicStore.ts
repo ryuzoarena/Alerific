@@ -305,7 +305,25 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex } = get();
+        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex, userQueue } = get();
+        
+        // If there are songs in the user queue, play the first one
+        if (userQueue.length > 0) {
+          const nextFromUserQueue = userQueue[0];
+          addToRecentlyPlayed(nextFromUserQueue.id);
+          set({
+            userQueue: userQueue.slice(1),
+            playerState: {
+              ...playerState,
+              currentSong: nextFromUserQueue,
+              currentTime: 0,
+              isPlaying: true,
+            },
+            currentLyricIndex: 0,
+          });
+          return;
+        }
+        
         const availableQueue = queue.length > 0 ? queue : songs;
         if (availableQueue.length === 0) return;
 
