@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreVertical, Trash2, Heart, Share2, PlusCircle } from 'lucide-react';
+import { MoreVertical, Trash2, Heart, Share2, PlusCircle, ListPlus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
