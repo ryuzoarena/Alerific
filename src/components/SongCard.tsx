@@ -88,7 +88,7 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
 
 // Grid card variant for home view
 export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
-  const { playSong, playerState, togglePlay, removeSong } = useMusicStore();
+  const { playSong, playerState, togglePlay, removeSong, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
@@ -100,6 +100,12 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
   };
 
   const handleDelete = (e: React.MouseEvent) => { e.stopPropagation(); removeSong(song.id); };
+
+  const handleAddToQueue = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToUserQueue(song);
+    toast.success(`"${song.title}" added to queue`);
+  };
 
   return (
     <div className="song-card bg-card p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer group relative w-full">
@@ -116,6 +122,21 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
             <Trash2 size={14} className="text-white" />
           </button>
         )}
+        
+        {/* More options button */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <button className="absolute top-1 right-1 w-7 h-7 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <MoreVertical size={14} className="text-white" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={handleAddToQueue}>
+              <ListPlus size={16} className="mr-2" /> Add to Queue
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <button onClick={handlePlay} className={`play-overlay absolute bottom-2 right-2 w-9 h-9 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all`}>
           {isPlaying ? (
             <span className="flex gap-0.5">
