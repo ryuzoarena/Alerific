@@ -4,6 +4,7 @@ import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,7 +78,7 @@ export function LibrarySongCard({ song, queue, isDeleteMode }: LibrarySongCardPr
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); addToUserQueue(song); }}>
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); addToUserQueue(song); toast.success(`"${song.title}" added to queue`); }}>
             <ListPlus size={16} className="mr-2" /> Add to Queue
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleAddToPlaylist('liked'); }}>
