@@ -77,6 +77,9 @@ export function LibrarySongCard({ song, queue, isDeleteMode }: LibrarySongCardPr
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); addToUserQueue(song); }}>
+            <ListPlus size={16} className="mr-2" /> Add to Queue
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleAddToPlaylist('liked'); }}>
             <Heart size={16} className="mr-2" /> Add to Liked
           </DropdownMenuItem>
