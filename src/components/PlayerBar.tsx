@@ -41,6 +41,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     toggleRepeat,
     setCurrentLyricIndex,
     removeSong,
+    setShowQueuePanel,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
@@ -445,7 +446,11 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             <Mic2 size={18} />
           </button>
           
-          <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+          <button 
+            onClick={() => setShowQueuePanel(true)}
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+            title="Queue"
+          >
             <ListMusic size={18} />
           </button>
 

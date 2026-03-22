@@ -35,6 +35,7 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
     toggleRepeat,
     setCurrentTime,
     removeSong,
+    setShowQueuePanel,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, shuffle, repeat } = playerState;
@@ -257,7 +258,10 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
 
         {/* Secondary Actions */}
         <div className="flex items-center justify-between px-6 md:px-16 py-2">
-          <button className="p-2 text-white/60 hover:text-white">
+          <button 
+            onClick={() => setShowQueuePanel(true)}
+            className="p-2 text-white/60 hover:text-white"
+          >
             <ListMusic size={20} />
           </button>
           

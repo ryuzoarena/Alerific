@@ -29,6 +29,15 @@ interface MusicStore {
   addSongToPlaylist: (playlistId: string, songId: string) => void;
   removeSongFromPlaylist: (playlistId: string, songId: string) => void;
   
+  // User Queue (manual queue - plays before auto queue)
+  userQueue: Song[];
+  addToUserQueue: (song: Song) => void;
+  removeFromUserQueue: (index: number) => void;
+  clearUserQueue: () => void;
+  reorderUserQueue: (fromIndex: number, toIndex: number) => void;
+  showQueuePanel: boolean;
+  setShowQueuePanel: (show: boolean) => void;
+  
   // Player
   playerState: PlayerState;
   queue: Song[];
@@ -127,6 +136,8 @@ export const useMusicStore = create<MusicStore>()(
       recentlyPlayedIds: [],
       dailyRecommendationIds: [],
       lastRecommendationReset: 0,
+      userQueue: [],
+      showQueuePanel: false,
 
       fetchSongs: async () => {
         try {
@@ -197,6 +208,20 @@ export const useMusicStore = create<MusicStore>()(
           }))
         }));
       },
+
+      // User Queue actions
+      addToUserQueue: (song) => set((state) => ({ userQueue: [...state.userQueue, song] })),
+      removeFromUserQueue: (index) => set((state) => ({
+        userQueue: state.userQueue.filter((_, i) => i !== index),
+      })),
+      clearUserQueue: () => set({ userQueue: [] }),
+      reorderUserQueue: (fromIndex, toIndex) => set((state) => {
+        const newQueue = [...state.userQueue];
+        const [moved] = newQueue.splice(fromIndex, 1);
+        newQueue.splice(toIndex, 0, moved);
+        return { userQueue: newQueue };
+      }),
+      setShowQueuePanel: (show) => set({ showQueuePanel: show }),
       
       createPlaylist: (name, description) => {
         const playlist: Playlist = {
@@ -280,7 +305,25 @@ export const useMusicStore = create<MusicStore>()(
       })),
       
       nextSong: () => {
-        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex } = get();
+        const { queue, queueIndex, playerState, songs, addToRecentlyPlayed, shuffledQueue, shuffledIndex, userQueue } = get();
+        
+        // If there are songs in the user queue, play the first one
+        if (userQueue.length > 0) {
+          const nextFromUserQueue = userQueue[0];
+          addToRecentlyPlayed(nextFromUserQueue.id);
+          set({
+            userQueue: userQueue.slice(1),
+            playerState: {
+              ...playerState,
+              currentSong: nextFromUserQueue,
+              currentTime: 0,
+              isPlaying: true,
+            },
+            currentLyricIndex: 0,
+          });
+          return;
+        }
+        
         const availableQueue = queue.length > 0 ? queue : songs;
         if (availableQueue.length === 0) return;
 

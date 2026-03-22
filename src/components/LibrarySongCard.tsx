@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreVertical, Trash2, Heart, Share2, PlusCircle } from 'lucide-react';
+import { MoreVertical, Trash2, Heart, Share2, PlusCircle, ListPlus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,7 @@ interface LibrarySongCardProps {
 }
 
 export function LibrarySongCard({ song, queue, isDeleteMode }: LibrarySongCardProps) {
-  const { playSong, playerState, removeSong, playlists, addSongToPlaylist } = useMusicStore();
+  const { playSong, playerState, removeSong, playlists, addSongToPlaylist, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isActive = playerState.currentSong?.id === song.id;
   const isPlaying = isActive && playerState.isPlaying;
@@ -77,6 +77,9 @@ export function LibrarySongCard({ song, queue, isDeleteMode }: LibrarySongCardPr
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); addToUserQueue(song); }}>
+            <ListPlus size={16} className="mr-2" /> Add to Queue
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleAddToPlaylist('liked'); }}>
             <Heart size={16} className="mr-2" /> Add to Liked
           </DropdownMenuItem>
