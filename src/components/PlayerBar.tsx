@@ -41,6 +41,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     toggleRepeat,
     setCurrentLyricIndex,
     removeSong,
+    setShowQueuePanel,
   } = useMusicStore();
 
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
