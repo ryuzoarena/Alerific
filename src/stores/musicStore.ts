@@ -208,6 +208,20 @@ export const useMusicStore = create<MusicStore>()(
           }))
         }));
       },
+
+      // User Queue actions
+      addToUserQueue: (song) => set((state) => ({ userQueue: [...state.userQueue, song] })),
+      removeFromUserQueue: (index) => set((state) => ({
+        userQueue: state.userQueue.filter((_, i) => i !== index),
+      })),
+      clearUserQueue: () => set({ userQueue: [] }),
+      reorderUserQueue: (fromIndex, toIndex) => set((state) => {
+        const newQueue = [...state.userQueue];
+        const [moved] = newQueue.splice(fromIndex, 1);
+        newQueue.splice(toIndex, 0, moved);
+        return { userQueue: newQueue };
+      }),
+      setShowQueuePanel: (show) => set({ showQueuePanel: show }),
       
       createPlaylist: (name, description) => {
         const playlist: Playlist = {
