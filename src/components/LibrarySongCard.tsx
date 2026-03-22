@@ -18,7 +18,7 @@ interface LibrarySongCardProps {
 }
 
 export function LibrarySongCard({ song, queue, isDeleteMode }: LibrarySongCardProps) {
-  const { playSong, playerState, removeSong, playlists, addSongToPlaylist } = useMusicStore();
+  const { playSong, playerState, removeSong, playlists, addSongToPlaylist, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isActive = playerState.currentSong?.id === song.id;
   const isPlaying = isActive && playerState.isPlaying;
