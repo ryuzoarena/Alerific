@@ -136,6 +136,8 @@ export const useMusicStore = create<MusicStore>()(
       recentlyPlayedIds: [],
       dailyRecommendationIds: [],
       lastRecommendationReset: 0,
+      userQueue: [],
+      showQueuePanel: false,
 
       fetchSongs: async () => {
         try {

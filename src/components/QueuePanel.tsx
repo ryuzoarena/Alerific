@@ -3,7 +3,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { Song } from '@/types/music';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export function QueuePanel() {
