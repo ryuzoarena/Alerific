@@ -209,10 +209,48 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentSong, togglePlay]);
 
+  // Helper: get the URL of the next song that will play
+  const getNextSongUrl = useCallback((): string | null => {
+    const state = useMusicStore.getState();
+    const { playerState: ps, queue, queueIndex, songs, userQueue, shuffledQueue, shuffledIndex } = state;
+    
+    if (ps.repeat === 'one') return ps.currentSong?.audioUrl || null;
+    
+    // User queue takes priority
+    if (userQueue.length > 0) return userQueue[0].audioUrl || null;
+    
+    const availableQueue = queue.length > 0 ? queue : songs;
+    if (availableQueue.length === 0) return null;
+    
+    if (ps.shuffle && shuffledQueue.length > 0) {
+      const nextIdx = shuffledIndex + 1;
+      if (nextIdx < shuffledQueue.length) return shuffledQueue[nextIdx].audioUrl || null;
+      return null;
+    }
+    
+    let nextIdx = queueIndex + 1;
+    if (nextIdx >= availableQueue.length) {
+      if (ps.repeat === 'all') nextIdx = 0;
+      else return null;
+    }
+    return availableQueue[nextIdx]?.audioUrl || null;
+  }, []);
+
   // Time update handler
   const handleTimeUpdate = () => {
     if (audioRef.current && !isDragging) {
       setCurrentTime(audioRef.current.currentTime);
+      
+      // Preload next track when ~5 seconds from end for gapless playback
+      const remaining = audioRef.current.duration - audioRef.current.currentTime;
+      if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+        const nextUrl = getNextSongUrl();
+        if (nextUrl && preloadedUrlRef.current !== nextUrl) {
+          preloadedUrlRef.current = nextUrl;
+          preloadAudioRef.current.src = nextUrl;
+          preloadAudioRef.current.load();
+        }
+      }
       
       // Update current lyric index
       if (currentSong?.lyrics) {
