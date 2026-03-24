@@ -31,11 +31,8 @@ export function ArtistCard({ artistName, songs, onClick }: ArtistCardProps) {
           </div>
         )}
       </div>
-      <span className="text-xs sm:text-sm font-semibold text-foreground truncate w-full text-center">
+      <span className="text-sm sm:text-base font-semibold text-foreground truncate w-full text-center">
         {artistName}
-      </span>
-      <span className="text-[10px] sm:text-xs text-muted-foreground -mt-1">
-        {songs.length} lagu
       </span>
     </button>
   );
