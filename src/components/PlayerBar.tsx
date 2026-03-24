@@ -22,6 +22,8 @@ interface PlayerBarProps {
 
 export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: PlayerBarProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const preloadAudioRef = useRef<HTMLAudioElement>(null);
+  const preloadedUrlRef = useRef<string | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
