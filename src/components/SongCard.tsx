@@ -1,4 +1,4 @@
-import { Play, Heart, Trash2, MoreVertical, ListPlus } from 'lucide-react';
+import { Play, Trash2, MoreVertical, ListPlus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
