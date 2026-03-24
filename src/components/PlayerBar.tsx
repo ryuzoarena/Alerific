@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, 
   Shuffle, Repeat, Repeat1, Mic2, ListMusic, Maximize2, Trash2 
@@ -22,6 +22,8 @@ interface PlayerBarProps {
 
 export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: PlayerBarProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const preloadAudioRef = useRef<HTMLAudioElement>(null);
+  const preloadedUrlRef = useRef<string | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
@@ -207,10 +209,48 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentSong, togglePlay]);
 
+  // Helper: get the URL of the next song that will play
+  const getNextSongUrl = useCallback((): string | null => {
+    const state = useMusicStore.getState();
+    const { playerState: ps, queue, queueIndex, songs, userQueue, shuffledQueue, shuffledIndex } = state;
+    
+    if (ps.repeat === 'one') return ps.currentSong?.audioUrl || null;
+    
+    // User queue takes priority
+    if (userQueue.length > 0) return userQueue[0].audioUrl || null;
+    
+    const availableQueue = queue.length > 0 ? queue : songs;
+    if (availableQueue.length === 0) return null;
+    
+    if (ps.shuffle && shuffledQueue.length > 0) {
+      const nextIdx = shuffledIndex + 1;
+      if (nextIdx < shuffledQueue.length) return shuffledQueue[nextIdx].audioUrl || null;
+      return null;
+    }
+    
+    let nextIdx = queueIndex + 1;
+    if (nextIdx >= availableQueue.length) {
+      if (ps.repeat === 'all') nextIdx = 0;
+      else return null;
+    }
+    return availableQueue[nextIdx]?.audioUrl || null;
+  }, []);
+
   // Time update handler
   const handleTimeUpdate = () => {
     if (audioRef.current && !isDragging) {
       setCurrentTime(audioRef.current.currentTime);
+      
+      // Preload next track when ~5 seconds from end for gapless playback
+      const remaining = audioRef.current.duration - audioRef.current.currentTime;
+      if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+        const nextUrl = getNextSongUrl();
+        if (nextUrl && preloadedUrlRef.current !== nextUrl) {
+          preloadedUrlRef.current = nextUrl;
+          preloadAudioRef.current.src = nextUrl;
+          preloadAudioRef.current.load();
+        }
+      }
       
       // Update current lyric index
       if (currentSong?.lyrics) {
@@ -250,20 +290,20 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     } else if (latestAutoplay) {
       const availableQueue = latestQueue.length > 0 ? latestQueue : latestSongs;
       if (availableQueue.length > 1 || latestRepeat === 'all') {
-        // Call nextSong() synchronously to update store state
         latestNextSong();
         
-        // Immediately read the new song and play directly on the audio element.
-        // This keeps playback within the 'ended' event context, preventing
-        // browsers from blocking auto-play when the screen is off.
         const newSong = useMusicStore.getState().playerState.currentSong;
         if (audioRef.current && newSong) {
           const newAudioUrl = newSong.audioUrl || null;
           if (newAudioUrl) {
             applySafePlaybackSettings(audioRef.current);
             audioRef.current.src = newAudioUrl;
-            audioRef.current.load();
+            // Skip load() if already preloaded for faster gapless transition
+            if (preloadedUrlRef.current !== newAudioUrl) {
+              audioRef.current.load();
+            }
             audioRef.current.play().catch(() => {});
+            preloadedUrlRef.current = null;
             setLoadedAudioUrl(newAudioUrl);
             setLoadedCoverUrl(newSong.coverUrl || null);
             onCoverUrlChange?.(newSong.coverUrl || null);
@@ -310,6 +350,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
       />
+      {/* Hidden preload element for gapless playback */}
+      <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" style={{ display: 'none' }} />
 
       {/* Mobile Mini Player */}
       <MiniPlayer 
