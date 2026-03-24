@@ -20,40 +20,21 @@ interface SongCardProps {
 }
 
 export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
-  const { playSong, playerState, removeSong } = useMusicStore();
+  const { playSong, playerState, removeSong, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
 
   const handlePlay = () => playSong(song, queue);
   const handleDelete = (e: React.MouseEvent) => { e.stopPropagation(); removeSong(song.id); };
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const handleAddToQueue = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToUserQueue(song);
+    toast.success(`"${song.title}" ditambahkan ke antrian`);
   };
 
   return (
-    <div className={cn("group flex items-center gap-4 p-2 rounded-md hover:bg-accent transition-colors cursor-pointer", isActive && "bg-accent")} onClick={handlePlay}>
-      <div className="w-8 flex items-center justify-center">
-        {showIndex ? (
-          <>
-            <span className={cn("text-sm group-hover:hidden", isActive ? timeTheme.accentColor : "text-muted-foreground")}>
-              {isPlaying ? (
-                <span className="flex gap-0.5">
-                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} />
-                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} style={{ animationDelay: '0.2s' }} />
-                  <span className={`w-1 h-3 ${timeTheme.accentBg} rounded-full animate-pulse`} style={{ animationDelay: '0.4s' }} />
-                </span>
-              ) : (index! + 1)}
-            </span>
-            <Play size={16} className="hidden group-hover:block text-foreground" fill="currentColor" />
-          </>
-        ) : (
-          <Play size={16} className="opacity-0 group-hover:opacity-100 text-foreground transition-opacity" fill="currentColor" />
-        )}
-      </div>
+    <div className={cn("group flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors cursor-pointer", isActive && "bg-accent")} onClick={handlePlay}>
 
       <div className="w-10 h-10 rounded bg-secondary overflow-hidden flex-shrink-0">
         {song.coverUrl ? (
@@ -72,16 +53,25 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
         <p className="text-sm text-muted-foreground truncate">{song.album || 'Unknown Album'}</p>
       </div>
 
-      <div className={cn("flex items-center gap-2 transition-opacity", isDeleteMode ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
-        <button className="text-muted-foreground hover:text-foreground"><Heart size={16} /></button>
-        {isDeleteMode && (
-          <button onClick={handleDelete} className="text-red-400 hover:text-red-300 animate-pulse" title="Delete song"><Trash2 size={16} /></button>
-        )}
-      </div>
+      {isDeleteMode && (
+        <button onClick={handleDelete} className="text-red-400 hover:text-red-300 animate-pulse" title="Delete song">
+          <Trash2 size={16} />
+        </button>
+      )}
 
-      <div className="w-12 text-right">
-        <span className="text-sm text-muted-foreground">{formatDuration(song.duration)}</span>
-      </div>
+      {/* Three-dot menu with Add to Queue */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <button className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+            <MoreVertical size={18} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem onClick={handleAddToQueue}>
+            <ListPlus size={16} className="mr-2" /> Add to Queue
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
