@@ -350,6 +350,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
       />
+      {/* Hidden preload element for gapless playback */}
+      <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" style={{ display: 'none' }} />
 
       {/* Mobile Mini Player */}
       <MiniPlayer 
