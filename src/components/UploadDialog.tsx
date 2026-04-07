@@ -330,6 +330,31 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
           </div>
         </div>
 
+        {/* Duplicate Warning */}
+        {duplicateWarning && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3">
+            <AlertTriangle size={20} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-yellow-200 font-medium">Lagu sudah ada!</p>
+              <p className="text-xs text-yellow-300/80 mt-1">{duplicateWarning}</p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => { setDuplicateWarning(null); setForceUpload(true); }}
+                  className="px-3 py-1 text-xs font-medium bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                >
+                  Upload tetap
+                </button>
+                <button
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-3">
           <button onClick={handleClose} className="flex-1 px-4 py-2 text-sm font-medium rounded-full hover:bg-accent transition-colors">Cancel</button>
