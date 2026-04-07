@@ -105,6 +105,38 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
 
   const handleSubmit = async () => {
     if (!audioFile || !title) return;
+
+    // Check for duplicates unless user forced upload
+    if (!forceUpload) {
+      const trimmedTitle = title.trim().toLowerCase();
+      const trimmedArtist = (artist.trim() || 'Unknown Artist').toLowerCase();
+      
+      // Check in database
+      const { data: existing } = await supabase
+        .from('songs')
+        .select('id, title, artist')
+        .ilike('title', trimmedTitle)
+        .ilike('artist', trimmedArtist)
+        .limit(1);
+      
+      if (existing && existing.length > 0) {
+        setDuplicateWarning(`"${existing[0].title}" oleh ${existing[0].artist} sudah ada di library.`);
+        return;
+      }
+      
+      // Also check in local store
+      const localSongs = useMusicStore.getState().songs;
+      const localDuplicate = localSongs.find(
+        s => s.title.toLowerCase() === trimmedTitle && s.artist.toLowerCase() === trimmedArtist
+      );
+      if (localDuplicate) {
+        setDuplicateWarning(`"${localDuplicate.title}" oleh ${localDuplicate.artist} sudah ada di library.`);
+        return;
+      }
+    }
+    
+    setDuplicateWarning(null);
+    setForceUpload(false);
     setIsProcessing(true);
 
     try {
