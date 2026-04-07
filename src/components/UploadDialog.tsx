@@ -224,6 +224,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setArtist('');
     setAlbum('');
     setDuration(0);
+    setDuplicateWarning(null);
+    setForceUpload(false);
   };
 
   const handleClose = () => {
