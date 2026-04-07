@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Music, Image, FileText } from 'lucide-react';
+import { X, Upload, Music, Image, FileText, AlertTriangle } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
