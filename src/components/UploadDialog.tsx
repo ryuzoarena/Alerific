@@ -30,6 +30,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const [album, setAlbum] = useState('');
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [forceUpload, setForceUpload] = useState(false);
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
