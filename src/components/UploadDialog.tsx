@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Music, Image, FileText } from 'lucide-react';
+import { X, Upload, Music, Image, FileText, AlertTriangle } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { Song, LyricLine } from '@/types/music';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const [album, setAlbum] = useState('');
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [forceUpload, setForceUpload] = useState(false);
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,6 +105,38 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
 
   const handleSubmit = async () => {
     if (!audioFile || !title) return;
+
+    // Check for duplicates unless user forced upload
+    if (!forceUpload) {
+      const trimmedTitle = title.trim().toLowerCase();
+      const trimmedArtist = (artist.trim() || 'Unknown Artist').toLowerCase();
+      
+      // Check in database
+      const { data: existing } = await supabase
+        .from('songs')
+        .select('id, title, artist')
+        .ilike('title', trimmedTitle)
+        .ilike('artist', trimmedArtist)
+        .limit(1);
+      
+      if (existing && existing.length > 0) {
+        setDuplicateWarning(`"${existing[0].title}" oleh ${existing[0].artist} sudah ada di library.`);
+        return;
+      }
+      
+      // Also check in local store
+      const localSongs = useMusicStore.getState().songs;
+      const localDuplicate = localSongs.find(
+        s => s.title.toLowerCase() === trimmedTitle && s.artist.toLowerCase() === trimmedArtist
+      );
+      if (localDuplicate) {
+        setDuplicateWarning(`"${localDuplicate.title}" oleh ${localDuplicate.artist} sudah ada di library.`);
+        return;
+      }
+    }
+    
+    setDuplicateWarning(null);
+    setForceUpload(false);
     setIsProcessing(true);
 
     try {
@@ -190,6 +224,8 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
     setArtist('');
     setAlbum('');
     setDuration(0);
+    setDuplicateWarning(null);
+    setForceUpload(false);
   };
 
   const handleClose = () => {
@@ -293,6 +329,31 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
             <input type="text" value={album} onChange={(e) => setAlbum(e.target.value)} placeholder="Album name" className="w-full px-3 py-2 bg-secondary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
         </div>
+
+        {/* Duplicate Warning */}
+        {duplicateWarning && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3">
+            <AlertTriangle size={20} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-yellow-200 font-medium">Lagu sudah ada!</p>
+              <p className="text-xs text-yellow-300/80 mt-1">{duplicateWarning}</p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => { setDuplicateWarning(null); setForceUpload(true); }}
+                  className="px-3 py-1 text-xs font-medium bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                >
+                  Upload tetap
+                </button>
+                <button
+                  onClick={() => setDuplicateWarning(null)}
+                  className="px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
