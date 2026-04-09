@@ -146,6 +146,7 @@ const Index = () => {
       <MobileNavBar 
         activeView={activeView}
         onViewChange={setActiveView}
+        onUploadClick={() => setShowUpload(true)}
       />
 
       <ProfileDrawer
