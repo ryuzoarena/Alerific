@@ -111,7 +111,7 @@ const Index = () => {
     <div className={cn(
       "h-screen flex flex-col overflow-hidden theme-transition",
       "lg:bg-black",
-      `bg-gradient-to-b ${timeTheme.gradient}`
+      "bg-black"
     )}>
       <div className="flex-1 flex overflow-hidden min-h-0">
         <div className="hidden lg:block">
