@@ -124,11 +124,11 @@ const Index = () => {
           />
         </div>
 
-        <main className={cn(
-          "flex-1 lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide",
-          `bg-gradient-to-b ${timeTheme.gradient}`
-        )}>
-          {renderMainContent()}
+        <main className="flex-1 lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide relative">
+          <div className={cn("absolute inset-0 pointer-events-none lg:hidden", `bg-gradient-to-b ${timeTheme.gradient}`)} style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)' }} />
+          <div className="relative z-10">
+            {renderMainContent()}
+          </div>
         </main>
 
         <div className="hidden lg:block h-full min-h-0">
