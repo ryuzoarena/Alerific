@@ -124,7 +124,10 @@ const Index = () => {
           />
         </div>
 
-        <main className="flex-1 bg-transparent lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide">
+        <main className={cn(
+          "flex-1 lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide",
+          `bg-gradient-to-b ${timeTheme.gradient}`
+        )}>
           {renderMainContent()}
         </main>
 
