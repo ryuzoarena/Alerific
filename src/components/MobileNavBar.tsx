@@ -16,7 +16,7 @@ export function MobileNavBar({ activeView, onViewChange, onUploadClick }: Mobile
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-t border-white/5">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
       <div className="flex items-center justify-around py-2 pb-3">
         {navItems.map((item) => {
           const isActive = item.id !== 'upload' && activeView === item.id;
