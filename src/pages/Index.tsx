@@ -143,6 +143,10 @@ const Index = () => {
         onCoverUrlChange={setCurrentCoverUrl}
       />
 
+      <MobileNavBar 
+        activeView={activeView}
+        onViewChange={setActiveView}
+      />
 
       <ProfileDrawer
         isOpen={isDrawerOpen}
