@@ -17,6 +17,7 @@ interface SongCardProps {
   showIndex?: boolean;
   queue?: Song[];
   isDeleteMode?: boolean;
+  compact?: boolean;
 }
 
 export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
