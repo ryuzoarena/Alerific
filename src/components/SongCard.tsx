@@ -98,7 +98,7 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
   };
 
   return (
-    <div className="song-card bg-card p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer group relative w-full">
+    <div className="song-card bg-card hover:bg-card-hover p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer group relative w-full transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
       <div className="relative mb-2 sm:mb-3 md:mb-4">
         <div className="aspect-square rounded-lg overflow-hidden bg-secondary shadow-lg">
           {song.coverUrl ? (
