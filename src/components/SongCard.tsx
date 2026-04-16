@@ -17,6 +17,7 @@ interface SongCardProps {
   showIndex?: boolean;
   queue?: Song[];
   isDeleteMode?: boolean;
+  compact?: boolean;
 }
 
 export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
@@ -77,7 +78,7 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCa
 }
 
 // Grid card variant for home view
-export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
+export function SongGridCard({ song, queue, isDeleteMode, compact }: SongCardProps) {
   const { playSong, playerState, togglePlay, removeSong, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
@@ -98,9 +99,12 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
   };
 
   return (
-    <div className="song-card bg-card hover:bg-card-hover p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer group relative w-full transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-      <div className="relative mb-2 sm:mb-3 md:mb-4">
-        <div className="aspect-square rounded-lg overflow-hidden bg-secondary shadow-lg">
+    <div className={cn(
+      "song-card bg-card hover:bg-card-hover rounded-lg cursor-pointer group relative w-full transition-all duration-200",
+      compact ? "p-3 hover:scale-105 hover:brightness-110" : "p-2 sm:p-3 md:p-4 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+    )}>
+      <div className={cn("relative", compact ? "mb-2" : "mb-2 sm:mb-3 md:mb-4")}>
+        <div className={cn("aspect-square overflow-hidden bg-secondary shadow-lg", compact ? "rounded-lg" : "rounded-lg")}>
           {song.coverUrl ? (
             <img src={song.coverUrl} alt={song.title} className="w-full h-full object-cover" />
           ) : (
@@ -113,7 +117,6 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
           </button>
         )}
         
-        {/* More options button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <button className="absolute top-1 right-1 w-7 h-7 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -127,19 +130,30 @@ export function SongGridCard({ song, queue, isDeleteMode }: SongCardProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <button onClick={handlePlay} className={`play-overlay absolute bottom-2 right-2 w-9 h-9 theme-transition ${timeTheme.accentBg} rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all`}>
+        <button onClick={handlePlay} className={cn(
+          "play-overlay absolute bottom-2 right-2 rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all theme-transition",
+          timeTheme.accentBg,
+          compact ? "w-8 h-8" : "w-9 h-9"
+        )}>
           {isPlaying ? (
             <span className="flex gap-0.5">
               <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
               <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
             </span>
           ) : (
-            <Play size={18} className={`${timeTheme.buttonText} ml-0.5`} fill="currentColor" />
+            <Play size={compact ? 16 : 18} className={`${timeTheme.buttonText} ml-0.5`} fill="currentColor" />
           )}
         </button>
       </div>
-      <h3 className={cn("font-semibold text-sm md:text-base truncate mb-1 theme-transition", isActive ? timeTheme.accentColor : "text-foreground")}>{song.title}</h3>
-      <p className="text-xs md:text-sm text-muted-foreground truncate">{song.artist}</p>
+      <h3 className={cn(
+        "font-semibold truncate mb-0.5 theme-transition",
+        compact ? "text-[13px] leading-tight" : "text-sm md:text-base mb-1",
+        isActive ? timeTheme.accentColor : "text-foreground"
+      )}>{song.title}</h3>
+      <p className={cn(
+        "truncate",
+        compact ? "text-[12px] text-[#b3b3b3]" : "text-xs md:text-sm text-muted-foreground"
+      )}>{song.artist}</p>
     </div>
   );
 }
