@@ -10,7 +10,7 @@ import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useEffect, useMemo, useState } from 'react';
 import { Song } from '@/types/music';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 
 interface HomeViewProps {
   isDeleteMode?: boolean;
@@ -41,7 +41,7 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
     songsLoaded,
   } = useMusicStore();
   const timeTheme = useTimeTheme();
-  const isMobile = useIsMobile();
+  
 
   useEffect(() => {
     if (!songsLoaded) fetchSongs();
