@@ -109,8 +109,7 @@ const Index = () => {
 
   return (
     <div className={cn(
-      "h-screen flex flex-col overflow-hidden theme-transition",
-      "lg:bg-black",
+      "h-screen flex flex-col overflow-hidden",
       "bg-black"
     )}>
       <div className="flex-1 flex overflow-hidden min-h-0">
@@ -124,7 +123,8 @@ const Index = () => {
           />
         </div>
 
-        <main className="flex-1 lg:bg-gradient-to-b lg:from-card lg:to-background lg:rounded-lg lg:m-2 lg:ml-0 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide relative">
+        <main className="flex-1 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide relative lg:bg-[#121212] lg:rounded-lg lg:m-2 lg:ml-0">
+          {/* Mobile gradient background */}
           <div className={cn("absolute inset-0 pointer-events-none lg:hidden", `bg-gradient-to-b ${timeTheme.gradient}`)} style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)' }} />
           <div className="relative z-10">
             {renderMainContent()}
