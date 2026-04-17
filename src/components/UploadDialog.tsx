@@ -146,12 +146,11 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       const songAlbum = album.trim() || undefined;
       const songDuration = duration || 180;
 
-      // Upload audio + cover to cloud FIRST so refresh-safe
-      const audioPath = await uploadAudioFile(songId, audioFile);
-      let coverPath: string | undefined;
-      if (coverFile) {
-        coverPath = await uploadCoverImage(songId, coverFile);
-      }
+      // Upload audio + cover IN PARALLEL (much faster than sequential)
+      const [audioPath, coverPath] = await Promise.all([
+        uploadAudioFile(songId, audioFile),
+        coverFile ? uploadCoverImage(songId, coverFile) : Promise.resolve(undefined),
+      ]);
 
       // Insert metadata into database (source of truth)
       const { error: insertError } = await supabase.from('songs').insert({
