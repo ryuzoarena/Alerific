@@ -141,22 +141,43 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
 
     try {
       const songId = crypto.randomUUID();
-      
-      // Create local blob URLs for instant playback
-      const localAudioUrl = URL.createObjectURL(audioFile);
-      const localCoverUrl = coverFile ? URL.createObjectURL(coverFile) : undefined;
+      const songTitle = title.trim();
+      const songArtist = artist.trim() || 'Unknown Artist';
+      const songAlbum = album.trim() || undefined;
+      const songDuration = duration || 180;
 
-      // Add song immediately with local URLs for instant playback
+      // Upload audio + cover to cloud FIRST so refresh-safe
+      const audioPath = await uploadAudioFile(songId, audioFile);
+      let coverPath: string | undefined;
+      if (coverFile) {
+        coverPath = await uploadCoverImage(songId, coverFile);
+      }
+
+      // Insert metadata into database (source of truth)
+      const { error: insertError } = await supabase.from('songs').insert({
+        id: songId,
+        title: songTitle,
+        artist: songArtist,
+        album: songAlbum || null,
+        duration: songDuration,
+        audio_path: audioPath,
+        cover_path: coverPath || null,
+        lyrics: parsedLyrics.length > 0 ? JSON.stringify(parsedLyrics) : null,
+      } as any);
+
+      if (insertError) throw insertError;
+
+      // Add to local store with cloud URLs (persists after refresh)
       const newSong: Song = {
         id: songId,
-        title: title.trim(),
-        artist: artist.trim() || 'Unknown Artist',
-        album: album.trim() || undefined,
-        duration: duration || 180,
-        audio_path: '', // Will be updated after upload
-        cover_path: undefined,
-        audioUrl: localAudioUrl,
-        coverUrl: localCoverUrl,
+        title: songTitle,
+        artist: songArtist,
+        album: songAlbum,
+        duration: songDuration,
+        audio_path: audioPath,
+        cover_path: coverPath,
+        audioUrl: getAudioUrl(audioPath),
+        coverUrl: coverPath ? getCoverUrl(coverPath) : undefined,
         lyrics: parsedLyrics.length > 0 ? parsedLyrics : [],
         addedAt: Date.now(),
       };
@@ -164,49 +185,9 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
       addSong(newSong);
       resetForm();
       onClose();
-
-      // Upload to cloud in background (non-blocking)
-      (async () => {
-        try {
-          const audioPath = await uploadAudioFile(songId, audioFile);
-          
-          let coverPath: string | undefined;
-          if (coverFile) {
-            coverPath = await uploadCoverImage(songId, coverFile);
-          }
-
-          // Insert metadata into database
-          await supabase.from('songs').insert({
-            id: songId,
-            title: newSong.title,
-            artist: newSong.artist,
-            album: newSong.album || null,
-            duration: newSong.duration,
-            audio_path: audioPath,
-            cover_path: coverPath || null,
-            lyrics: parsedLyrics.length > 0 ? JSON.stringify(parsedLyrics) : null,
-          } as any);
-
-          // Update song in store with cloud URLs
-          useMusicStore.setState((state) => ({
-            songs: state.songs.map(s => 
-              s.id === songId 
-                ? { 
-                    ...s, 
-                    audio_path: audioPath, 
-                    cover_path: coverPath,
-                    audioUrl: getAudioUrl(audioPath), 
-                    coverUrl: coverPath ? getCoverUrl(coverPath) : s.coverUrl,
-                  } 
-                : s
-            ),
-          }));
-        } catch (error) {
-          console.error('Background upload failed:', error);
-        }
-      })();
     } catch (error) {
       console.error('Error adding song:', error);
+      alert('Gagal mengupload lagu. Silakan coba lagi.');
     } finally {
       setIsProcessing(false);
     }
