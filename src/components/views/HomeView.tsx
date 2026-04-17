@@ -4,6 +4,7 @@ import { ArtistCard } from '@/components/ArtistCard';
 import { AIMixCard } from '@/components/desktop/AIMixCard';
 import { DesktopTopNav } from '@/components/desktop/DesktopTopNav';
 import { SkeletonGridCards, SkeletonMixCards } from '@/components/desktop/SkeletonCards';
+import { HorizontalScroller } from '@/components/desktop/HorizontalScroller';
 import { useMusicStore } from '@/stores/musicStore';
 import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2 } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
@@ -253,13 +254,26 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
-              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:overflow-visible lg:gap-4">
-                {recommendedSongs.map((song) => (
-                  <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 lg:w-auto">
-                    <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
-                  </div>
-                ))}
-              </div>
+              <>
+                {/* Mobile: simple horizontal scroll */}
+                <div className="lg:hidden flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4">
+                  {recommendedSongs.map((song) => (
+                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
+                      <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: drag-scroll single row, compact cards */}
+                <div className="hidden lg:block">
+                  <HorizontalScroller className="gap-3 pb-4">
+                    {recommendedSongs.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                        <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>
+                </div>
+              </>
             )}
           </section>
         )}
@@ -279,13 +293,24 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
-              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:overflow-visible lg:gap-4">
-                {madeForYou.map((song) => (
-                  <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 lg:w-auto">
-                    <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="lg:hidden flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4">
+                  {madeForYou.map((song) => (
+                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
+                      <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden lg:block">
+                  <HorizontalScroller className="gap-3 pb-4">
+                    {madeForYou.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                        <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>
+                </div>
+              </>
             )}
           </section>
         )}
@@ -305,13 +330,24 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0" style={{ scrollBehavior: 'smooth' }}>
-                {songs.map((song) => (
-                  <div key={song.id} className="flex-shrink-0 w-28 sm:w-32 lg:w-[160px]">
-                    <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="lg:hidden flex gap-3 overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4" style={{ scrollBehavior: 'smooth' }}>
+                  {songs.map((song) => (
+                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
+                      <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden lg:block">
+                  <HorizontalScroller className="gap-3 pb-4">
+                    {songs.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                        <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>
+                </div>
+              </>
             )}
           </section>
         )}
