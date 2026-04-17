@@ -120,6 +120,7 @@ const Index = () => {
             selectedPlaylistId={selectedPlaylistId}
             onSelectPlaylist={setSelectedPlaylistId}
             onUploadClick={() => setShowUpload(true)}
+            onAvatarClick={() => setIsDrawerOpen(true)}
           />
         </div>
 
