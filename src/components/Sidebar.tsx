@@ -1,4 +1,4 @@
-import { Home, Search, Library, Plus, Heart, Music2, Upload, Settings, MoreHorizontal, Radio, Moon, Flame, Clock, AudioLines } from 'lucide-react';
+import { Home, Search, Plus, Heart, Music2, Upload, Settings, MoreHorizontal, Radio, Moon, Flame, Clock, AudioLines } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
