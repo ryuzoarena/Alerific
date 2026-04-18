@@ -120,9 +120,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           : "translate-y-full opacity-0"
       )}
       style={{ 
-        background: dominantColor 
-          ? `linear-gradient(to bottom, ${dominantColor}, #000)` 
-          : 'linear-gradient(to bottom, #404040, #000)' 
+        background: `linear-gradient(to bottom, ${accent}, #000)`,
+        transition: 'background 0.8s ease',
       }}
     >
       {/* Background with album art blur */}
@@ -163,7 +162,13 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
 
         {/* Album Art - Desktop shows larger */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16">
-          <div className="w-full max-w-[280px] md:max-w-[400px] aspect-square rounded-lg overflow-hidden shadow-2xl">
+          <div
+            className="w-full max-w-[280px] md:max-w-[400px] aspect-square rounded-lg overflow-hidden shadow-2xl"
+            style={{
+              boxShadow: `0 25px 60px -15px ${accentGlow}, 0 0 80px ${accentSoft}`,
+              transition: 'box-shadow 0.8s ease',
+            }}
+          >
             {loadedCoverUrl ? (
               <img 
                 src={loadedCoverUrl} 
@@ -186,8 +191,12 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
               {currentSong?.artist || 'Unknown artist'}
             </p>
           </div>
-          <button className="p-2 text-white/60 hover:text-white">
-            <Heart size={24} />
+          <button
+            onClick={() => setIsLiked((v) => !v)}
+            className="p-2 transition-colors"
+            style={{ color: isLiked ? accent : 'rgba(255,255,255,0.6)' }}
+          >
+            <Heart size={24} fill={isLiked ? accent : 'none'} />
           </button>
         </div>
 
@@ -198,8 +207,12 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             className="h-1 bg-white/20 rounded-full cursor-pointer group"
           >
             <div 
-              className="h-full bg-white rounded-full relative"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full relative"
+              style={{
+                width: `${progress}%`,
+                background: accent,
+                transition: 'background 0.8s ease',
+              }}
             >
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
