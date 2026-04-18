@@ -58,7 +58,8 @@ export const extractMetadata = async (file: File): Promise<ExtractedMetadata> =>
     let coverPreview: string | undefined;
 
     if (picture) {
-      const raw = new Blob([picture.data], { type: picture.format || 'image/jpeg' });
+      const data = picture.data as unknown as Uint8Array;
+      const raw = new Blob([new Uint8Array(data)], { type: picture.format || 'image/jpeg' });
       coverBlob = await compressCover(raw);
       coverPreview = URL.createObjectURL(coverBlob);
     }
