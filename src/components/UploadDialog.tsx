@@ -1,158 +1,167 @@
-import { useState, useRef } from 'react';
-import { X, Upload, Music, Image, FileText, AlertTriangle } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { X, Upload, Music, CheckCircle2, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
-import { Song, LyricLine } from '@/types/music';
+import { Song } from '@/types/music';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAudioFile, uploadCoverImage, getAudioUrl, getCoverUrl } from '@/lib/cloudStorage';
-import { CoverCropDialog } from '@/components/CoverCropDialog';
+import { extractMetadata } from '@/lib/metadataExtractor';
+import { toast } from 'sonner';
 
 interface UploadDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const ACCEPTED_EXT = ['mp3', 'wav', 'flac', 'ogg', 'm4a'];
+const PARALLEL_UPLOADS = 3;
+
+type UploadStatus = 'queued' | 'extracting' | 'uploading' | 'processing' | 'done' | 'error';
+
+interface UploadItem {
+  id: string;
+  file: File;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  coverBlob?: Blob;
+  coverPreview?: string;
+  status: UploadStatus;
+  progress: number;
+  error?: string;
+  startedAt?: number;
+}
+
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const isValidAudio = (file: File) => {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  return ACCEPTED_EXT.includes(ext);
+};
+
 export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
   const { addSong } = useMusicStore();
-  const audioInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const lyricsInputRef = useRef<HTMLInputElement>(null);
-  
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string>('');
-  const [rawImageSrc, setRawImageSrc] = useState<string>('');
-  const [showCropDialog, setShowCropDialog] = useState(false);
-  const [lyricsFile, setLyricsFile] = useState<File | null>(null);
-  const [parsedLyrics, setParsedLyrics] = useState<LyricLine[]>([]);
-  const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [album, setAlbum] = useState('');
-  const [duration, setDuration] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
-  const [forceUpload, setForceUpload] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [items, setItems] = useState<UploadItem[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAudioFile(file);
-    const fileName = file.name.replace(/\.[^/.]+$/, '');
-    setTitle(fileName);
-    const url = URL.createObjectURL(file);
-    const audio = new Audio(url);
-    audio.onloadedmetadata = () => {
-      setDuration(audio.duration);
-      URL.revokeObjectURL(url);
+  // Cleanup preview URLs on unmount/close
+  useEffect(() => {
+    return () => {
+      items.forEach((it) => it.coverPreview && URL.revokeObjectURL(it.coverPreview));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateItem = (id: string, patch: Partial<UploadItem>) => {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setRawImageSrc(ev.target?.result as string);
-      setShowCropDialog(true);
-    };
-    reader.readAsDataURL(file);
+  const addFiles = useCallback(async (files: File[]) => {
+    const valid: UploadItem[] = [];
+    for (const file of files) {
+      if (!isValidAudio(file)) {
+        toast.error(`${file.name}: format tidak didukung`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name}: melebihi 50MB`);
+        continue;
+      }
+      valid.push({
+        id: crypto.randomUUID(),
+        file,
+        title: file.name.replace(/\.[^/.]+$/, ''),
+        artist: 'Unknown Artist',
+        album: '',
+        duration: 0,
+        status: 'extracting',
+        progress: 0,
+      });
+    }
+    if (valid.length === 0) return;
+    setItems((prev) => [...prev, ...valid]);
+
+    // Extract metadata in parallel (non-blocking)
+    valid.forEach(async (item) => {
+      try {
+        const meta = await extractMetadata(item.file);
+        updateItem(item.id, {
+          title: meta.title,
+          artist: meta.artist,
+          album: meta.album,
+          duration: meta.duration,
+          coverBlob: meta.coverBlob,
+          coverPreview: meta.coverPreview,
+          status: 'queued',
+        });
+      } catch {
+        updateItem(item.id, { status: 'queued' });
+      }
+    });
+  }, []);
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    addFiles(files);
     e.target.value = '';
   };
 
-  const isRawGif = rawImageSrc.startsWith('data:image/gif');
-
-  const handleCropComplete = (croppedBlob: Blob) => {
-    const ext = isRawGif ? 'gif' : 'jpg';
-    const mime = isRawGif ? 'image/gif' : 'image/jpeg';
-    const file = new File([croppedBlob], `cover.${ext}`, { type: mime });
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(croppedBlob));
-    setShowCropDialog(false);
-    setRawImageSrc('');
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    addFiles(files);
   };
 
-  const parseLyrics = (content: string): LyricLine[] => {
-    const lines = content.split('\n').filter(line => line.trim());
-    const lyrics: LyricLine[] = [];
-    const lrcPattern = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
-    for (const line of lines) {
-      const match = line.match(lrcPattern);
-      if (match) {
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        const milliseconds = parseInt(match[3].padEnd(3, '0'), 10);
-        const time = minutes * 60 + seconds + milliseconds / 1000;
-        const text = line.replace(lrcPattern, '').trim();
-        if (text) lyrics.push({ time, text });
-      } else if (!line.startsWith('[')) {
-        lyrics.push({ time: lyrics.length * 5, text: line.trim() });
-      }
-    }
-    return lyrics;
+  const removeItem = (id: string) => {
+    setItems((prev) => {
+      const target = prev.find((p) => p.id === id);
+      if (target?.coverPreview) URL.revokeObjectURL(target.coverPreview);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
-  const handleLyricsSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLyricsFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setParsedLyrics(parseLyrics(content));
-    };
-    reader.readAsText(file);
-  };
-
-  const handleSubmit = async () => {
-    if (!audioFile || !title) return;
-
-    // Check for duplicates unless user forced upload
-    if (!forceUpload) {
-      const trimmedTitle = title.trim().toLowerCase();
-      const trimmedArtist = (artist.trim() || 'Unknown Artist').toLowerCase();
-      
-      // Check in database
-      const { data: existing } = await supabase
-        .from('songs')
-        .select('id, title, artist')
-        .ilike('title', trimmedTitle)
-        .ilike('artist', trimmedArtist)
-        .limit(1);
-      
-      if (existing && existing.length > 0) {
-        setDuplicateWarning(`"${existing[0].title}" oleh ${existing[0].artist} sudah ada di library.`);
-        return;
-      }
-      
-      // Also check in local store
-      const localSongs = useMusicStore.getState().songs;
-      const localDuplicate = localSongs.find(
-        s => s.title.toLowerCase() === trimmedTitle && s.artist.toLowerCase() === trimmedArtist
-      );
-      if (localDuplicate) {
-        setDuplicateWarning(`"${localDuplicate.title}" oleh ${localDuplicate.artist} sudah ada di library.`);
-        return;
-      }
-    }
-    
-    setDuplicateWarning(null);
-    setForceUpload(false);
-    setIsProcessing(true);
+  const uploadOne = async (item: UploadItem): Promise<void> => {
+    updateItem(item.id, { status: 'uploading', progress: 5, startedAt: Date.now() });
 
     try {
       const songId = crypto.randomUUID();
-      const songTitle = title.trim();
-      const songArtist = artist.trim() || 'Unknown Artist';
-      const songAlbum = album.trim() || undefined;
-      const songDuration = duration || 180;
+      const songTitle = item.title.trim() || item.file.name;
+      const songArtist = item.artist.trim() || 'Unknown Artist';
+      const songAlbum = item.album.trim() || undefined;
+      const songDuration = item.duration || 180;
 
-      // Upload audio + cover IN PARALLEL (much faster than sequential)
+      // Simulate smooth progress while parallel uploads run
+      let fakeProgress = 5;
+      const progressTimer = setInterval(() => {
+        fakeProgress = Math.min(85, fakeProgress + Math.random() * 8);
+        updateItem(item.id, { progress: fakeProgress });
+      }, 250);
+
+      const coverFile = item.coverBlob
+        ? new File(
+            [item.coverBlob],
+            `cover.${item.coverBlob.type === 'image/gif' ? 'gif' : 'jpg'}`,
+            { type: item.coverBlob.type }
+          )
+        : undefined;
+
       const [audioPath, coverPath] = await Promise.all([
-        uploadAudioFile(songId, audioFile),
+        uploadAudioFile(songId, item.file),
         coverFile ? uploadCoverImage(songId, coverFile) : Promise.resolve(undefined),
       ]);
 
-      // Insert metadata into database (source of truth)
+      clearInterval(progressTimer);
+      updateItem(item.id, { status: 'processing', progress: 92 });
+
       const { error: insertError } = await supabase.from('songs').insert({
         id: songId,
         title: songTitle,
@@ -161,12 +170,11 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         duration: songDuration,
         audio_path: audioPath,
         cover_path: coverPath || null,
-        lyrics: parsedLyrics.length > 0 ? JSON.stringify(parsedLyrics) : null,
+        lyrics: null,
       } as any);
 
       if (insertError) throw insertError;
 
-      // Add to local store with cloud URLs (persists after refresh)
       const newSong: Song = {
         id: songId,
         title: songTitle,
@@ -177,181 +185,227 @@ export function UploadDialog({ isOpen, onClose }: UploadDialogProps) {
         cover_path: coverPath,
         audioUrl: getAudioUrl(audioPath),
         coverUrl: coverPath ? getCoverUrl(coverPath) : undefined,
-        lyrics: parsedLyrics.length > 0 ? parsedLyrics : [],
+        lyrics: [],
         addedAt: Date.now(),
       };
 
       addSong(newSong);
-      resetForm();
-      onClose();
-    } catch (error) {
-      console.error('Error adding song:', error);
-      alert('Gagal mengupload lagu. Silakan coba lagi.');
-    } finally {
-      setIsProcessing(false);
+      updateItem(item.id, { status: 'done', progress: 100 });
+      toast.success(`✓ ${songTitle} berhasil diupload`);
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      updateItem(item.id, {
+        status: 'error',
+        error: err?.message || 'Upload gagal',
+      });
+      toast.error(`Gagal upload ${item.title}`);
     }
   };
 
-  const resetForm = () => {
-    setAudioFile(null);
-    setCoverFile(null);
-    setCoverPreview('');
-    setRawImageSrc('');
-    setShowCropDialog(false);
-    setLyricsFile(null);
-    setParsedLyrics([]);
-    setTitle('');
-    setArtist('');
-    setAlbum('');
-    setDuration(0);
-    setDuplicateWarning(null);
-    setForceUpload(false);
+  const startUpload = async () => {
+    const pending = items.filter((it) => it.status === 'queued' || it.status === 'error');
+    if (pending.length === 0) return;
+    setIsUploading(true);
+
+    // Upload in batches of PARALLEL_UPLOADS
+    for (let i = 0; i < pending.length; i += PARALLEL_UPLOADS) {
+      const batch = pending.slice(i, i + PARALLEL_UPLOADS);
+      await Promise.all(batch.map(uploadOne));
+    }
+
+    setIsUploading(false);
   };
 
   const handleClose = () => {
-    resetForm();
+    if (isUploading) return;
+    items.forEach((it) => it.coverPreview && URL.revokeObjectURL(it.coverPreview));
+    setItems([]);
     onClose();
+  };
+
+  const clearDone = () => {
+    setItems((prev) => {
+      prev.filter((p) => p.status === 'done').forEach((p) => {
+        if (p.coverPreview) URL.revokeObjectURL(p.coverPreview);
+      });
+      return prev.filter((p) => p.status !== 'done');
+    });
   };
 
   if (!isOpen) return null;
 
+  const pendingCount = items.filter((it) => it.status === 'queued' || it.status === 'error').length;
+  const doneCount = items.filter((it) => it.status === 'done').length;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative bg-card rounded-xl shadow-2xl w-full max-w-md mx-auto p-4 md:p-6 animate-slide-up max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4 md:mb-6">
-          <h2 className="text-lg md:text-xl font-bold">Add Music</h2>
-          <button onClick={handleClose} className="p-1 rounded-full hover:bg-accent transition-colors">
+      <div className="relative bg-card rounded-xl shadow-2xl w-full max-w-2xl mx-auto p-4 md:p-6 animate-slide-up max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg md:text-xl font-bold">Upload Music</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              MP3, WAV, FLAC, OGG, M4A · max 50MB · multi-file
+            </p>
+          </div>
+          <button
+            onClick={handleClose}
+            disabled={isUploading}
+            className="p-1 rounded-full hover:bg-accent transition-colors disabled:opacity-50"
+          >
             <X size={20} className="text-muted-foreground" />
           </button>
         </div>
 
-        {/* Audio Upload */}
-        <div className="mb-4 md:mb-6">
-          <label className="block text-sm font-medium mb-2">Audio File *</label>
-          <input ref={audioInputRef} type="file" accept="audio/*" onChange={handleAudioSelect} className="hidden" />
-          {audioFile ? (
-            <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
-              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                <Music size={20} className="text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{audioFile.name}</p>
-                <p className="text-xs text-muted-foreground">{(audioFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-              </div>
-              <button onClick={() => { setAudioFile(null); setTitle(''); setDuration(0); }} className="text-muted-foreground hover:text-foreground">
-                <X size={16} />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => audioInputRef.current?.click()} className="w-full p-4 md:p-6 border-2 border-dashed border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center gap-2">
-              <Upload size={28} className="md:w-8 md:h-8 text-muted-foreground" />
-              <span className="text-xs md:text-sm text-muted-foreground text-center">Click to upload MP3, WAV, or other audio</span>
-            </button>
+        {/* Drag & Drop Zone */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".mp3,.wav,.flac,.ogg,.m4a,audio/*"
+          multiple
+          onChange={handleFileInput}
+          className="hidden"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={cn(
+            'w-full p-6 border-2 border-dashed rounded-lg flex flex-col items-center gap-2 transition-all',
+            isDragging
+              ? 'border-primary bg-primary/10 scale-[1.01]'
+              : 'border-border hover:border-primary hover:bg-primary/5'
           )}
-        </div>
+        >
+          <Upload size={32} className={cn('transition-colors', isDragging ? 'text-primary' : 'text-muted-foreground')} />
+          <span className="text-sm font-medium">
+            {isDragging ? 'Drop file di sini' : 'Drag & drop atau klik untuk pilih file'}
+          </span>
+          <span className="text-xs text-muted-foreground">Bisa pilih banyak file sekaligus</span>
+        </button>
 
-        {/* Cover Image and Lyrics */}
-        <div className="grid grid-cols-2 gap-4 mb-4 md:mb-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Album Art</label>
-            <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-            <button onClick={() => imageInputRef.current?.click()} className={cn("w-full aspect-square rounded-lg overflow-hidden transition-all", coverPreview ? "ring-2 ring-primary" : "border-2 border-dashed border-border hover:border-primary hover:bg-primary/5")}>
-              {coverPreview ? (
-                <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
-                  <Image size={24} className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground text-center">Add cover</span>
-                </div>
-              )}
-            </button>
-            {coverPreview && (
-              <button onClick={() => { setCoverFile(null); setCoverPreview(''); }} className="text-xs text-muted-foreground hover:text-destructive mt-1">Remove</button>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Lyrics</label>
-            <input ref={lyricsInputRef} type="file" accept=".lrc,.txt" onChange={handleLyricsSelect} className="hidden" />
-            <button onClick={() => lyricsInputRef.current?.click()} className={cn("w-full aspect-square rounded-lg overflow-hidden transition-all", lyricsFile ? "ring-2 ring-primary bg-primary/10" : "border-2 border-dashed border-border hover:border-primary hover:bg-primary/5")}>
-              {lyricsFile ? (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
-                  <FileText size={24} className="text-primary" />
-                  <span className="text-xs text-primary text-center truncate w-full px-2">{lyricsFile.name}</span>
-                  <span className="text-xs text-muted-foreground">{parsedLyrics.length} lines</span>
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2">
-                  <FileText size={24} className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground text-center">Add lyrics (.lrc/.txt)</span>
-                </div>
-              )}
-            </button>
-            {lyricsFile && (
-              <button onClick={() => { setLyricsFile(null); setParsedLyrics([]); }} className="text-xs text-muted-foreground hover:text-destructive mt-1">Remove</button>
-            )}
-          </div>
-        </div>
-
-        {/* Metadata */}
-        <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Song title" className="w-full px-3 py-2 bg-secondary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Artist</label>
-            <input type="text" value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Artist name" className="w-full px-3 py-2 bg-secondary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Album</label>
-            <input type="text" value={album} onChange={(e) => setAlbum(e.target.value)} placeholder="Album name" className="w-full px-3 py-2 bg-secondary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          </div>
-        </div>
-
-        {/* Duplicate Warning */}
-        {duplicateWarning && (
-          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3">
-            <AlertTriangle size={20} className="text-yellow-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-yellow-200 font-medium">Lagu sudah ada!</p>
-              <p className="text-xs text-yellow-300/80 mt-1">{duplicateWarning}</p>
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => { setDuplicateWarning(null); setForceUpload(true); }}
-                  className="px-3 py-1 text-xs font-medium bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
-                >
-                  Upload tetap
-                </button>
-                <button
-                  onClick={() => setDuplicateWarning(null)}
-                  className="px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full transition-colors"
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
+        {/* File List */}
+        {items.length > 0 && (
+          <div className="mt-4 flex-1 overflow-y-auto space-y-2 pr-1">
+            {items.map((item) => (
+              <UploadRow key={item.id} item={item} onRemove={() => removeItem(item.id)} />
+            ))}
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <button onClick={handleClose} className="flex-1 px-4 py-2 text-sm font-medium rounded-full hover:bg-accent transition-colors">Cancel</button>
-          <button onClick={handleSubmit} disabled={!audioFile || !title || isProcessing} className="flex-1 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100">
-            {isProcessing ? 'Uploading...' : 'Add Song'}
-          </button>
-        </div>
+        {items.length > 0 && (
+          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border">
+            <div className="flex-1 text-xs text-muted-foreground">
+              {pendingCount > 0 && <span>{pendingCount} menunggu · </span>}
+              {doneCount > 0 && <span className="text-green-500">{doneCount} selesai</span>}
+            </div>
+            {doneCount > 0 && !isUploading && (
+              <button
+                onClick={clearDone}
+                className="px-3 py-1.5 text-xs font-medium rounded-full hover:bg-accent transition-colors"
+              >
+                Bersihkan
+              </button>
+            )}
+            <button
+              onClick={handleClose}
+              disabled={isUploading}
+              className="px-4 py-2 text-sm font-medium rounded-full hover:bg-accent transition-colors disabled:opacity-50"
+            >
+              Tutup
+            </button>
+            <button
+              onClick={startUpload}
+              disabled={pendingCount === 0 || isUploading}
+              className="px-5 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Mengupload...
+                </>
+              ) : (
+                `Upload ${pendingCount}`
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UploadRow({ item, onRemove }: { item: UploadItem; onRemove: () => void }) {
+  const statusColor = {
+    queued: 'bg-muted-foreground/40',
+    extracting: 'bg-blue-400',
+    uploading: 'bg-blue-500',
+    processing: 'bg-yellow-500',
+    done: 'bg-green-500',
+    error: 'bg-destructive',
+  }[item.status];
+
+  const StatusIcon = () => {
+    switch (item.status) {
+      case 'done':
+        return <CheckCircle2 size={16} className="text-green-500" />;
+      case 'error':
+        return <AlertCircle size={16} className="text-destructive" />;
+      case 'extracting':
+      case 'uploading':
+      case 'processing':
+        return <Loader2 size={16} className="animate-spin text-primary" />;
+      default:
+        return <Music size={16} className="text-muted-foreground" />;
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 p-2.5 bg-secondary/50 rounded-lg">
+      {/* Cover thumbnail */}
+      <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+        {item.coverPreview ? (
+          <img src={item.coverPreview} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <Music size={16} className="text-muted-foreground" />
+        )}
       </div>
 
-      {/* Cover Crop Dialog */}
-      <CoverCropDialog
-        open={showCropDialog}
-        imageSrc={rawImageSrc}
-        isGif={isRawGif}
-        onClose={() => { setShowCropDialog(false); setRawImageSrc(''); }}
-        onCropComplete={handleCropComplete}
-      />
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium truncate">{item.title}</p>
+        </div>
+        <p className="text-xs text-muted-foreground truncate">
+          {item.artist} · {formatBytes(item.file.size)}
+          {item.error && <span className="text-destructive ml-1">· {item.error}</span>}
+        </p>
+        {(item.status === 'uploading' || item.status === 'processing' || item.status === 'done') && (
+          <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className={cn('h-full transition-all duration-200', statusColor)}
+              style={{ width: `${item.progress}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Status */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <StatusIcon />
+        {item.status !== 'uploading' && item.status !== 'processing' && (
+          <button
+            onClick={onRemove}
+            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-destructive transition-colors"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
