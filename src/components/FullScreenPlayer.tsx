@@ -227,10 +227,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
         <div className="flex items-center justify-center gap-6 md:gap-8 py-4">
           <button
             onClick={toggleShuffle}
-            className={cn(
-              "p-2 transition-colors",
-              shuffle ? timeTheme.accentColor : "text-white/60 hover:text-white"
-            )}
+            className="p-2 transition-colors"
+            style={{ color: shuffle ? accent : 'rgba(255,255,255,0.6)' }}
           >
             <Shuffle size={22} />
           </button>
@@ -262,10 +260,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           
           <button
             onClick={toggleRepeat}
-            className={cn(
-              "p-2 transition-colors",
-              repeat !== 'off' ? timeTheme.accentColor : "text-white/60 hover:text-white"
-            )}
+            className="p-2 transition-colors"
+            style={{ color: repeat !== 'off' ? accent : 'rgba(255,255,255,0.6)' }}
           >
             {repeat === 'one' ? <Repeat1 size={22} /> : <Repeat size={22} />}
           </button>
@@ -304,22 +300,23 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           >
             <p className="text-sm text-white/60 mb-3">Lyrics Preview</p>
             <div className="space-y-3">
-              {lyrics.slice(0, 5).map((line, index) => (
-                <p
-                  key={index}
-                  ref={index === currentLyricIndex ? activeLyricRef : null}
-                  className={cn(
-                    "text-lg md:text-xl font-bold transition-all duration-300",
-                    index === currentLyricIndex 
-                      ? "text-white" 
-                      : index < currentLyricIndex 
-                        ? "text-white/40" 
-                        : "text-white/60"
-                  )}
-                >
-                  {line.text}
-                </p>
-              ))}
+              {lyrics.slice(0, 5).map((line, index) => {
+                const isActive = index === currentLyricIndex;
+                const isPast = index < currentLyricIndex;
+                return (
+                  <p
+                    key={index}
+                    ref={isActive ? activeLyricRef : null}
+                    className="text-lg md:text-xl font-bold transition-all duration-300"
+                    style={{
+                      color: isActive ? '#fff' : isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.6)',
+                      textShadow: isActive ? `0 0 24px ${accentGlow}` : 'none',
+                    }}
+                  >
+                    {line.text}
+                  </p>
+                );
+              })}
             </div>
             
             {/* Show full lyrics button - Mobile only */}
