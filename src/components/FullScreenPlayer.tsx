@@ -6,8 +6,7 @@ import {
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { MobileLyricsView } from './MobileLyricsView';
-import { useTimeTheme } from '@/hooks/useTimeTheme';
-import { useDominantColor } from '@/hooks/useDominantColor';
+import { useDominantPalette } from '@/hooks/useDominantColor';
 
 interface FullScreenPlayerProps {
   isOpen: boolean;
@@ -22,8 +21,9 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const [showMobileLyrics, setShowMobileLyrics] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const timeTheme = useTimeTheme();
-  const dominantColor = useDominantColor(loadedCoverUrl);
+  const palette = useDominantPalette(loadedCoverUrl);
+  const { accent, accentSoft, accentGlow } = palette;
+  const [isLiked, setIsLiked] = useState(false);
   
   const {
     playerState,
@@ -118,9 +118,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           : "translate-y-full opacity-0"
       )}
       style={{ 
-        background: dominantColor 
-          ? `linear-gradient(to bottom, ${dominantColor}, #000)` 
-          : 'linear-gradient(to bottom, #404040, #000)' 
+        background: `linear-gradient(to bottom, ${accent}, #000)`,
+        transition: 'background 0.8s ease',
       }}
     >
       {/* Background with album art blur */}
@@ -161,7 +160,13 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
 
         {/* Album Art - Desktop shows larger */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 md:px-16">
-          <div className="w-full max-w-[280px] md:max-w-[400px] aspect-square rounded-lg overflow-hidden shadow-2xl">
+          <div
+            className="w-full max-w-[280px] md:max-w-[400px] aspect-square rounded-lg overflow-hidden shadow-2xl"
+            style={{
+              boxShadow: `0 25px 60px -15px ${accentGlow}, 0 0 80px ${accentSoft}`,
+              transition: 'box-shadow 0.8s ease',
+            }}
+          >
             {loadedCoverUrl ? (
               <img 
                 src={loadedCoverUrl} 
@@ -184,8 +189,12 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
               {currentSong?.artist || 'Unknown artist'}
             </p>
           </div>
-          <button className="p-2 text-white/60 hover:text-white">
-            <Heart size={24} />
+          <button
+            onClick={() => setIsLiked((v) => !v)}
+            className="p-2 transition-colors"
+            style={{ color: isLiked ? accent : 'rgba(255,255,255,0.6)' }}
+          >
+            <Heart size={24} fill={isLiked ? accent : 'none'} />
           </button>
         </div>
 
@@ -196,8 +205,12 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
             className="h-1 bg-white/20 rounded-full cursor-pointer group"
           >
             <div 
-              className="h-full bg-white rounded-full relative"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full relative"
+              style={{
+                width: `${progress}%`,
+                background: accent,
+                transition: 'background 0.8s ease',
+              }}
             >
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
@@ -212,10 +225,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
         <div className="flex items-center justify-center gap-6 md:gap-8 py-4">
           <button
             onClick={toggleShuffle}
-            className={cn(
-              "p-2 transition-colors",
-              shuffle ? timeTheme.accentColor : "text-white/60 hover:text-white"
-            )}
+            className="p-2 transition-colors"
+            style={{ color: shuffle ? accent : 'rgba(255,255,255,0.6)' }}
           >
             <Shuffle size={22} />
           </button>
@@ -247,10 +258,8 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           
           <button
             onClick={toggleRepeat}
-            className={cn(
-              "p-2 transition-colors",
-              repeat !== 'off' ? timeTheme.accentColor : "text-white/60 hover:text-white"
-            )}
+            className="p-2 transition-colors"
+            style={{ color: repeat !== 'off' ? accent : 'rgba(255,255,255,0.6)' }}
           >
             {repeat === 'one' ? <Repeat1 size={22} /> : <Repeat size={22} />}
           </button>
@@ -289,22 +298,23 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
           >
             <p className="text-sm text-white/60 mb-3">Lyrics Preview</p>
             <div className="space-y-3">
-              {lyrics.slice(0, 5).map((line, index) => (
-                <p
-                  key={index}
-                  ref={index === currentLyricIndex ? activeLyricRef : null}
-                  className={cn(
-                    "text-lg md:text-xl font-bold transition-all duration-300",
-                    index === currentLyricIndex 
-                      ? "text-white" 
-                      : index < currentLyricIndex 
-                        ? "text-white/40" 
-                        : "text-white/60"
-                  )}
-                >
-                  {line.text}
-                </p>
-              ))}
+              {lyrics.slice(0, 5).map((line, index) => {
+                const isActive = index === currentLyricIndex;
+                const isPast = index < currentLyricIndex;
+                return (
+                  <p
+                    key={index}
+                    ref={isActive ? activeLyricRef : null}
+                    className="text-lg md:text-xl font-bold transition-all duration-300"
+                    style={{
+                      color: isActive ? '#fff' : isPast ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.6)',
+                      textShadow: isActive ? `0 0 24px ${accentGlow}` : 'none',
+                    }}
+                  >
+                    {line.text}
+                  </p>
+                );
+              })}
             </div>
             
             {/* Show full lyrics button - Mobile only */}
