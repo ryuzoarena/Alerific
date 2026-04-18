@@ -6,7 +6,6 @@ import {
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
 import { MobileLyricsView } from './MobileLyricsView';
-import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useDominantPalette } from '@/hooks/useDominantColor';
 
 interface FullScreenPlayerProps {
@@ -22,7 +21,6 @@ export function FullScreenPlayer({ isOpen, onClose, loadedCoverUrl, audioRef }: 
   const [showMobileLyrics, setShowMobileLyrics] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const timeTheme = useTimeTheme();
   const palette = useDominantPalette(loadedCoverUrl);
   const { accent, accentSoft, accentGlow } = palette;
   const [isLiked, setIsLiked] = useState(false);
