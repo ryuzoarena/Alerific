@@ -539,7 +539,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             </button>
             
             <button
-              onClick={prevSong}
+              onClick={() => { cancelCrossfade(); prevSong(); }}
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipBack size={20} fill="currentColor" />
@@ -557,7 +557,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             </button>
             
             <button
-              onClick={nextSong}
+              onClick={() => { cancelCrossfade(); nextSong(); }}
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipForward size={20} fill="currentColor" />
