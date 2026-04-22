@@ -5,12 +5,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { useApplySettings } from "@/hooks/useApplySettings";
 
 const queryClient = new QueryClient();
+
+const SettingsBridge = () => {
+  useApplySettings();
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <SettingsBridge />
       <Toaster />
       <Sonner />
       <BrowserRouter>
