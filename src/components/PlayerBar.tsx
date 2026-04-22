@@ -29,7 +29,12 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
   const [loadedCoverUrl, setLoadedCoverUrl] = useState<string | null>(null);
   const [showFullScreen, setShowFullScreen] = useState(false);
-  
+
+  // Crossfade refs
+  const isCrossfadingRef = useRef(false);
+  const crossfadeIntervalRef = useRef<number | null>(null);
+  const skipNextSrcLoadRef = useRef(false);
+
   const {
     playerState,
     togglePlay,
@@ -50,6 +55,23 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
 
   // Web Audio API engine for mono & equalizer
   useAudioEngine(audioRef);
+
+  // Cancel any in-flight crossfade (used on manual skip / pause)
+  const cancelCrossfade = useCallback(() => {
+    if (crossfadeIntervalRef.current !== null) {
+      clearInterval(crossfadeIntervalRef.current);
+      crossfadeIntervalRef.current = null;
+    }
+    if (preloadAudioRef.current) {
+      try { preloadAudioRef.current.pause(); } catch {}
+      preloadAudioRef.current.volume = 0;
+    }
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+    isCrossfadingRef.current = false;
+  }, [isMuted, volume]);
+
 
   // Load audio from cloud URL when song changes
   useEffect(() => {
