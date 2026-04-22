@@ -5,6 +5,7 @@ import { LyricsPanel } from '@/components/LyricsPanel';
 import { UploadDialog } from '@/components/UploadDialog';
 import { MobileNavBar } from '@/components/MobileNavBar';
 import { ProfileDrawer } from '@/components/ProfileDrawer';
+import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { AuthPage } from '@/components/AuthPage';
 import { QueuePanel } from '@/components/QueuePanel';
 import { HomeView } from '@/components/views/HomeView';
@@ -32,6 +33,8 @@ const Index = () => {
   const [selectedArtist, setSelectedArtist] = useState<string>('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
 
   const auth = useAuth();
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
@@ -121,6 +124,9 @@ const Index = () => {
             onSelectPlaylist={setSelectedPlaylistId}
             onUploadClick={() => setShowUpload(true)}
             onAvatarClick={() => setIsDrawerOpen(true)}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+            onOpenSettings={() => setIsSettingsDrawerOpen(true)}
           />
         </div>
 
@@ -170,6 +176,11 @@ const Index = () => {
       <UploadDialog 
         isOpen={showUpload} 
         onClose={() => setShowUpload(false)} 
+      />
+
+      <SettingsDrawer
+        isOpen={isSettingsDrawerOpen}
+        onClose={() => setIsSettingsDrawerOpen(false)}
       />
 
       <QueuePanel />

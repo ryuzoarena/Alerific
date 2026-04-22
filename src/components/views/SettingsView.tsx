@@ -400,7 +400,7 @@ export function SettingsView() {
               <p className="text-xs text-muted-foreground mt-0.5">Transisi halus saat berpindah lagu.</p>
             </div>
             <span className="text-sm font-semibold text-primary tabular-nums">
-              {crossfadeSeconds} detik
+              {crossfadeSeconds === 0 ? '0 detik (Mati)' : `${crossfadeSeconds} detik`}
             </span>
           </div>
           <Slider

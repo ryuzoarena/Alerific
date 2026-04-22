@@ -24,6 +24,8 @@ export function useApplySettings() {
         themeMode === 'light' || (themeMode === 'system' && mql.matches);
       root.classList.toggle('light', isLight);
       root.classList.toggle('dark', !isLight);
+      root.setAttribute('data-theme', isLight ? 'light' : 'dark');
+      root.style.colorScheme = isLight ? 'light' : 'dark';
     };
 
     apply();

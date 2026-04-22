@@ -25,11 +25,16 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const preloadAudioRef = useRef<HTMLAudioElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging] = useState(false);
   const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
   const [loadedCoverUrl, setLoadedCoverUrl] = useState<string | null>(null);
   const [showFullScreen, setShowFullScreen] = useState(false);
-  
+
+  // Crossfade refs
+  const isCrossfadingRef = useRef(false);
+  const crossfadeIntervalRef = useRef<number | null>(null);
+  const skipNextSrcLoadRef = useRef(false);
+
   const {
     playerState,
     togglePlay,
@@ -51,16 +56,41 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   // Web Audio API engine for mono & equalizer
   useAudioEngine(audioRef);
 
+  // Cancel any in-flight crossfade (used on manual skip / pause)
+  const cancelCrossfade = useCallback(() => {
+    if (crossfadeIntervalRef.current !== null) {
+      clearInterval(crossfadeIntervalRef.current);
+      crossfadeIntervalRef.current = null;
+    }
+    if (preloadAudioRef.current) {
+      try { preloadAudioRef.current.pause(); } catch {}
+      preloadAudioRef.current.volume = 0;
+    }
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+    isCrossfadingRef.current = false;
+  }, [isMuted, volume]);
+
+
   // Load audio from cloud URL when song changes
   useEffect(() => {
     if (!audioRef.current || !currentSong) return;
-    
+
     const audioUrl = currentSong.audioUrl || null;
     const coverUrl = currentSong.coverUrl || null;
-    
-    setLoadedAudioUrl(audioUrl);
+
     setLoadedCoverUrl(coverUrl);
     onCoverUrlChange?.(coverUrl);
+
+    // If a crossfade just promoted preload → main, do NOT reset src or currentTime
+    if (skipNextSrcLoadRef.current) {
+      skipNextSrcLoadRef.current = false;
+      setLoadedAudioUrl(audioUrl);
+      return;
+    }
+
+    setLoadedAudioUrl(audioUrl);
 
     if (audioUrl) {
       applySafePlaybackSettings(audioRef.current);
@@ -236,14 +266,108 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     return availableQueue[nextIdx]?.audioUrl || null;
   }, []);
 
+  // Start a crossfade from main audio → preload audio. When complete, promote
+  // the preload track to be the new "current" via nextSong() (without re-loading).
+  const startCrossfade = useCallback((fadeSeconds: number) => {
+    const main = audioRef.current;
+    const next = preloadAudioRef.current;
+    if (!main || !next) return;
+    if (isCrossfadingRef.current) return;
+    if (!preloadedUrlRef.current) return;
+
+    // Clamp fade to remaining time of current song
+    const remaining = Math.max(0, main.duration - main.currentTime);
+    const safeFade = Math.max(0.5, Math.min(fadeSeconds, remaining));
+
+    isCrossfadingRef.current = true;
+    const targetVolume = isMuted ? 0 : volume;
+
+    try {
+      next.currentTime = 0;
+      next.volume = 0;
+      next.play().catch(() => {});
+    } catch {/* ignore */}
+
+    const steps = 30;
+    const stepMs = (safeFade * 1000) / steps;
+    let step = 0;
+
+    crossfadeIntervalRef.current = window.setInterval(() => {
+      step++;
+      const p = step / steps;
+      try {
+        if (main) main.volume = Math.max(0, targetVolume * (1 - p));
+        if (next) next.volume = Math.min(targetVolume, targetVolume * p);
+      } catch {/* ignore */}
+
+      if (step >= steps) {
+        if (crossfadeIntervalRef.current !== null) {
+          clearInterval(crossfadeIntervalRef.current);
+          crossfadeIntervalRef.current = null;
+        }
+
+        // Promote preload → main without resetting src/currentTime
+        const promotedUrl = preloadedUrlRef.current;
+        const continueAt = next.currentTime;
+        try { next.pause(); } catch {}
+        next.volume = 0;
+
+        if (promotedUrl && main) {
+          try {
+            skipNextSrcLoadRef.current = true;
+            main.src = promotedUrl;
+            // Wait for the new src to be ready before resuming
+            const resume = () => {
+              try {
+                main.currentTime = continueAt;
+                main.volume = targetVolume;
+                main.play().catch(() => {});
+              } catch {/* ignore */}
+              main.removeEventListener('loadedmetadata', resume);
+            };
+            main.addEventListener('loadedmetadata', resume);
+            main.load();
+          } catch {/* ignore */}
+        }
+
+        preloadedUrlRef.current = null;
+        isCrossfadingRef.current = false;
+
+        // Advance store state to next track
+        useMusicStore.getState().nextSong();
+      }
+    }, stepMs);
+  }, [isMuted, volume]);
+
   // Time update handler
   const handleTimeUpdate = () => {
     if (audioRef.current && !isDragging) {
       setCurrentTime(audioRef.current.currentTime);
-      
-      // Preload next track when ~5 seconds from end for gapless playback
+
       const remaining = audioRef.current.duration - audioRef.current.currentTime;
-      if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+
+      // Crossfade trigger (real audio fade between songs)
+      const crossfadeSeconds = useSettingsStore.getState().crossfadeSeconds;
+      const repeatMode = useMusicStore.getState().playerState.repeat;
+      if (
+        crossfadeSeconds > 0 &&
+        remaining > 0 &&
+        remaining <= crossfadeSeconds &&
+        !isCrossfadingRef.current &&
+        repeatMode !== 'one'
+      ) {
+        // Ensure preload has the next URL
+        const nextUrl = getNextSongUrl();
+        if (nextUrl) {
+          if (preloadedUrlRef.current !== nextUrl && preloadAudioRef.current) {
+            preloadedUrlRef.current = nextUrl;
+            preloadAudioRef.current.src = nextUrl;
+            preloadAudioRef.current.load();
+          }
+          startCrossfade(crossfadeSeconds);
+        }
+      } else if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+        // Standard preload (gapless / faster swap)
         const nextUrl = getNextSongUrl();
         if (nextUrl && preloadedUrlRef.current !== nextUrl) {
           preloadedUrlRef.current = nextUrl;
@@ -251,7 +375,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           preloadAudioRef.current.load();
         }
       }
-      
+
       // Update current lyric index
       if (currentSong?.lyrics) {
         const lyrics = currentSong.lyrics;
@@ -415,7 +539,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             </button>
             
             <button
-              onClick={prevSong}
+              onClick={() => { cancelCrossfade(); prevSong(); }}
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipBack size={20} fill="currentColor" />
@@ -433,7 +557,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             </button>
             
             <button
-              onClick={nextSong}
+              onClick={() => { cancelCrossfade(); nextSong(); }}
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipForward size={20} fill="currentColor" />

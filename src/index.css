@@ -64,6 +64,42 @@
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 141 73% 42%;
   }
+
+  /* ===== Light theme overrides ===== */
+  :root.light,
+  :root[data-theme="light"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 0%;
+    --card-hover: 0 0% 92%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 35%;
+
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 10%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+
+    --player-bg: 0 0% 91%;
+    --player-hover: 0 0% 85%;
+    --track-bg: 0 0% 80%;
+
+    --sidebar-background: 0 0% 94%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-accent: 0 0% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 85%;
+  }
 }
 
 @layer base {
