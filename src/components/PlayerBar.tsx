@@ -76,13 +76,21 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   // Load audio from cloud URL when song changes
   useEffect(() => {
     if (!audioRef.current || !currentSong) return;
-    
+
     const audioUrl = currentSong.audioUrl || null;
     const coverUrl = currentSong.coverUrl || null;
-    
-    setLoadedAudioUrl(audioUrl);
+
     setLoadedCoverUrl(coverUrl);
     onCoverUrlChange?.(coverUrl);
+
+    // If a crossfade just promoted preload → main, do NOT reset src or currentTime
+    if (skipNextSrcLoadRef.current) {
+      skipNextSrcLoadRef.current = false;
+      setLoadedAudioUrl(audioUrl);
+      return;
+    }
+
+    setLoadedAudioUrl(audioUrl);
 
     if (audioUrl) {
       applySafePlaybackSettings(audioRef.current);
