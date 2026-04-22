@@ -25,7 +25,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const preloadAudioRef = useRef<HTMLAudioElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging] = useState(false);
   const [loadedAudioUrl, setLoadedAudioUrl] = useState<string | null>(null);
   const [loadedCoverUrl, setLoadedCoverUrl] = useState<string | null>(null);
   const [showFullScreen, setShowFullScreen] = useState(false);
