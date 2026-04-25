@@ -255,14 +255,13 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
               <SkeletonGridCards />
             ) : (
               <>
-                {/* Mobile: simple horizontal scroll */}
-                <div className="lg:hidden flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4">
+                <HorizontalScroller className="lg:hidden gap-2 sm:gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
                   {recommendedSongs.map((song) => (
                     <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
                       <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
                     </div>
                   ))}
-                </div>
+                </HorizontalScroller>
                 {/* Desktop: drag-scroll single row, compact cards */}
                 <div className="hidden lg:block">
                   <HorizontalScroller className="gap-3 pb-4">
@@ -294,13 +293,13 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
               <SkeletonGridCards />
             ) : (
               <>
-                <div className="lg:hidden flex gap-2 sm:gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4">
+                <HorizontalScroller className="lg:hidden gap-2 sm:gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
                   {madeForYou.map((song) => (
                     <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
                       <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
                     </div>
                   ))}
-                </div>
+                </HorizontalScroller>
                 <div className="hidden lg:block">
                   <HorizontalScroller className="gap-3 pb-4">
                     {madeForYou.map((song) => (
@@ -331,13 +330,13 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
               <SkeletonGridCards />
             ) : (
               <>
-                <div className="lg:hidden flex gap-3 overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4" style={{ scrollBehavior: 'smooth' }}>
+                <HorizontalScroller className="lg:hidden gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
                   {songs.map((song) => (
                     <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
                       <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
                     </div>
                   ))}
-                </div>
+                </HorizontalScroller>
                 <div className="hidden lg:block">
                   <HorizontalScroller className="gap-3 pb-4">
                     {songs.map((song) => (
