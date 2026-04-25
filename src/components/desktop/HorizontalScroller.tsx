@@ -20,6 +20,15 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
   const scrollLeftRef = useRef(0);
   const draggedRef = useRef(false);
 
+  const beginDrag = (pageX: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDownRef.current = true;
+    draggedRef.current = false;
+    startXRef.current = pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
   const updateArrows = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -38,12 +47,7 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
   }, [children]);
 
   const onMouseDown = (e: React.MouseEvent) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    isDownRef.current = true;
-    draggedRef.current = false;
-    startXRef.current = e.pageX - el.offsetLeft;
-    scrollLeftRef.current = el.scrollLeft;
+    beginDrag(e.pageX);
   };
 
   const endDrag = () => {
@@ -56,7 +60,21 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
     if (!el) return;
     e.preventDefault();
     const x = e.pageX - el.offsetLeft;
-    const walk = (x - startXRef.current) * 1.5;
+    const walk = (x - startXRef.current) * 2;
+    if (Math.abs(walk) > 5) draggedRef.current = true;
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    beginDrag(e.touches[0].pageX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isDownRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const x = e.touches[0].pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 2;
     if (Math.abs(walk) > 5) draggedRef.current = true;
     el.scrollLeft = scrollLeftRef.current - walk;
   };
@@ -112,9 +130,13 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
         onMouseLeave={endDrag}
         onMouseUp={endDrag}
         onMouseMove={onMouseMove}
+        onTouchStart={onTouchStart}
+        onTouchEnd={endDrag}
+        onTouchCancel={endDrag}
+        onTouchMove={onTouchMove}
         onClickCapture={onClickCapture}
         className={cn(
-          'flex flex-nowrap overflow-x-scroll overflow-y-hidden scrollbar-hide select-none',
+          'songs-scroll-container flex w-full flex-nowrap overflow-x-scroll overflow-y-hidden scrollbar-hide select-none',
           isDownRef.current ? 'cursor-grabbing' : 'lg:cursor-grab',
           className
         )}
