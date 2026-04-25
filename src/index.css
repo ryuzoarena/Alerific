@@ -11,7 +11,7 @@
   scrollbar-width: none;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Playfair+Display:ital@1&family=Poppins:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -261,5 +261,71 @@
   /* Glassmorphism card */
   .glass-card {
     @apply backdrop-blur-md bg-white/5 border border-white/10;
+  }
+
+  @keyframes auth-visualizer {
+    0%, 100% { transform: scaleY(0.25); opacity: 0.25; }
+    50% { transform: scaleY(1); opacity: 0.7; }
+  }
+
+  @keyframes auth-float {
+    0%, 100% { transform: translateY(0) rotate(var(--card-rotate)); }
+    50% { transform: translateY(-16px) rotate(var(--card-rotate)); }
+  }
+
+  @keyframes auth-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes auth-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+  }
+
+  .auth-page {
+    --auth-accent: 258 90% 66%;
+    --auth-accent-dark: 263 70% 50%;
+    --auth-bg-dark: 240 20% 5%;
+    --auth-card: 0 0% 100% / 0.06;
+    --auth-muted: 0 0% 100% / 0.4;
+    font-family: 'Poppins', 'DM Sans', system-ui, sans-serif;
+  }
+
+  .auth-left-panel {
+    background:
+      radial-gradient(circle at 18% 18%, hsl(var(--auth-accent) / 0.2), transparent 30%),
+      radial-gradient(circle at 80% 72%, hsl(235 85% 58% / 0.12), transparent 34%),
+      linear-gradient(135deg, hsl(var(--auth-bg-dark)), hsl(250 22% 7%));
+  }
+
+  .auth-mobile-bg {
+    background: linear-gradient(135deg, hsl(258 50% 8%), hsl(272 64% 11%), hsl(258 50% 8%));
+    background-size: 400% 400%;
+    animation: auth-gradient-shift 8s ease infinite;
+  }
+
+  .auth-input-shell:focus-within {
+    border-color: hsl(var(--auth-accent));
+    background: hsl(var(--auth-accent) / 0.08);
+    box-shadow: 0 0 0 3px hsl(var(--auth-accent) / 0.15);
+  }
+
+  .auth-field-label {
+    transform: translateY(0);
+    transition: all 0.2s ease;
+  }
+
+  .auth-field-label.is-floating {
+    transform: translateY(-29px);
+    color: hsl(var(--auth-accent));
+    font-size: 11px;
+    opacity: 1;
+  }
+
+  .auth-shake {
+    animation: auth-shake 0.3s ease;
   }
 }
