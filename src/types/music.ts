@@ -23,9 +23,15 @@ export interface Playlist {
   name: string;
   description?: string;
   coverUrl?: string;
+  cover_path?: string;
   songIds: string[];
   createdAt: number;
   updatedAt: number;
+  // DB-backed fields (undefined for local-only playlists like "Liked Songs")
+  owner_id?: string;
+  owner_username?: string;
+  is_public?: boolean;
+  isSaved?: boolean; // true when saved from another user
 }
 
 export interface PlayerState {
