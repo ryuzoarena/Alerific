@@ -141,11 +141,76 @@ export const useMusicStore = create<MusicStore>()(
       songs: [],
       songsLoaded: false,
       playlists: defaultPlaylists,
+      playlistsLoaded: false,
       recentlyPlayedIds: [],
       dailyRecommendationIds: [],
       lastRecommendationReset: 0,
       userQueue: [],
       showQueuePanel: false,
+
+      fetchPlaylists: async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const uid = user?.id;
+
+          // Owned playlists
+          const ownedRes = await supabase
+            .from('playlists')
+            .select('*, playlist_songs(song_id, position)')
+            .order('created_at', { ascending: false });
+          if (ownedRes.error) throw ownedRes.error;
+
+          // Saved playlists (only if logged in)
+          let savedRows: any[] = [];
+          if (uid) {
+            const savedRes = await supabase
+              .from('saved_playlists')
+              .select('playlist_id, playlists!inner(*, playlist_songs(song_id, position))')
+              .eq('user_id', uid);
+            if (!savedRes.error) savedRows = savedRes.data || [];
+          }
+
+          const rowToPlaylist = (row: any, isSaved = false): Playlist => {
+            const songs = (row.playlist_songs || [])
+              .slice()
+              .sort((a: any, b: any) => a.position - b.position);
+            return {
+              id: row.id,
+              name: row.name,
+              description: row.description || undefined,
+              cover_path: row.cover_path || undefined,
+              coverUrl: row.cover_path ? getPlaylistCoverUrl(row.cover_path) : undefined,
+              songIds: songs.map((s: any) => s.song_id),
+              createdAt: new Date(row.created_at).getTime(),
+              updatedAt: new Date(row.updated_at).getTime(),
+              owner_id: row.owner_id,
+              owner_username: row.owner_username || undefined,
+              is_public: row.is_public,
+              isSaved,
+            };
+          };
+
+          const owned = (ownedRes.data || [])
+            .filter((r: any) => !uid || r.owner_id === uid) // RLS already filters, defensive
+            .map((r: any) => rowToPlaylist(r, false));
+          const saved = savedRows.map((s: any) => rowToPlaylist(s.playlists, true));
+
+          // Keep local "Liked Songs" + DB playlists, dedupe saved
+          set((state) => {
+            const liked = state.playlists.find((p) => p.id === 'liked') || defaultPlaylists[0];
+            const ownedIds = new Set(owned.map((p) => p.id));
+            const dedupedSaved = saved.filter((p) => !ownedIds.has(p.id));
+            return {
+              playlists: [liked, ...owned, ...dedupedSaved],
+              playlistsLoaded: true,
+            };
+          });
+        } catch (err) {
+          console.error('Error fetching playlists:', err);
+          set({ playlistsLoaded: true });
+        }
+      },
+
 
       fetchSongs: async () => {
         try {
