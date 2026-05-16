@@ -235,14 +235,17 @@ export function Sidebar({
         {/* Playlist list — only when expanded */}
         {!collapsed && (
           <div className="flex-1 overflow-y-auto px-2 pb-2 scrollbar-hide">
-            {filteredPlaylists.map((playlist, idx) => {
-              const playlistSongs = songs.filter((s) => playlist.songIds.includes(s.id));
-              const coverUrl = playlistSongs[0]?.coverUrl;
+            {filteredPlaylists.map((playlist) => {
+              const playlistSongs = playlist.songIds
+                .map((id) => songs.find((s) => s.id === id))
+                .filter(Boolean) as typeof songs;
               const isActive = selectedPlaylistId === playlist.id && activeView === 'playlist';
               const isLiked = playlist.id === 'liked';
               const subtitle = isLiked
                 ? `Playlist • ${playlist.songIds.length} liked songs`
-                : `Playlist • ${playlist.songIds.length} songs`;
+                : playlist.isSaved
+                  ? `By ${playlist.owner_username || 'user'} • ${playlist.songIds.length} songs`
+                  : `Playlist • ${playlist.songIds.length} songs`;
 
               return (
                 <button
@@ -253,20 +256,7 @@ export function Sidebar({
                     isActive ? 'bg-white/[0.10]' : 'hover:bg-white/[0.06]'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0',
-                      !coverUrl && (isLiked ? 'bg-gradient-to-br from-indigo-600 to-purple-400' : placeholderGradients[idx % placeholderGradients.length])
-                    )}
-                  >
-                    {coverUrl ? (
-                      <img src={coverUrl} alt={playlist.name} className="w-full h-full object-cover" />
-                    ) : isLiked ? (
-                      <Heart className="text-white" size={18} fill="white" />
-                    ) : (
-                      <Music2 className="text-white/90" size={16} />
-                    )}
-                  </div>
+                  <PlaylistCoverArt playlist={playlist} songs={playlistSongs} size={40} />
 
                   <div className="min-w-0 flex-1">
                     <p className={cn('text-[13px] font-medium truncate', isActive ? 'text-primary' : 'text-white')}>
