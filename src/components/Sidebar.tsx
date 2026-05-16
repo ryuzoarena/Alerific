@@ -39,18 +39,14 @@ export function Sidebar({
   onToggleCollapse,
   onOpenSettings,
 }: SidebarProps) {
-  const { playlists, songs, recentlyPlayedIds, createPlaylist } = useMusicStore();
+  const { playlists, songs, recentlyPlayedIds } = useMusicStore();
   const { user } = useAuth();
   const [showNewPlaylist, setShowNewPlaylist] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
   const [librarySearch, setLibrarySearch] = useState('');
 
-  const handleCreatePlaylist = () => {
-    if (newPlaylistName.trim()) {
-      createPlaylist(newPlaylistName.trim());
-      setNewPlaylistName('');
-      setShowNewPlaylist(false);
-    }
+  const handleCreated = (id: string) => {
+    onSelectPlaylist(id);
+    onViewChange('playlist');
   };
 
   const handleNavClick = (view: 'home' | 'search' | 'library' | 'playlist') => {
