@@ -187,6 +187,18 @@ const Index = () => {
       />
 
       <QueuePanel />
+
+      {isLoggedIn && (
+        <CreatePlaylistFab onClick={() => setShowCreatePlaylist(true)} />
+      )}
+      <CreatePlaylistDialog
+        isOpen={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onCreated={(id) => {
+          setSelectedPlaylistId(id);
+          setActiveView('playlist');
+        }}
+      />
     </div>
   );
 };
