@@ -518,6 +518,8 @@ export const useMusicStore = create<MusicStore>()(
         };
         set((state) => ({ playlists: [...state.playlists, playlist] }));
       },
+
+      playerState: {
         currentSong: null,
         isPlaying: false,
         currentTime: 0,
