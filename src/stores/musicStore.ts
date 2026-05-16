@@ -25,10 +25,17 @@ interface MusicStore {
   
   // Playlists
   playlists: Playlist[];
-  createPlaylist: (name: string, description?: string) => Playlist;
-  deletePlaylist: (id: string) => void;
-  addSongToPlaylist: (playlistId: string, songId: string) => void;
-  removeSongFromPlaylist: (playlistId: string, songId: string) => void;
+  playlistsLoaded: boolean;
+  fetchPlaylists: () => Promise<void>;
+  createPlaylist: (name: string, description?: string, coverBlob?: Blob) => Promise<Playlist | null>;
+  deletePlaylist: (id: string) => Promise<void>;
+  addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>;
+  addSongsToPlaylist: (playlistId: string, songIds: string[]) => Promise<void>;
+  removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>;
+  setPlaylistVisibility: (playlistId: string, isPublic: boolean) => Promise<void>;
+  updatePlaylistCover: (playlistId: string, blob: Blob) => Promise<void>;
+  savePlaylistToLibrary: (playlistId: string) => Promise<void>;
+  unsavePlaylistFromLibrary: (playlistId: string) => Promise<void>;
   
   // User Queue (manual queue - plays before auto queue)
   userQueue: Song[];
