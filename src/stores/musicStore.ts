@@ -684,7 +684,8 @@ export const useMusicStore = create<MusicStore>()(
     {
       name: 'sybau-music-storage',
       partialize: (state) => ({
-        playlists: state.playlists,
+        // Persist only the local "Liked Songs" playlist; the rest come from DB.
+        playlists: state.playlists.filter((p) => p.id === 'liked'),
         recentlyPlayedIds: state.recentlyPlayedIds,
         dailyRecommendationIds: state.dailyRecommendationIds,
         lastRecommendationReset: state.lastRecommendationReset,
