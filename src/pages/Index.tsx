@@ -74,7 +74,16 @@ const Index = () => {
           />
         );
       case 'search':
-        return <SearchView isDeleteMode={isDeleteMode} />;
+        return (
+          <SearchView
+            isDeleteMode={isDeleteMode}
+            onSelectPlaylist={async (id) => {
+              await useMusicStoreImport.getState().previewPublicPlaylist(id);
+              setSelectedPlaylistId(id);
+              setActiveView('playlist');
+            }}
+          />
+        );
       case 'library':
         return <LibraryView isDeleteMode={isDeleteMode} />;
       case 'playlist':
