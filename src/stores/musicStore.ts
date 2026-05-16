@@ -488,7 +488,36 @@ export const useMusicStore = create<MusicStore>()(
         }));
       },
 
-      playerState: {
+      previewPublicPlaylist: async (playlistId) => {
+        if (get().playlists.some((p) => p.id === playlistId)) return;
+        const { data, error } = await supabase
+          .from('playlists')
+          .select('*, playlist_songs(song_id, position)')
+          .eq('id', playlistId)
+          .single();
+        if (error || !data) {
+          console.error('Cannot load public playlist:', error);
+          return;
+        }
+        const songsOrdered = (data.playlist_songs || [])
+          .slice()
+          .sort((a: any, b: any) => a.position - b.position);
+        const playlist: Playlist = {
+          id: data.id,
+          name: data.name,
+          description: data.description || undefined,
+          cover_path: data.cover_path || undefined,
+          coverUrl: data.cover_path ? getPlaylistCoverUrl(data.cover_path) : undefined,
+          songIds: songsOrdered.map((s: any) => s.song_id),
+          createdAt: new Date(data.created_at).getTime(),
+          updatedAt: new Date(data.updated_at).getTime(),
+          owner_id: data.owner_id,
+          owner_username: data.owner_username || undefined,
+          is_public: data.is_public,
+          isSaved: false,
+        };
+        set((state) => ({ playlists: [...state.playlists, playlist] }));
+      },
         currentSong: null,
         isPlaying: false,
         currentTime: 0,
