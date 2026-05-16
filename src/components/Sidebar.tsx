@@ -211,33 +211,6 @@ export function Sidebar({
               </div>
             </div>
 
-            {showNewPlaylist && (
-              <div className="px-3 pb-3">
-                <input
-                  type="text"
-                  placeholder="Playlist name..."
-                  value={newPlaylistName}
-                  onChange={(e) => setNewPlaylistName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePlaylist()}
-                  className="w-full px-3 py-2 bg-[#2a2a2a] rounded-md text-sm text-white placeholder:text-[#727272] focus:outline-none focus:ring-2 focus:ring-primary"
-                  autoFocus
-                />
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={handleCreatePlaylist}
-                    className="flex-1 px-3 py-1.5 bg-primary text-black rounded-full text-xs font-bold hover:scale-105 transition-transform"
-                  >
-                    Create
-                  </button>
-                  <button
-                    onClick={() => setShowNewPlaylist(false)}
-                    className="px-3 py-1.5 text-[#b3b3b3] text-xs hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
 
