@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Song, Playlist, PlayerState } from '@/types/music';
 import { supabase } from '@/integrations/supabase/client';
-import { getAudioUrl, getCoverUrl, deleteAudioFromCloud, deleteCoverFromCloud } from '@/lib/cloudStorage';
+import { getAudioUrl, getCoverUrl, getPlaylistCoverUrl, deleteAudioFromCloud, deleteCoverFromCloud, uploadPlaylistCover, deletePlaylistCoverFromCloud } from '@/lib/cloudStorage';
+
 
 interface MusicStore {
   // Songs
