@@ -296,39 +296,197 @@ export const useMusicStore = create<MusicStore>()(
       }),
       setShowQueuePanel: (show) => set({ showQueuePanel: show }),
       
-      createPlaylist: (name, description) => {
-        const playlist: Playlist = {
-          id: crypto.randomUUID(),
-          name,
-          description,
-          songIds: [],
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        };
-        set((state) => ({ playlists: [...state.playlists, playlist] }));
-        return playlist;
+      createPlaylist: async (name, description, coverBlob) => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.error('Must be logged in to create playlist');
+            return null;
+          }
+
+          // Fetch display name for owner_username denormalisation
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('user_id', user.id)
+            .single();
+          const owner_username = prof?.display_name || user.email?.split('@')[0] || 'user';
+
+          const { data, error } = await supabase
+            .from('playlists')
+            .insert({
+              owner_id: user.id,
+              owner_username,
+              name,
+              description: description || null,
+            })
+            .select()
+            .single();
+          if (error) throw error;
+
+          let cover_path: string | undefined;
+          let coverUrl: string | undefined;
+          if (coverBlob) {
+            try {
+              cover_path = await uploadPlaylistCover(user.id, data.id, coverBlob);
+              await supabase.from('playlists').update({ cover_path }).eq('id', data.id);
+              coverUrl = getPlaylistCoverUrl(cover_path);
+            } catch (e) {
+              console.error('Cover upload failed:', e);
+            }
+          }
+
+          const playlist: Playlist = {
+            id: data.id,
+            name: data.name,
+            description: data.description || undefined,
+            cover_path,
+            coverUrl,
+            songIds: [],
+            createdAt: new Date(data.created_at).getTime(),
+            updatedAt: new Date(data.updated_at).getTime(),
+            owner_id: data.owner_id,
+            owner_username: data.owner_username,
+            is_public: data.is_public,
+          };
+          set((state) => ({ playlists: [...state.playlists, playlist] }));
+          return playlist;
+        } catch (err) {
+          console.error('Error creating playlist:', err);
+          return null;
+        }
       },
-      
-      deletePlaylist: (id) => set((state) => ({
-        playlists: state.playlists.filter(p => p.id !== id)
-      })),
-      
-      addSongToPlaylist: (playlistId, songId) => set((state) => ({
-        playlists: state.playlists.map(p =>
-          p.id === playlistId && !p.songIds.includes(songId)
-            ? { ...p, songIds: [...p.songIds, songId], updatedAt: Date.now() }
-            : p
-        )
-      })),
-      
-      removeSongFromPlaylist: (playlistId, songId) => set((state) => ({
-        playlists: state.playlists.map(p =>
-          p.id === playlistId
-            ? { ...p, songIds: p.songIds.filter(id => id !== songId), updatedAt: Date.now() }
-            : p
-        )
-      })),
-      
+
+      deletePlaylist: async (id) => {
+        // Local-only playlist (e.g. "liked")
+        if (id === 'liked') {
+          set((state) => ({ playlists: state.playlists.filter((p) => p.id !== id) }));
+          return;
+        }
+        const playlist = get().playlists.find((p) => p.id === id);
+        if (playlist?.cover_path) {
+          await deletePlaylistCoverFromCloud(playlist.cover_path).catch(console.error);
+        }
+        const { error } = await supabase.from('playlists').delete().eq('id', id);
+        if (error) console.error('Error deleting playlist:', error);
+        set((state) => ({ playlists: state.playlists.filter((p) => p.id !== id) }));
+      },
+
+      addSongToPlaylist: async (playlistId, songId) => {
+        await get().addSongsToPlaylist(playlistId, [songId]);
+      },
+
+      addSongsToPlaylist: async (playlistId, songIds) => {
+        const playlist = get().playlists.find((p) => p.id === playlistId);
+        if (!playlist) return;
+        const existing = new Set(playlist.songIds);
+        const newIds = songIds.filter((id) => !existing.has(id));
+        if (newIds.length === 0) return;
+
+        if (playlistId !== 'liked' && !playlist.isSaved) {
+          const startPos = playlist.songIds.length;
+          const rows = newIds.map((sid, i) => ({
+            playlist_id: playlistId,
+            song_id: sid,
+            position: startPos + i,
+          }));
+          const { error } = await supabase.from('playlist_songs').insert(rows);
+          if (error) {
+            console.error('Error adding songs to playlist:', error);
+            return;
+          }
+        }
+
+        set((state) => ({
+          playlists: state.playlists.map((p) =>
+            p.id === playlistId
+              ? { ...p, songIds: [...p.songIds, ...newIds], updatedAt: Date.now() }
+              : p,
+          ),
+        }));
+      },
+
+      removeSongFromPlaylist: async (playlistId, songId) => {
+        if (playlistId !== 'liked') {
+          const { error } = await supabase
+            .from('playlist_songs')
+            .delete()
+            .eq('playlist_id', playlistId)
+            .eq('song_id', songId);
+          if (error) console.error('Error removing song from playlist:', error);
+        }
+        set((state) => ({
+          playlists: state.playlists.map((p) =>
+            p.id === playlistId
+              ? { ...p, songIds: p.songIds.filter((id) => id !== songId), updatedAt: Date.now() }
+              : p,
+          ),
+        }));
+      },
+
+      setPlaylistVisibility: async (playlistId, isPublic) => {
+        const { error } = await supabase
+          .from('playlists')
+          .update({ is_public: isPublic })
+          .eq('id', playlistId);
+        if (error) {
+          console.error('Error updating visibility:', error);
+          return;
+        }
+        set((state) => ({
+          playlists: state.playlists.map((p) =>
+            p.id === playlistId ? { ...p, is_public: isPublic } : p,
+          ),
+        }));
+      },
+
+      updatePlaylistCover: async (playlistId, blob) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        try {
+          const cover_path = await uploadPlaylistCover(user.id, playlistId, blob);
+          await supabase.from('playlists').update({ cover_path }).eq('id', playlistId);
+          const coverUrl = `${getPlaylistCoverUrl(cover_path)}?t=${Date.now()}`;
+          set((state) => ({
+            playlists: state.playlists.map((p) =>
+              p.id === playlistId ? { ...p, cover_path, coverUrl } : p,
+            ),
+          }));
+        } catch (e) {
+          console.error('Cover update failed:', e);
+        }
+      },
+
+      savePlaylistToLibrary: async (playlistId) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { error } = await supabase
+          .from('saved_playlists')
+          .insert({ user_id: user.id, playlist_id: playlistId });
+        if (error && error.code !== '23505') {
+          console.error('Error saving playlist:', error);
+          return;
+        }
+        await get().fetchPlaylists();
+      },
+
+      unsavePlaylistFromLibrary: async (playlistId) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { error } = await supabase
+          .from('saved_playlists')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('playlist_id', playlistId);
+        if (error) {
+          console.error('Error unsaving playlist:', error);
+          return;
+        }
+        set((state) => ({
+          playlists: state.playlists.filter((p) => !(p.id === playlistId && p.isSaved)),
+        }));
+      },
+
       playerState: {
         currentSong: null,
         isPlaying: false,
