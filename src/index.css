@@ -329,3 +329,24 @@
     animation: auth-shake 0.3s ease;
   }
 }
+
+/* ===== Feature 4: Mobile/tablet-only scroll hardening ===== */
+@media (max-width: 1024px) {
+  .playlist-songs-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  .songs-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x;
+  }
+  .songs-scroll-container > * {
+    scroll-snap-align: start;
+  }
+}

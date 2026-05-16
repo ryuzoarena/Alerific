@@ -19,7 +19,10 @@ import { ProfileView } from '@/components/views/ProfileView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { CreatePlaylistFab } from '@/components/CreatePlaylistFab';
+import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
+import { useMusicStore } from '@/stores/musicStore';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
@@ -35,6 +38,7 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
 
   const auth = useAuth();
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
@@ -71,7 +75,16 @@ const Index = () => {
           />
         );
       case 'search':
-        return <SearchView isDeleteMode={isDeleteMode} />;
+        return (
+          <SearchView
+            isDeleteMode={isDeleteMode}
+            onSelectPlaylist={async (id) => {
+              await useMusicStore.getState().previewPublicPlaylist(id);
+              setSelectedPlaylistId(id);
+              setActiveView('playlist');
+            }}
+          />
+        );
       case 'library':
         return <LibraryView isDeleteMode={isDeleteMode} />;
       case 'playlist':
@@ -184,6 +197,18 @@ const Index = () => {
       />
 
       <QueuePanel />
+
+      {isLoggedIn && (
+        <CreatePlaylistFab onClick={() => setShowCreatePlaylist(true)} />
+      )}
+      <CreatePlaylistDialog
+        isOpen={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onCreated={(id) => {
+          setSelectedPlaylistId(id);
+          setActiveView('playlist');
+        }}
+      />
     </div>
   );
 };

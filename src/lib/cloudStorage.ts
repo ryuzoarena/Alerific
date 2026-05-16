@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AUDIO_BUCKET = 'audio-files';
 const COVER_BUCKET = 'cover-images';
+const PLAYLIST_COVER_BUCKET = 'playlist-covers';
 
 export const getPublicUrl = (bucket: string, path: string): string => {
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -10,6 +11,26 @@ export const getPublicUrl = (bucket: string, path: string): string => {
 
 export const getAudioUrl = (path: string): string => getPublicUrl(AUDIO_BUCKET, path);
 export const getCoverUrl = (path: string): string => getPublicUrl(COVER_BUCKET, path);
+export const getPlaylistCoverUrl = (path: string): string => getPublicUrl(PLAYLIST_COVER_BUCKET, path);
+
+/** Upload a playlist cover (already a Blob, usually compressed JPEG). */
+export const uploadPlaylistCover = async (
+  ownerId: string,
+  playlistId: string,
+  blob: Blob,
+): Promise<string> => {
+  const path = `${ownerId}/${playlistId}.jpg`;
+  const { error } = await supabase.storage
+    .from(PLAYLIST_COVER_BUCKET)
+    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+  if (error) throw error;
+  return path;
+};
+
+export const deletePlaylistCoverFromCloud = async (path: string): Promise<void> => {
+  await supabase.storage.from(PLAYLIST_COVER_BUCKET).remove([path]);
+};
+
 
 export const uploadAudioFile = async (songId: string, file: File): Promise<string> => {
   const ext = file.name.split('.').pop() || 'mp3';

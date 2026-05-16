@@ -3,6 +3,9 @@ import { useMusicStore } from '@/stores/musicStore';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
+import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
+
 
 interface SidebarProps {
   activeView: string;
@@ -36,18 +39,14 @@ export function Sidebar({
   onToggleCollapse,
   onOpenSettings,
 }: SidebarProps) {
-  const { playlists, songs, recentlyPlayedIds, createPlaylist } = useMusicStore();
+  const { playlists, songs, recentlyPlayedIds } = useMusicStore();
   const { user } = useAuth();
   const [showNewPlaylist, setShowNewPlaylist] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
   const [librarySearch, setLibrarySearch] = useState('');
 
-  const handleCreatePlaylist = () => {
-    if (newPlaylistName.trim()) {
-      createPlaylist(newPlaylistName.trim());
-      setNewPlaylistName('');
-      setShowNewPlaylist(false);
-    }
+  const handleCreated = (id: string) => {
+    onSelectPlaylist(id);
+    onViewChange('playlist');
   };
 
   const handleNavClick = (view: 'home' | 'search' | 'library' | 'playlist') => {
@@ -212,33 +211,6 @@ export function Sidebar({
               </div>
             </div>
 
-            {showNewPlaylist && (
-              <div className="px-3 pb-3">
-                <input
-                  type="text"
-                  placeholder="Playlist name..."
-                  value={newPlaylistName}
-                  onChange={(e) => setNewPlaylistName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePlaylist()}
-                  className="w-full px-3 py-2 bg-[#2a2a2a] rounded-md text-sm text-white placeholder:text-[#727272] focus:outline-none focus:ring-2 focus:ring-primary"
-                  autoFocus
-                />
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={handleCreatePlaylist}
-                    className="flex-1 px-3 py-1.5 bg-primary text-black rounded-full text-xs font-bold hover:scale-105 transition-transform"
-                  >
-                    Create
-                  </button>
-                  <button
-                    onClick={() => setShowNewPlaylist(false)}
-                    className="px-3 py-1.5 text-[#b3b3b3] text-xs hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
 
@@ -263,14 +235,17 @@ export function Sidebar({
         {/* Playlist list — only when expanded */}
         {!collapsed && (
           <div className="flex-1 overflow-y-auto px-2 pb-2 scrollbar-hide">
-            {filteredPlaylists.map((playlist, idx) => {
-              const playlistSongs = songs.filter((s) => playlist.songIds.includes(s.id));
-              const coverUrl = playlistSongs[0]?.coverUrl;
+            {filteredPlaylists.map((playlist) => {
+              const playlistSongs = playlist.songIds
+                .map((id) => songs.find((s) => s.id === id))
+                .filter(Boolean) as typeof songs;
               const isActive = selectedPlaylistId === playlist.id && activeView === 'playlist';
               const isLiked = playlist.id === 'liked';
               const subtitle = isLiked
                 ? `Playlist • ${playlist.songIds.length} liked songs`
-                : `Playlist • ${playlist.songIds.length} songs`;
+                : playlist.isSaved
+                  ? `By ${playlist.owner_username || 'user'} • ${playlist.songIds.length} songs`
+                  : `Playlist • ${playlist.songIds.length} songs`;
 
               return (
                 <button
@@ -281,20 +256,7 @@ export function Sidebar({
                     isActive ? 'bg-white/[0.10]' : 'hover:bg-white/[0.06]'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-md flex items-center justify-center overflow-hidden flex-shrink-0',
-                      !coverUrl && (isLiked ? 'bg-gradient-to-br from-indigo-600 to-purple-400' : placeholderGradients[idx % placeholderGradients.length])
-                    )}
-                  >
-                    {coverUrl ? (
-                      <img src={coverUrl} alt={playlist.name} className="w-full h-full object-cover" />
-                    ) : isLiked ? (
-                      <Heart className="text-white" size={18} fill="white" />
-                    ) : (
-                      <Music2 className="text-white/90" size={16} />
-                    )}
-                  </div>
+                  <PlaylistCoverArt playlist={playlist} songs={playlistSongs} size={40} />
 
                   <div className="min-w-0 flex-1">
                     <p className={cn('text-[13px] font-medium truncate', isActive ? 'text-primary' : 'text-white')}>
@@ -401,6 +363,12 @@ export function Sidebar({
           </>
         )}
       </div>
+
+      <CreatePlaylistDialog
+        isOpen={showNewPlaylist}
+        onClose={() => setShowNewPlaylist(false)}
+        onCreated={handleCreated}
+      />
     </aside>
   );
 }
