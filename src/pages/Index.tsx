@@ -37,6 +37,7 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
 
   const auth = useAuth();
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
