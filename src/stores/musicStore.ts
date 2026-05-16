@@ -36,6 +36,7 @@ interface MusicStore {
   updatePlaylistCover: (playlistId: string, blob: Blob) => Promise<void>;
   savePlaylistToLibrary: (playlistId: string) => Promise<void>;
   unsavePlaylistFromLibrary: (playlistId: string) => Promise<void>;
+  previewPublicPlaylist: (playlistId: string) => Promise<void>;
   
   // User Queue (manual queue - plays before auto queue)
   userQueue: Song[];
