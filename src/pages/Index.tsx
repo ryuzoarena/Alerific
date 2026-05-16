@@ -22,6 +22,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { CreatePlaylistFab } from '@/components/CreatePlaylistFab';
 import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
+import { useMusicStore } from '@/stores/musicStore';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
