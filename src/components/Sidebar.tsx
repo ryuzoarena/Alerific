@@ -3,6 +3,9 @@ import { useMusicStore } from '@/stores/musicStore';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
+import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
+
 
 interface SidebarProps {
   activeView: string;
