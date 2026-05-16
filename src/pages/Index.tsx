@@ -79,7 +79,7 @@ const Index = () => {
           <SearchView
             isDeleteMode={isDeleteMode}
             onSelectPlaylist={async (id) => {
-              await useMusicStoreImport.getState().previewPublicPlaylist(id);
+              await useMusicStore.getState().previewPublicPlaylist(id);
               setSelectedPlaylistId(id);
               setActiveView('playlist');
             }}
