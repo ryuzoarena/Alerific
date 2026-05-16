@@ -363,6 +363,12 @@ export function Sidebar({
           </>
         )}
       </div>
+
+      <CreatePlaylistDialog
+        isOpen={showNewPlaylist}
+        onClose={() => setShowNewPlaylist(false)}
+        onCreated={handleCreated}
+      />
     </aside>
   );
 }
