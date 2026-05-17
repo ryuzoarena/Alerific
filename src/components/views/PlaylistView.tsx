@@ -30,7 +30,10 @@ export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
   if (isMobileOrTablet) {
     return <MobilePlaylistView playlistId={playlistId} onBack={() => window.history.back()} />;
   }
+  return <DesktopPlaylistView playlistId={playlistId} isDeleteMode={isDeleteMode} />;
+}
 
+function DesktopPlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
   const {
     playlists,
     songs,
