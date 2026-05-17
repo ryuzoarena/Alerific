@@ -19,7 +19,6 @@ import { ProfileView } from '@/components/views/ProfileView';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
-import { CreatePlaylistFab } from '@/components/CreatePlaylistFab';
 import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
 import { useMusicStore } from '@/stores/musicStore';
