@@ -3,6 +3,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { AddSongsToPlaylistDialog } from '@/components/AddSongsToPlaylistDialog';
+import { MobilePlaylistView } from '@/components/views/MobilePlaylistView';
 import { Play, Music2, Trash2, Plus, Globe, Lock, Camera, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
@@ -16,6 +17,23 @@ interface PlaylistViewProps {
 }
 
 export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState<boolean>(
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 1024px)').matches : false,
+  );
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1024px)');
+    const onChange = (e: MediaQueryListEvent) => setIsMobileOrTablet(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  if (isMobileOrTablet) {
+    return <MobilePlaylistView playlistId={playlistId} onBack={() => window.history.back()} />;
+  }
+  return <DesktopPlaylistView playlistId={playlistId} isDeleteMode={isDeleteMode} />;
+}
+
+function DesktopPlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
   const {
     playlists,
     songs,
