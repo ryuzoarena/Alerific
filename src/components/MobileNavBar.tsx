@@ -4,22 +4,22 @@ import { cn } from '@/lib/utils';
 interface MobileNavBarProps {
   activeView: string;
   onViewChange: (view: any) => void;
-  onUploadClick?: () => void;
+  onCreatePlaylistClick?: () => void;
 }
 
-export function MobileNavBar({ activeView, onViewChange, onUploadClick }: MobileNavBarProps) {
+export function MobileNavBar({ activeView, onViewChange, onCreatePlaylistClick }: MobileNavBarProps) {
   const navItems = [
     { id: 'home' as const, icon: Home, label: 'Home', action: () => onViewChange('home') },
     { id: 'search' as const, icon: Search, label: 'Cari', action: () => onViewChange('search') },
     { id: 'library' as const, icon: Library, label: 'Koleksi Kamu', action: () => onViewChange('library') },
-    { id: 'upload' as const, icon: Plus, label: 'Buat', action: () => onUploadClick?.() },
+    { id: 'create' as const, icon: Plus, label: 'Buat', action: () => onCreatePlaylistClick?.() },
   ];
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]">
       <div className="flex items-center justify-around py-2 pb-3">
         {navItems.map((item) => {
-          const isActive = item.id !== 'upload' && activeView === item.id;
+          const isActive = item.id !== 'create' && activeView === item.id;
           return (
             <button
               key={item.id}
