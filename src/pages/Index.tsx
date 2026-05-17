@@ -119,6 +119,7 @@ const Index = () => {
             isLoggedIn={isLoggedIn}
             userName={displayName}
             onGetStarted={() => setShowAuth(true)}
+            onSelectPlaylist={(id) => { setSelectedPlaylistId(id); setActiveView('playlist'); }}
           />
         );
     }
