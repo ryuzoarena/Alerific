@@ -3,6 +3,7 @@ import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { AddSongsToPlaylistDialog } from '@/components/AddSongsToPlaylistDialog';
+import { MobilePlaylistView } from '@/components/views/MobilePlaylistView';
 import { Play, Music2, Trash2, Plus, Globe, Lock, Camera, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
