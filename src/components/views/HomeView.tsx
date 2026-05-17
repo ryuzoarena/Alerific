@@ -20,6 +20,7 @@ interface HomeViewProps {
   isLoggedIn?: boolean;
   userName?: string;
   onGetStarted?: () => void;
+  onSelectPlaylist?: (id: string) => void;
 }
 
 const aiMixes = [
@@ -31,7 +32,7 @@ const aiMixes = [
   { title: 'Workout Mix', description: 'High energy tracks to keep you moving', gradient: 'bg-gradient-to-br from-red-600 via-orange-600 to-amber-700' },
 ];
 
-export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedIn, userName, onGetStarted }: HomeViewProps) {
+export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedIn, userName, onGetStarted, onSelectPlaylist }: HomeViewProps) {
   const {
     songs,
     playlists,
@@ -157,7 +158,8 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
               return (
                 <button
                   key={playlist.id}
-                  className="flex items-center bg-white/5 hover:bg-white/10 rounded-md overflow-hidden group transition-all duration-200"
+                  onClick={() => onSelectPlaylist?.(playlist.id)}
+                  className="flex items-center bg-white/5 hover:bg-white/10 rounded-md overflow-hidden group transition-all duration-200 cursor-pointer"
                 >
                   <div className="w-14 h-14 lg:w-16 lg:h-16 bg-[#282828] flex-shrink-0">
                     {coverUrl ? (
