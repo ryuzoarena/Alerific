@@ -17,6 +17,20 @@ interface PlaylistViewProps {
 }
 
 export function PlaylistView({ playlistId, isDeleteMode }: PlaylistViewProps) {
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState<boolean>(
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 1024px)').matches : false,
+  );
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1024px)');
+    const onChange = (e: MediaQueryListEvent) => setIsMobileOrTablet(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  if (isMobileOrTablet) {
+    return <MobilePlaylistView playlistId={playlistId} onBack={() => window.history.back()} />;
+  }
+
   const {
     playlists,
     songs,
