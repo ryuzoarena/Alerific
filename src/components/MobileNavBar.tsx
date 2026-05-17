@@ -4,15 +4,15 @@ import { cn } from '@/lib/utils';
 interface MobileNavBarProps {
   activeView: string;
   onViewChange: (view: any) => void;
-  onUploadClick?: () => void;
+  onCreatePlaylistClick?: () => void;
 }
 
-export function MobileNavBar({ activeView, onViewChange, onUploadClick }: MobileNavBarProps) {
+export function MobileNavBar({ activeView, onViewChange, onCreatePlaylistClick }: MobileNavBarProps) {
   const navItems = [
     { id: 'home' as const, icon: Home, label: 'Home', action: () => onViewChange('home') },
     { id: 'search' as const, icon: Search, label: 'Cari', action: () => onViewChange('search') },
     { id: 'library' as const, icon: Library, label: 'Koleksi Kamu', action: () => onViewChange('library') },
-    { id: 'upload' as const, icon: Plus, label: 'Buat', action: () => onUploadClick?.() },
+    { id: 'create' as const, icon: Plus, label: 'Buat', action: () => onCreatePlaylistClick?.() },
   ];
 
   return (
