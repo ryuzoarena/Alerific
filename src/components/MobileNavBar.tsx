@@ -19,7 +19,7 @@ export function MobileNavBar({ activeView, onViewChange, onCreatePlaylistClick }
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]">
       <div className="flex items-center justify-around py-2 pb-3">
         {navItems.map((item) => {
-          const isActive = item.id !== 'upload' && activeView === item.id;
+          const isActive = item.id !== 'create' && activeView === item.id;
           return (
             <button
               key={item.id}

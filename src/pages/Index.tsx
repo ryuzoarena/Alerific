@@ -171,7 +171,7 @@ const Index = () => {
       <MobileNavBar 
         activeView={activeView}
         onViewChange={setActiveView}
-        onUploadClick={() => setShowUpload(true)}
+        onCreatePlaylistClick={() => isLoggedIn ? setShowCreatePlaylist(true) : setShowAuth(true)}
       />
 
       <ProfileDrawer
@@ -200,9 +200,6 @@ const Index = () => {
 
       <QueuePanel />
 
-      {isLoggedIn && (
-        <CreatePlaylistFab onClick={() => setShowCreatePlaylist(true)} />
-      )}
       <CreatePlaylistDialog
         isOpen={showCreatePlaylist}
         onClose={() => setShowCreatePlaylist(false)}
