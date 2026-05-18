@@ -119,20 +119,15 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
         onMouseLeave={endDrag}
         onMouseUp={endDrag}
         onMouseMove={onMouseMove}
-        onTouchStart={onTouchStart}
-        onTouchEnd={endDrag}
-        onTouchCancel={endDrag}
-        onTouchMove={onTouchMove}
         onClickCapture={onClickCapture}
         className={cn(
-          'songs-scroll-container flex w-full flex-nowrap overflow-x-scroll overflow-y-hidden scrollbar-hide select-none',
+          'songs-scroll-container flex w-full flex-nowrap overflow-x-auto overflow-y-hidden scrollbar-hide select-none',
           isDownRef.current ? 'cursor-grabbing' : 'lg:cursor-grab',
           className
         )}
         style={{
-          scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-x',
+          touchAction: 'pan-x pan-y',
           whiteSpace: 'nowrap',
         }}
       >
