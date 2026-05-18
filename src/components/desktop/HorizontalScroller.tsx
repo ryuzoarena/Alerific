@@ -65,19 +65,8 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
     el.scrollLeft = scrollLeftRef.current - walk;
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    beginDrag(e.touches[0].pageX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDownRef.current) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    const x = e.touches[0].pageX - el.offsetLeft;
-    const walk = (x - startXRef.current) * 2;
-    if (Math.abs(walk) > 5) draggedRef.current = true;
-    el.scrollLeft = scrollLeftRef.current - walk;
-  };
+  // Touch handlers intentionally omitted — native momentum scrolling is smoother
+  // than manual scrollLeft writes, which caused choppy/janky scroll on mobile.
 
   const onClickCapture = (e: React.MouseEvent) => {
     if (draggedRef.current) {
