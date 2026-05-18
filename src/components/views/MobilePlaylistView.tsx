@@ -84,9 +84,27 @@ export function MobilePlaylistView({ playlistId, onBack }: Props) {
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
-    const onScroll = () => setScrollY(el.scrollTop);
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    // Find the nearest scrollable ancestor (the <main> in Index.tsx) so the
+    // sticky/parallax effects react to the page scroll instead of our own.
+    let parent: HTMLElement | null = el.parentElement;
+    let scroller: HTMLElement | Window = window;
+    while (parent) {
+      const style = getComputedStyle(parent);
+      if (/(auto|scroll)/.test(style.overflowY)) {
+        scroller = parent;
+        break;
+      }
+      parent = parent.parentElement;
+    }
+    const onScroll = () => {
+      const top =
+        scroller === window
+          ? window.scrollY
+          : (scroller as HTMLElement).scrollTop;
+      setScrollY(top);
+    };
+    (scroller as any).addEventListener('scroll', onScroll, { passive: true });
+    return () => (scroller as any).removeEventListener('scroll', onScroll);
   }, []);
 
   if (!playlist) {
