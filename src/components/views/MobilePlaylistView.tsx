@@ -199,10 +199,8 @@ export function MobilePlaylistView({ playlistId, onBack }: Props) {
   return (
     <div
       ref={scrollerRef}
-      className="h-full overflow-y-auto pb-32 relative"
+      className="min-h-full pb-32 relative"
       style={{
-        WebkitOverflowScrolling: 'touch',
-        overscrollBehavior: 'contain',
         background: `linear-gradient(180deg, rgba(${accentRgb},0.18) 0%, #0a0a0a 60%)`,
       }}
     >
