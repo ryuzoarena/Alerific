@@ -65,19 +65,8 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
     el.scrollLeft = scrollLeftRef.current - walk;
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    beginDrag(e.touches[0].pageX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDownRef.current) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    const x = e.touches[0].pageX - el.offsetLeft;
-    const walk = (x - startXRef.current) * 2;
-    if (Math.abs(walk) > 5) draggedRef.current = true;
-    el.scrollLeft = scrollLeftRef.current - walk;
-  };
+  // Touch handlers intentionally omitted — native momentum scrolling is smoother
+  // than manual scrollLeft writes, which caused choppy/janky scroll on mobile.
 
   const onClickCapture = (e: React.MouseEvent) => {
     if (draggedRef.current) {
@@ -130,20 +119,15 @@ export function HorizontalScroller({ children, className, scrollAmount = 300 }: 
         onMouseLeave={endDrag}
         onMouseUp={endDrag}
         onMouseMove={onMouseMove}
-        onTouchStart={onTouchStart}
-        onTouchEnd={endDrag}
-        onTouchCancel={endDrag}
-        onTouchMove={onTouchMove}
         onClickCapture={onClickCapture}
         className={cn(
-          'songs-scroll-container flex w-full flex-nowrap overflow-x-scroll overflow-y-hidden scrollbar-hide select-none',
+          'songs-scroll-container flex w-full flex-nowrap overflow-x-auto overflow-y-hidden scrollbar-hide select-none',
           isDownRef.current ? 'cursor-grabbing' : 'lg:cursor-grab',
           className
         )}
         style={{
-          scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-x',
+          touchAction: 'pan-x pan-y',
           whiteSpace: 'nowrap',
         }}
       >
