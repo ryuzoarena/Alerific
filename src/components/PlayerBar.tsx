@@ -482,12 +482,15 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       <audio
         ref={audioRef}
         crossOrigin="anonymous"
+        preload="auto"
+        playsInline
+        webkit-playsinline="true"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
       />
       {/* Hidden preload element for gapless playback */}
-      <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" style={{ display: 'none' }} />
+      <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" playsInline webkit-playsinline="true" style={{ display: 'none' }} />
 
       {/* Mobile Mini Player */}
       <MiniPlayer 
