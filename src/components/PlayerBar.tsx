@@ -6,7 +6,7 @@ import {
 import { useMusicStore } from '@/stores/musicStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
-import { applySafePlaybackSettings } from '@/lib/audio';
+import { applyMobilePlaybackSettings, applySafePlaybackSettings, isMobilePlaybackDevice } from '@/lib/audio';
 import { FullScreenPlayer } from './FullScreenPlayer';
 import { MiniPlayer } from './MiniPlayer';
 import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
@@ -54,7 +54,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const { currentSong, isPlaying, currentTime, duration, volume, isMuted, shuffle, repeat } = playerState;
 
   // Web Audio API engine for mono & equalizer
-  useAudioEngine(audioRef);
+  const resumeAudioContext = useAudioEngine(audioRef);
 
   // Cancel any in-flight crossfade (used on manual skip / pause)
   const cancelCrossfade = useCallback(() => {
@@ -93,7 +93,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     setLoadedAudioUrl(audioUrl);
 
     if (audioUrl) {
-      applySafePlaybackSettings(audioRef.current);
+      if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
+      else applySafePlaybackSettings(audioRef.current);
       audioRef.current.currentTime = 0;
       setCurrentTime(0);
       audioRef.current.src = audioUrl;
@@ -105,30 +106,39 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentSong) return;
 
-    // Set metadata for the notification bar
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentSong.title,
-      artist: currentSong.artist,
-      album: currentSong.album || 'Unknown Album',
-      artwork: loadedCoverUrl ? [
-        { src: loadedCoverUrl, sizes: '96x96', type: 'image/jpeg' },
-        { src: loadedCoverUrl, sizes: '128x128', type: 'image/jpeg' },
-        { src: loadedCoverUrl, sizes: '192x192', type: 'image/jpeg' },
-        { src: loadedCoverUrl, sizes: '256x256', type: 'image/jpeg' },
-        { src: loadedCoverUrl, sizes: '384x384', type: 'image/jpeg' },
-        { src: loadedCoverUrl, sizes: '512x512', type: 'image/jpeg' }
-      ] : []
-    });
+    // Set metadata for the notification bar / lock-screen controls
+    if ('MediaMetadata' in window) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.title,
+        artist: currentSong.artist,
+        album: currentSong.album || 'Alphatus',
+        artwork: loadedCoverUrl ? [
+          { src: loadedCoverUrl, sizes: '96x96', type: 'image/jpeg' },
+          { src: loadedCoverUrl, sizes: '128x128', type: 'image/jpeg' },
+          { src: loadedCoverUrl, sizes: '192x192', type: 'image/jpeg' },
+          { src: loadedCoverUrl, sizes: '256x256', type: 'image/jpeg' },
+          { src: loadedCoverUrl, sizes: '384x384', type: 'image/jpeg' },
+          { src: loadedCoverUrl, sizes: '512x512', type: 'image/jpeg' }
+        ] : []
+      });
+    }
 
     // Set action handlers for media controls
     navigator.mediaSession.setActionHandler('play', () => {
-      audioRef.current?.play();
-      togglePlay();
+      if (audioRef.current) {
+        if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
+        else applySafePlaybackSettings(audioRef.current);
+        audioRef.current.play().catch(() => {});
+      }
+      resumeAudioContext();
+      if (!useMusicStore.getState().playerState.isPlaying) togglePlay();
+      navigator.mediaSession.playbackState = 'playing';
     });
     
     navigator.mediaSession.setActionHandler('pause', () => {
       audioRef.current?.pause();
-      togglePlay();
+      if (useMusicStore.getState().playerState.isPlaying) togglePlay();
+      navigator.mediaSession.playbackState = 'paused';
     });
     
     navigator.mediaSession.setActionHandler('previoustrack', prevSong);
@@ -167,7 +177,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       navigator.mediaSession.setActionHandler('seekbackward', null);
       navigator.mediaSession.setActionHandler('seekforward', null);
     };
-  }, [currentSong, loadedCoverUrl, togglePlay, prevSong, nextSong, setCurrentTime, duration]);
+  }, [currentSong, loadedCoverUrl, togglePlay, prevSong, nextSong, setCurrentTime, duration, resumeAudioContext]);
 
   // Sync playback state with Media Session API (for notification bar)
   useEffect(() => {
@@ -198,15 +208,17 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     if (!audioRef.current || !currentSong || !loadedAudioUrl) return;
     
     if (isPlaying) {
-      applySafePlaybackSettings(audioRef.current);
+      if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
+      else applySafePlaybackSettings(audioRef.current);
+      resumeAudioContext();
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentSong, loadedAudioUrl]);
+  }, [isPlaying, currentSong, loadedAudioUrl, resumeAudioContext]);
 
   // Background playback support - keeps music playing when screen is off
-  useBackgroundPlayback(audioRef, isPlaying);
+  useBackgroundPlayback(audioRef, isPlaying, resumeAudioContext);
 
   // Re-apply safe audio settings on each new src/track lifecycle (fix: only first song stable)
   useAudioStabilityGuard(audioRef, Boolean(currentSong && loadedAudioUrl));
@@ -217,7 +229,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   // Update volume
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
+      audioRef.current.volume = isMobilePlaybackDevice() && (isMuted || volume === 0) ? 0.01 : isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
 
