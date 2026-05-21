@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { isMobilePlaybackDevice } from '@/lib/audio';
 
 /**
  * Web Audio API engine for mono audio and equalizer.
@@ -16,6 +17,13 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
   const connectedAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const { monoAudio, eqEnabled, eqBands } = useSettingsStore();
+
+  const resumeAudioContext = useCallback(async () => {
+    const ctx = ctxRef.current;
+    if (ctx?.state === 'suspended') {
+      await ctx.resume().catch(() => {});
+    }
+  }, []);
 
   // Initialize the audio graph
   const initGraph = useCallback(() => {
@@ -180,25 +188,30 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
     });
   }, [eqBands, eqEnabled]);
 
-  // Resume AudioContext on user interaction (browser policy)
+  // Resume AudioContext on user interaction / foreground return (mobile browsers suspend it)
   useEffect(() => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-
     const resume = () => {
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+      if (isMobilePlaybackDevice() || ctxRef.current?.state === 'suspended') {
+        resumeAudioContext();
       }
     };
 
-    document.addEventListener('click', resume, { once: true });
-    document.addEventListener('touchstart', resume, { once: true });
+    const resumeOnVisible = () => {
+      if (document.visibilityState === 'visible') resume();
+    };
+
+    document.addEventListener('click', resume);
+    document.addEventListener('touchstart', resume, { passive: true });
+    document.addEventListener('visibilitychange', resumeOnVisible);
+    window.addEventListener('focus', resume);
 
     return () => {
       document.removeEventListener('click', resume);
       document.removeEventListener('touchstart', resume);
+      document.removeEventListener('visibilitychange', resumeOnVisible);
+      window.removeEventListener('focus', resume);
     };
-  }, []);
+  }, [resumeAudioContext]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -208,4 +221,6 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
       } catch {}
     };
   }, []);
+
+  return resumeAudioContext;
 }
