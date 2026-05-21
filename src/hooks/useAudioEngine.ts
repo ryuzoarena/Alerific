@@ -32,7 +32,7 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
 
     // If we already have a context for a different audio element, clean up
     if (ctxRef.current && connectedAudioRef.current !== audio) {
-      try { ctxRef.current.close(); } catch {}
+      try { ctxRef.current.close(); } catch { void 0; }
       ctxRef.current = null;
       sourceRef.current = null;
       connectedAudioRef.current = null;
@@ -211,14 +211,14 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
       document.removeEventListener('visibilitychange', resumeOnVisible);
       window.removeEventListener('focus', resume);
     };
-  }, [resumeAudioContext]);
+  }, [audioRef, resumeAudioContext]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       try {
         ctxRef.current?.close();
-      } catch {}
+      } catch { void 0; }
     };
   }, []);
 
