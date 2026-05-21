@@ -39,7 +39,8 @@ export function useBackgroundPlayback(
   }, [isPlaying]);
 
   useEffect(() => {
-    if (!audioRef.current) return;
+    const activeAudio = audioRef.current;
+    if (!activeAudio) return;
     const mobilePlayback = isMobilePlaybackDevice();
 
     const getKeepAliveAudio = () => {
@@ -161,8 +162,8 @@ export function useBackgroundPlayback(
       }
     };
 
-    audioRef.current.addEventListener('play', handlePlay);
-    audioRef.current.addEventListener('pause', handlePause);
+    activeAudio.addEventListener('play', handlePlay);
+    activeAudio.addEventListener('pause', handlePause);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pageshow', handlePageShow);
@@ -174,8 +175,8 @@ export function useBackgroundPlayback(
     }
 
     return () => {
-      audioRef.current?.removeEventListener('play', handlePlay);
-      audioRef.current?.removeEventListener('pause', handlePause);
+      activeAudio.removeEventListener('play', handlePlay);
+      activeAudio.removeEventListener('pause', handlePause);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
