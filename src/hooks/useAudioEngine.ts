@@ -141,7 +141,7 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
     return () => {
       audio.removeEventListener('loadedmetadata', handleCanPlay);
     };
-  }, [initGraph]);
+  }, [audioRef, initGraph]);
 
   // Update mono routing without full rebuild
   useEffect(() => {
