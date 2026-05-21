@@ -15,4 +15,28 @@ export function applySafePlaybackSettings(audio: HTMLAudioElement) {
 
   // Prefer eager buffering for smoother track transitions
   audio.preload = 'auto';
+
+  // iOS Safari: keep inline audio eligible for lock-screen/background handling.
+  audio.setAttribute('playsinline', 'true');
+  audio.setAttribute('webkit-playsinline', 'true');
+}
+
+export function isMobilePlaybackDevice() {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+
+  const ua = navigator.userAgent || '';
+  const touchDevice = navigator.maxTouchPoints > 0;
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  const mobileUA = /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(ua);
+
+  return mobileUA || (touchDevice && coarsePointer);
+}
+
+export function applyMobilePlaybackSettings(audio: HTMLAudioElement) {
+  applySafePlaybackSettings(audio);
+
+  // Some mobile browsers suspend media whose effective volume is exactly 0.
+  if (audio.volume === 0) {
+    audio.volume = 0.01;
+  }
 }
