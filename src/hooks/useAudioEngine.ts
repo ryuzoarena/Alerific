@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { isMobilePlaybackDevice } from '@/lib/audio';
 
 /**
  * Web Audio API engine for mono audio and equalizer.
@@ -17,6 +18,13 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
 
   const { monoAudio, eqEnabled, eqBands } = useSettingsStore();
 
+  const resumeAudioContext = useCallback(async () => {
+    const ctx = ctxRef.current;
+    if (ctx?.state === 'suspended') {
+      await ctx.resume().catch(() => {});
+    }
+  }, []);
+
   // Initialize the audio graph
   const initGraph = useCallback(() => {
     const audio = audioRef.current;
@@ -24,7 +32,7 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
 
     // If we already have a context for a different audio element, clean up
     if (ctxRef.current && connectedAudioRef.current !== audio) {
-      try { ctxRef.current.close(); } catch {}
+      try { ctxRef.current.close(); } catch { void 0; }
       ctxRef.current = null;
       sourceRef.current = null;
       connectedAudioRef.current = null;
@@ -133,7 +141,7 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
     return () => {
       audio.removeEventListener('loadedmetadata', handleCanPlay);
     };
-  }, [initGraph]);
+  }, [audioRef, initGraph]);
 
   // Update mono routing without full rebuild
   useEffect(() => {
@@ -180,32 +188,39 @@ export function useAudioEngine(audioRef: React.RefObject<HTMLAudioElement>) {
     });
   }, [eqBands, eqEnabled]);
 
-  // Resume AudioContext on user interaction (browser policy)
+  // Resume AudioContext on user interaction / foreground return (mobile browsers suspend it)
   useEffect(() => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-
     const resume = () => {
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+      if (isMobilePlaybackDevice() || ctxRef.current?.state === 'suspended') {
+        resumeAudioContext();
       }
     };
 
-    document.addEventListener('click', resume, { once: true });
-    document.addEventListener('touchstart', resume, { once: true });
+    const resumeOnVisible = () => {
+      if (document.visibilityState === 'visible') resume();
+    };
+
+    document.addEventListener('click', resume);
+    document.addEventListener('touchstart', resume, { passive: true });
+    document.addEventListener('visibilitychange', resumeOnVisible);
+    window.addEventListener('focus', resume);
 
     return () => {
       document.removeEventListener('click', resume);
       document.removeEventListener('touchstart', resume);
+      document.removeEventListener('visibilitychange', resumeOnVisible);
+      window.removeEventListener('focus', resume);
     };
-  }, []);
+  }, [audioRef, resumeAudioContext]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       try {
         ctxRef.current?.close();
-      } catch {}
+      } catch { void 0; }
     };
   }, []);
+
+  return resumeAudioContext;
 }

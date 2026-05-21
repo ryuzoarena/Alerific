@@ -1,22 +1,25 @@
 import { useEffect, useRef } from 'react';
-import { applySafePlaybackSettings } from '@/lib/audio';
+import { applyMobilePlaybackSettings, applySafePlaybackSettings, isMobilePlaybackDevice } from '@/lib/audio';
+
+type WakeLockSentinelLike = {
+  released?: boolean;
+  release: () => Promise<void>;
+  addEventListener: (type: 'release', listener: () => void) => void;
+};
+
+const SILENT_HEARTBEAT_SRC =
+  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
 
 /**
  * Hook to maintain background audio playback when screen is off or app is in background.
  * 
- * IMPORTANT: This hook uses a MINIMAL approach to avoid fighting the browser's
- * audio management, which causes crackling/distortion on mobile devices.
+ * IMPORTANT: Desktop keeps the minimal native path. Extra guards are enabled
+ * only on mobile where browsers suspend media aggressively in the background.
  * 
  * Strategies:
  * 1. Visibility change handling - resumes playback when returning to foreground
  * 2. Page show/hide events - handles iOS Safari bfcache restoration
  * 3. Focus events - handles tab focus restoration
- * 
- * We intentionally DO NOT:
- * - Intercept pause events (causes rapid play/pause = crackling)
- * - Call audio.load() on stall (resets buffer = distortion)  
- * - Use keep-alive pings (interferes with browser audio management)
- * - Use Web Locks API (unnecessary overhead, doesn't prevent audio issues)
  * 
  * Background playback is primarily handled by the Media Session API
  * configured in PlayerBar.tsx, which is the correct browser-native approach.
@@ -27,9 +30,91 @@ export function useBackgroundPlayback(
   onResume?: () => void
 ) {
   const wasPlayingBeforeHideRef = useRef(false);
+  const isPlayingRef = useRef(isPlaying);
+  const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
+  const keepAliveRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (!audioRef.current) return;
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
+    const activeAudio = audioRef.current;
+    if (!activeAudio) return;
+    const mobilePlayback = isMobilePlaybackDevice();
+
+    const getKeepAliveAudio = () => {
+      if (!keepAliveRef.current) {
+        const keepAlive = new Audio(SILENT_HEARTBEAT_SRC);
+        keepAlive.loop = true;
+        keepAlive.volume = 0.001;
+        keepAlive.preload = 'auto';
+        keepAlive.setAttribute('playsinline', 'true');
+        keepAlive.setAttribute('webkit-playsinline', 'true');
+        keepAliveRef.current = keepAlive;
+      }
+      return keepAliveRef.current;
+    };
+
+    const requestWakeLock = async () => {
+      if (!mobilePlayback || !isPlayingRef.current || document.visibilityState !== 'visible') return;
+      if (wakeLockRef.current && !wakeLockRef.current.released) return;
+
+      try {
+        const wakeLock = (navigator as Navigator & {
+          wakeLock?: { request: (type: 'screen') => Promise<WakeLockSentinelLike> };
+        }).wakeLock;
+        if (!wakeLock) return;
+
+        wakeLockRef.current = await wakeLock.request('screen');
+        wakeLockRef.current.addEventListener('release', () => {
+          wakeLockRef.current = null;
+          if (isPlayingRef.current && document.visibilityState === 'visible') {
+            requestWakeLock();
+          }
+        });
+      } catch (err) {
+        console.warn('Wake lock failed:', err);
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      const wakeLock = wakeLockRef.current;
+      wakeLockRef.current = null;
+      if (!wakeLock || wakeLock.released) return;
+      await wakeLock.release().catch(() => {});
+    };
+
+    const startHeartbeat = () => {
+      if (!mobilePlayback) return;
+      getKeepAliveAudio().play().catch(() => {});
+    };
+
+    const stopHeartbeat = () => {
+      const keepAlive = keepAliveRef.current;
+      if (!keepAlive) return;
+      keepAlive.pause();
+      keepAlive.currentTime = 0;
+    };
+
+    const resumeIfNeeded = () => {
+      const audio = audioRef.current;
+      if (!audio || !wasPlayingBeforeHideRef.current) return;
+
+      if (mobilePlayback) applyMobilePlaybackSettings(audio);
+      else applySafePlaybackSettings(audio);
+
+      if (audio.paused) {
+        audio.play().then(onResume).catch((err) => {
+          console.warn('Auto-resume failed:', err);
+        });
+      } else {
+        onResume?.();
+      }
+
+      startHeartbeat();
+      requestWakeLock();
+    };
 
     // Strategy 1: Visibility change - resume only when RETURNING to foreground
     const handleVisibilityChange = () => {
@@ -37,19 +122,10 @@ export function useBackgroundPlayback(
 
       if (document.visibilityState === 'hidden') {
         // Just remember the state, don't touch the audio element
-        wasPlayingBeforeHideRef.current = isPlaying;
+        wasPlayingBeforeHideRef.current = isPlayingRef.current && !audioRef.current.paused;
       } else if (document.visibilityState === 'visible') {
         // Returning to foreground - only resume if we were playing before
-        if (wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-          // Small delay to let the browser stabilize after coming to foreground
-          setTimeout(() => {
-            if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-              applySafePlaybackSettings(audioRef.current);
-              audioRef.current.play().catch(() => {});
-              onResume?.();
-            }
-          }, 200);
-        }
+        if (wasPlayingBeforeHideRef.current) setTimeout(resumeIfNeeded, 200);
       }
     };
 
@@ -58,44 +134,74 @@ export function useBackgroundPlayback(
       if (!audioRef.current) return;
       
       if (e.persisted && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-        setTimeout(() => {
-          if (audioRef.current && audioRef.current.paused) {
-            applySafePlaybackSettings(audioRef.current);
-            audioRef.current.play().catch(() => {});
-            onResume?.();
-          }
-        }, 200);
+        setTimeout(resumeIfNeeded, 200);
       }
     };
 
     const handlePageHide = () => {
-      wasPlayingBeforeHideRef.current = isPlaying;
+      wasPlayingBeforeHideRef.current = isPlayingRef.current && Boolean(audioRef.current && !audioRef.current.paused);
     };
 
     // Strategy 3: Focus event - resume when window regains focus
     const handleFocus = () => {
-      if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-        setTimeout(() => {
-          if (audioRef.current && wasPlayingBeforeHideRef.current && audioRef.current.paused) {
-            applySafePlaybackSettings(audioRef.current);
-            audioRef.current.play().catch(() => {});
-          }
-        }, 200);
+      if (wasPlayingBeforeHideRef.current) setTimeout(resumeIfNeeded, 200);
+      else if (isPlayingRef.current) requestWakeLock();
+    };
+
+    const handlePlay = () => {
+      if (!audioRef.current) return;
+      if (mobilePlayback) applyMobilePlaybackSettings(audioRef.current);
+      requestWakeLock();
+      startHeartbeat();
+    };
+
+    const handlePause = () => {
+      if (!isPlayingRef.current) {
+        releaseWakeLock();
+        stopHeartbeat();
       }
     };
+
+    activeAudio.addEventListener('play', handlePlay);
+    activeAudio.addEventListener('pause', handlePause);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('focus', handleFocus);
 
+    if (isPlayingRef.current) {
+      handlePlay();
+    }
+
     return () => {
+      activeAudio.removeEventListener('play', handlePlay);
+      activeAudio.removeEventListener('pause', handlePause);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('focus', handleFocus);
+      releaseWakeLock();
+      stopHeartbeat();
     };
-  }, [audioRef, isPlaying, onResume]);
+  }, [audioRef, onResume]);
+
+  useEffect(() => {
+    if (!isMobilePlaybackDevice()) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      applyMobilePlaybackSettings(audio);
+      keepAliveRef.current?.play().catch(() => {});
+    } else {
+      keepAliveRef.current?.pause();
+      if (keepAliveRef.current) keepAliveRef.current.currentTime = 0;
+      const wakeLock = wakeLockRef.current;
+      wakeLockRef.current = null;
+      wakeLock?.release().catch(() => {});
+    }
+  }, [audioRef, isPlaying]);
 
   // Second useEffect: apply safe settings once when playback starts
   // (keeps hook count stable across renders)
