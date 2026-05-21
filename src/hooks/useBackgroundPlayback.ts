@@ -13,19 +13,13 @@ const SILENT_HEARTBEAT_SRC =
 /**
  * Hook to maintain background audio playback when screen is off or app is in background.
  * 
- * IMPORTANT: This hook uses a MINIMAL approach to avoid fighting the browser's
- * audio management, which causes crackling/distortion on mobile devices.
+ * IMPORTANT: Desktop keeps the minimal native path. Extra guards are enabled
+ * only on mobile where browsers suspend media aggressively in the background.
  * 
  * Strategies:
  * 1. Visibility change handling - resumes playback when returning to foreground
  * 2. Page show/hide events - handles iOS Safari bfcache restoration
  * 3. Focus events - handles tab focus restoration
- * 
- * We intentionally DO NOT:
- * - Intercept pause events (causes rapid play/pause = crackling)
- * - Call audio.load() on stall (resets buffer = distortion)  
- * - Use keep-alive pings (interferes with browser audio management)
- * - Use Web Locks API (unnecessary overhead, doesn't prevent audio issues)
  * 
  * Background playback is primarily handled by the Media Session API
  * configured in PlayerBar.tsx, which is the correct browser-native approach.
