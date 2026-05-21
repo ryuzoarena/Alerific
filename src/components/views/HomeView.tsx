@@ -1,4 +1,5 @@
 import { SongGridCard } from '@/components/SongCard';
+import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
 import { ArtistCard } from '@/components/ArtistCard';
 import { AIMixCard } from '@/components/desktop/AIMixCard';
@@ -153,23 +154,20 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           {/* Quick play grid */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
             {playlists.slice(0, 6).map((playlist) => {
-              const playlistSongs = songs.filter(s => playlist.songIds.includes(s.id));
-              const coverUrl = playlistSongs[0]?.coverUrl;
+              const playlistSongs = songs.filter((s) => playlist.songIds.includes(s.id));
               return (
                 <button
                   key={playlist.id}
                   onClick={() => onSelectPlaylist?.(playlist.id)}
                   className="flex items-center bg-white/5 hover:bg-white/10 rounded-md overflow-hidden group transition-all duration-200 cursor-pointer"
                 >
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 bg-[#282828] flex-shrink-0">
-                    {coverUrl ? (
-                      <img src={coverUrl} alt={playlist.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
-                        <Music2 className="text-white/50" />
-                      </div>
-                    )}
-                  </div>
+                  <PlaylistCoverArt
+                    playlist={playlist}
+                    songs={playlistSongs}
+                    size={64}
+                    rounded="rounded-none"
+                    className="w-14 h-14 lg:w-16 lg:h-16"
+                  />
                   <span className="flex-1 px-3 lg:px-4 font-semibold text-sm text-white truncate">{playlist.name}</span>
                 </button>
               );
