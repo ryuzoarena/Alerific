@@ -1,4 +1,5 @@
 import { SongGridCard } from '@/components/SongCard';
+import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
 import { ArtistCard } from '@/components/ArtistCard';
 import { AIMixCard } from '@/components/desktop/AIMixCard';
