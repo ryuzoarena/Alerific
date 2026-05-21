@@ -63,7 +63,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       crossfadeIntervalRef.current = null;
     }
     if (preloadAudioRef.current) {
-      try { preloadAudioRef.current.pause(); } catch {}
+      try { preloadAudioRef.current.pause(); } catch { void 0; }
       preloadAudioRef.current.volume = 0;
     }
     if (audioRef.current) {
@@ -100,7 +100,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       audioRef.current.src = audioUrl;
       audioRef.current.load();
     }
-  }, [currentSong?.id]);
+  }, [currentSong, onCoverUrlChange, setCurrentTime]);
 
   // Setup Media Session API for background playback control (notification bar)
   useEffect(() => {
@@ -321,7 +321,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         // Promote preload → main without resetting src/currentTime
         const promotedUrl = preloadedUrlRef.current;
         const continueAt = next.currentTime;
-        try { next.pause(); } catch {}
+        try { next.pause(); } catch { void 0; }
         next.volume = 0;
 
         if (promotedUrl && main) {
