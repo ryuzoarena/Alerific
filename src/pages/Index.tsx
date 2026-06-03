@@ -22,6 +22,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
 import { useMusicStore } from '@/stores/musicStore';
+import { DesktopShell } from '@/components/desktop/DesktopShell';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
@@ -130,35 +131,60 @@ const Index = () => {
       "bg-black"
     )}>
       <div className="flex-1 flex overflow-hidden min-h-0">
-        <div className="hidden lg:block">
-          <Sidebar 
-            activeView={activeView}
-            onViewChange={setActiveView}
-            selectedPlaylistId={selectedPlaylistId}
-            onSelectPlaylist={setSelectedPlaylistId}
-            onUploadClick={() => setShowUpload(true)}
-            onAvatarClick={() => setIsDrawerOpen(true)}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-            onOpenSettings={() => setIsSettingsDrawerOpen(true)}
-          />
-        </div>
-
-        <main className="flex-1 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide relative lg:bg-[#121212] lg:rounded-lg lg:m-2 lg:ml-0">
-          {/* Mobile gradient background */}
-          <div className={cn("absolute inset-0 pointer-events-none lg:hidden", `bg-gradient-to-b ${timeTheme.gradient}`)} style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)' }} />
-          <div className="relative z-10">
-            {renderMainContent()}
+        {/* Existing layout (mobile + 1024-1099px). Hidden at ≥1100px. */}
+        <div className="flex-1 flex overflow-hidden min-h-0 min-[1100px]:hidden">
+          <div className="hidden lg:block">
+            <Sidebar 
+              activeView={activeView}
+              onViewChange={setActiveView}
+              selectedPlaylistId={selectedPlaylistId}
+              onSelectPlaylist={setSelectedPlaylistId}
+              onUploadClick={() => setShowUpload(true)}
+              onAvatarClick={() => setIsDrawerOpen(true)}
+              collapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+              onOpenSettings={() => setIsSettingsDrawerOpen(true)}
+            />
           </div>
-        </main>
 
-        <div className="hidden lg:block h-full min-h-0">
-          <LyricsPanel 
-            isOpen={showLyrics} 
-            onClose={() => setShowLyrics(false)}
-            loadedCoverUrl={currentCoverUrl}
-          />
+          <main className="flex-1 overflow-y-auto pb-32 lg:pb-0 scrollbar-hide relative lg:bg-[#121212] lg:rounded-lg lg:m-2 lg:ml-0">
+            {/* Mobile gradient background */}
+            <div className={cn("absolute inset-0 pointer-events-none lg:hidden", `bg-gradient-to-b ${timeTheme.gradient}`)} style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 85%)' }} />
+            <div className="relative z-10">
+              {renderMainContent()}
+            </div>
+          </main>
+
+          <div className="hidden lg:block h-full min-h-0">
+            <LyricsPanel 
+              isOpen={showLyrics} 
+              onClose={() => setShowLyrics(false)}
+              loadedCoverUrl={currentCoverUrl}
+            />
+          </div>
         </div>
+
+        {/* Desktop premium 3-column shell (≥1100px) */}
+        <DesktopShell
+          activeView={activeView}
+          onViewChange={setActiveView}
+          selectedPlaylistId={selectedPlaylistId}
+          onSelectPlaylist={setSelectedPlaylistId}
+          selectedArtist={selectedArtist}
+          onArtistClick={handleArtistClick}
+          onAvatarClick={() => setIsDrawerOpen(true)}
+          isLoggedIn={isLoggedIn}
+          userName={displayName}
+          avatarUrl={profile?.avatar_url}
+          onGetStarted={() => setShowAuth(true)}
+          onUploadClick={() => setShowUpload(true)}
+          onCreatePlaylistClick={() => isLoggedIn ? setShowCreatePlaylist(true) : setShowAuth(true)}
+          onOpenSettings={() => setIsSettingsDrawerOpen(true)}
+          onSignOut={signOut}
+          isAdmin={isAdmin}
+          isDeleteMode={isDeleteMode}
+          onToggleDeleteMode={() => setIsDeleteMode(!isDeleteMode)}
+        />
       </div>
 
       <PlayerBar 
