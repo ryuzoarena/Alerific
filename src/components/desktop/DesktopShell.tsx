@@ -613,6 +613,7 @@ export function DesktopShell(props: DesktopShellProps) {
           ))}
         </div>
       </aside>
+      )}
     </div>
   );
 }
