@@ -454,9 +454,14 @@ export function DesktopShell(props: DesktopShellProps) {
       </main>
 
       {/* ============ RIGHT PANEL ============ */}
-      {showRightPanel && (
+      <div
+        className={cn(
+          'shrink-0 overflow-hidden transition-[width,opacity] duration-300 ease-in-out',
+          showRightPanel ? 'w-[280px] opacity-100' : 'w-0 opacity-0',
+        )}
+      >
       <aside
-        className="w-[280px] shrink-0 flex flex-col border-l"
+        className="w-[280px] h-full flex flex-col border-l"
         style={{ background: '#0e1117', borderColor: '#1e2530' }}
       >
         {/* Profile */}
@@ -613,8 +618,9 @@ export function DesktopShell(props: DesktopShellProps) {
           ))}
         </div>
       </aside>
-      )}
+      </div>
     </div>
+
   );
 }
 
