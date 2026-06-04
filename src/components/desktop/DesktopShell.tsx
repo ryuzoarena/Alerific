@@ -115,6 +115,7 @@ export function DesktopShell(props: DesktopShellProps) {
   const [libOpen, setLibOpen] = useState(true);
   const [plOpen, setPlOpen] = useState(true);
   const [profileMenu, setProfileMenu] = useState(false);
+  const [showRightPanel, setShowRightPanel] = useState(true);
 
   const currentPlaylist = playlists.find((p) => p.id === selectedPlaylistId);
   const playlistSongs = useMemo<Song[]>(
