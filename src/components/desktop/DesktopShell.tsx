@@ -454,6 +454,7 @@ export function DesktopShell(props: DesktopShellProps) {
       </main>
 
       {/* ============ RIGHT PANEL ============ */}
+      {showRightPanel && (
       <aside
         className="w-[280px] shrink-0 flex flex-col border-l"
         style={{ background: '#0e1117', borderColor: '#1e2530' }}
