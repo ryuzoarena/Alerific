@@ -364,11 +364,19 @@ export function DesktopShell(props: DesktopShellProps) {
             />
           </div>
           <button
+            onClick={() => setShowRightPanel((v) => !v)}
+            title={showRightPanel ? 'Hide friend activity' : 'Show friend activity'}
+            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
+          >
+            <ListMusic size={16} />
+          </button>
+          <button
             onClick={onOpenSettings}
             className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
           >
             <Menu size={16} />
           </button>
+
         </div>
 
         {/* Body */}
