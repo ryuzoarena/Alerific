@@ -95,17 +95,6 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
       // Mobile: time-based gradient
       "lg:bg-transparent",
     )}>
-      {/* Desktop Top Nav — only on lg+ */}
-      <div className="hidden lg:block">
-        <DesktopTopNav
-          activeFilter={desktopFilter}
-          onFilterChange={setDesktopFilter}
-          isLoggedIn={isLoggedIn}
-          userName={userName}
-          onAvatarClick={onAvatarClick}
-          onGetStarted={onGetStarted}
-        />
-      </div>
 
       {/* Mobile header */}
       <div className="lg:hidden flex items-center gap-3 mb-4 p-3 sm:p-4">
