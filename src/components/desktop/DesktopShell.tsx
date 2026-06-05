@@ -854,69 +854,6 @@ function PlaylistHeroAndList(props: HeroProps) {
         )}
       </div>
 
-      {/* Bottom progress + controls */}
-      <div className="mt-10 px-2">
-        <div className="relative h-0.5 rounded-full mb-5" style={{ background: '#1e2530' }}>
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${progress}%`,
-              background: 'linear-gradient(90deg, #1DB954, #17a349)',
-              boxShadow: '0 0 8px #1DB95460',
-            }}
-          />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#1DB954] ds-dot-pulse"
-            style={{ left: `calc(${progress}% - 5px)` }}
-          />
-        </div>
-        <div className="flex items-center justify-center gap-5">
-          <button
-            onClick={onShuffle}
-            className={cn(
-              'transition-colors',
-              shuffle ? 'text-[#1DB954]' : 'text-[#8896a4] hover:text-white',
-            )}
-          >
-            <Shuffle size={16} />
-          </button>
-          <button
-            onClick={onPrev}
-            className="text-[#8896a4] hover:text-white transition-colors"
-          >
-            <SkipBack size={20} fill="currentColor" />
-          </button>
-          <button
-            onClick={onTogglePlay}
-            className="ds-play-glow w-12 h-12 rounded-full flex items-center justify-center text-black transition-all hover:scale-105"
-            style={{
-              background: 'linear-gradient(135deg, #1DB954 0%, #17a349 100%)',
-              boxShadow: '0 4px 20px #1DB95460',
-            }}
-          >
-            {isPlaying ? (
-              <Pause size={18} fill="currentColor" />
-            ) : (
-              <Play size={18} fill="currentColor" className="ml-0.5" />
-            )}
-          </button>
-          <button
-            onClick={onNext}
-            className="text-[#8896a4] hover:text-white transition-colors"
-          >
-            <SkipForward size={20} fill="currentColor" />
-          </button>
-          <button
-            onClick={onRepeat}
-            className={cn(
-              'transition-colors',
-              repeat !== 'off' ? 'text-[#1DB954]' : 'text-[#8896a4] hover:text-white',
-            )}
-          >
-            {repeat === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
