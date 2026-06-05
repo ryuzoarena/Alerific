@@ -505,8 +505,8 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         audioRef={audioRef}
       />
 
-      {/* Desktop Player Bar */}
-      <footer className="hidden lg:flex h-20 bg-player border-t border-border items-center px-4 gap-4">
+      {/* Desktop Player Bar — hidden entirely when nothing is playing */}
+      <footer className={cn("h-20 bg-player border-t border-border items-center px-4 gap-4", currentSong ? "hidden lg:flex" : "hidden")}>
         {/* Left - Song info */}
         <div className="w-[30%] min-w-[180px] flex items-center gap-3">
           {currentSong ? (
