@@ -40,6 +40,8 @@ import { AdminView } from '@/components/views/AdminView';
 import { ProfileView } from '@/components/views/ProfileView';
 import { cn } from '@/lib/utils';
 import type { Song, Playlist } from '@/types/music';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AddSongsToPlaylistDialog } from '@/components/AddSongsToPlaylistDialog';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
@@ -679,9 +681,15 @@ function PlaylistHeroAndList(props: HeroProps) {
     onShuffle,
     onRepeat,
   } = props;
+  const [showAddSongs, setShowAddSongs] = useState(false);
 
   return (
     <div className="px-6">
+      <AddSongsToPlaylistDialog
+        isOpen={showAddSongs}
+        onClose={() => setShowAddSongs(false)}
+        playlistId={playlist.id}
+      />
       {/* Hero */}
       <div
         className="relative overflow-hidden rounded-2xl mb-6"
@@ -774,9 +782,18 @@ function PlaylistHeroAndList(props: HeroProps) {
               <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
                 <Download size={15} />
               </button>
-              <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
-                <MoreHorizontal size={15} />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
+                    <MoreHorizontal size={15} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-[#1a2035] border-white/10 text-white">
+                  <DropdownMenuItem onClick={() => setShowAddSongs(true)} className="cursor-pointer focus:bg-white/10 focus:text-white">
+                    <Plus size={14} className="mr-2" /> Add songs to playlist
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <span className="ml-2 text-[11px] text-[#8896a4]">
                 <span className="text-white font-semibold">
                   {(47541).toLocaleString()}
