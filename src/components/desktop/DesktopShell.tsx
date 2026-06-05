@@ -290,35 +290,37 @@ export function DesktopShell(props: DesktopShellProps) {
           </button>
         </div>
 
-        {/* Now Playing (sidebar mini) */}
-        <div
-          className="px-3 py-3 border-t flex items-center gap-2.5"
-          style={{ borderColor: '#1e2530', background: '#0e1117' }}
-        >
-          <div className="w-9 h-9 rounded overflow-hidden shrink-0 bg-[#1a2035] flex items-center justify-center">
-            {playerState.currentSong?.coverUrl ? (
-              <img
-                src={playerState.currentSong.coverUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <ListMusic size={14} className="text-[#4a5568]" />
-            )}
+        {/* Now Playing (sidebar mini) — hidden when nothing is playing */}
+        {playerState.currentSong && (
+          <div
+            className="px-3 py-3 border-t flex items-center gap-2.5"
+            style={{ borderColor: '#1e2530', background: '#0e1117' }}
+          >
+            <div className="w-9 h-9 rounded overflow-hidden shrink-0 bg-[#1a2035] flex items-center justify-center">
+              {playerState.currentSong.coverUrl ? (
+                <img
+                  src={playerState.currentSong.coverUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <ListMusic size={14} className="text-[#4a5568]" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold truncate text-white">
+                {playerState.currentSong.title}
+              </p>
+              <p className="text-[10px] text-[#8896a4] truncate">
+                {playerState.currentSong.artist || '—'}
+              </p>
+            </div>
+            <Heart
+              size={14}
+              className="text-[#8896a4] hover:text-[#1DB954] cursor-pointer transition-colors"
+            />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold truncate text-white">
-              {playerState.currentSong?.title || 'Nothing playing'}
-            </p>
-            <p className="text-[10px] text-[#8896a4] truncate">
-              {playerState.currentSong?.artist || '—'}
-            </p>
-          </div>
-          <Heart
-            size={14}
-            className="text-[#8896a4] hover:text-[#1DB954] cursor-pointer transition-colors"
-          />
-        </div>
+        )}
       </aside>
 
       {/* ============ MAIN CONTENT ============ */}

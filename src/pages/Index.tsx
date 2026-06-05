@@ -185,6 +185,15 @@ const Index = () => {
           isDeleteMode={isDeleteMode}
           onToggleDeleteMode={() => setIsDeleteMode(!isDeleteMode)}
         />
+
+        {/* Desktop lyrics panel (≥1100px) — sibling so it appears next to DesktopShell */}
+        <div className="hidden min-[1100px]:block h-full min-h-0">
+          <LyricsPanel
+            isOpen={showLyrics}
+            onClose={() => setShowLyrics(false)}
+            loadedCoverUrl={currentCoverUrl}
+          />
+        </div>
       </div>
 
       <PlayerBar 
