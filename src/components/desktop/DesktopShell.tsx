@@ -681,9 +681,15 @@ function PlaylistHeroAndList(props: HeroProps) {
     onShuffle,
     onRepeat,
   } = props;
+  const [showAddSongs, setShowAddSongs] = useState(false);
 
   return (
     <div className="px-6">
+      <AddSongsToPlaylistDialog
+        isOpen={showAddSongs}
+        onClose={() => setShowAddSongs(false)}
+        playlistId={playlist.id}
+      />
       {/* Hero */}
       <div
         className="relative overflow-hidden rounded-2xl mb-6"
