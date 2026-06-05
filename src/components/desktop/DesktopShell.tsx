@@ -40,6 +40,8 @@ import { AdminView } from '@/components/views/AdminView';
 import { ProfileView } from '@/components/views/ProfileView';
 import { cn } from '@/lib/utils';
 import type { Song, Playlist } from '@/types/music';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AddSongsToPlaylistDialog } from '@/components/AddSongsToPlaylistDialog';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
