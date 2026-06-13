@@ -45,6 +45,7 @@ const Index = () => {
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
   const { isAdmin } = useUserRole();
   const timeTheme = useTimeTheme();
+  useCrossDevicePlayback(user?.id);
 
   const handleArtistClick = (artistName: string) => {
     setSelectedArtist(artistName);
