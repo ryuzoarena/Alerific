@@ -68,7 +68,7 @@ export function SearchView({ isDeleteMode, onSelectPlaylist }: SearchViewProps) 
 
   return (
     <div className="p-6 pb-24 overflow-y-auto h-full">
-      <div className="mb-8">
+      <div className="mb-8 lg:hidden">
         <SearchBar />
       </div>
 
