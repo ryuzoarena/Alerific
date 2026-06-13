@@ -118,6 +118,24 @@ export function DesktopShell(props: DesktopShellProps) {
   const [plOpen, setPlOpen] = useState(true);
   const [profileMenu, setProfileMenu] = useState(false);
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchPlaceholders = useMemo(
+    () => ['Search songs, artists...', 'Find your next favorite...', 'Discover new playlists...', 'What are you in the mood for?'],
+    [],
+  );
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [placeholderVisible, setPlaceholderVisible] = useState(true);
+  useEffect(() => {
+    if (searchFocused || searchQuery) return;
+    const id = setInterval(() => {
+      setPlaceholderVisible(false);
+      setTimeout(() => {
+        setPlaceholderIdx((i) => (i + 1) % searchPlaceholders.length);
+        setPlaceholderVisible(true);
+      }, 350);
+    }, 3200);
+    return () => clearInterval(id);
+  }, [searchFocused, searchQuery, searchPlaceholders.length]);
 
   const currentPlaylist = playlists.find((p) => p.id === selectedPlaylistId);
   const playlistSongs = useMemo<Song[]>(
