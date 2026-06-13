@@ -13,6 +13,7 @@ import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
 import { useAudioStabilityGuard } from '@/hooks/useAudioStabilityGuard';
 import { useNowPlayingNotification } from '@/hooks/useNowPlayingNotification';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
+import { pendingResumeRef } from '@/lib/playbackRestore';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
