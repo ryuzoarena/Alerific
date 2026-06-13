@@ -23,7 +23,6 @@ import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
 import { useMusicStore } from '@/stores/musicStore';
 import { DesktopShell } from '@/components/desktop/DesktopShell';
-import { useCrossDevicePlayback } from '@/hooks/useCrossDevicePlayback';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
@@ -45,7 +44,6 @@ const Index = () => {
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
   const { isAdmin } = useUserRole();
   const timeTheme = useTimeTheme();
-  useCrossDevicePlayback(user?.id);
 
   const handleArtistClick = (artistName: string) => {
     setSelectedArtist(artistName);

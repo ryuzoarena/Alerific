@@ -14,39 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      playback_state: {
-        Row: {
-          device_id: string | null
-          is_playing: boolean
-          position_seconds: number
-          queue_index: number
-          queue_song_ids: Json
-          song_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          device_id?: string | null
-          is_playing?: boolean
-          position_seconds?: number
-          queue_index?: number
-          queue_song_ids?: Json
-          song_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          device_id?: string | null
-          is_playing?: boolean
-          position_seconds?: number
-          queue_index?: number
-          queue_song_ids?: Json
-          song_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       playlist_songs: {
         Row: {
           added_at: string

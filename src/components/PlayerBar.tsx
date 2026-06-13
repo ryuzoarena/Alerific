@@ -13,7 +13,6 @@ import { useBackgroundPlayback } from '@/hooks/useBackgroundPlayback';
 import { useAudioStabilityGuard } from '@/hooks/useAudioStabilityGuard';
 import { useNowPlayingNotification } from '@/hooks/useNowPlayingNotification';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
-import { pendingResumeRef } from '@/lib/playbackRestore';
 
 interface PlayerBarProps {
   onToggleLyrics: () => void;
@@ -96,24 +95,10 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     if (audioUrl) {
       if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
       else applySafePlaybackSettings(audioRef.current);
-
-      const resumeAt = pendingResumeRef.time;
-      pendingResumeRef.time = null;
-
       audioRef.current.currentTime = 0;
-      setCurrentTime(resumeAt && resumeAt > 0 ? resumeAt : 0);
+      setCurrentTime(0);
       audioRef.current.src = audioUrl;
       audioRef.current.load();
-
-      if (resumeAt && resumeAt > 0) {
-        const audio = audioRef.current;
-        const onLoaded = () => {
-          try { audio.currentTime = resumeAt; } catch { void 0; }
-          setCurrentTime(resumeAt);
-          audio.removeEventListener('loadedmetadata', onLoaded);
-        };
-        audio.addEventListener('loadedmetadata', onLoaded);
-      }
     }
   }, [currentSong, onCoverUrlChange, setCurrentTime]);
 
