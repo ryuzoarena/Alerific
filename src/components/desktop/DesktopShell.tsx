@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Compass,
   Radio,
@@ -118,6 +118,24 @@ export function DesktopShell(props: DesktopShellProps) {
   const [plOpen, setPlOpen] = useState(true);
   const [profileMenu, setProfileMenu] = useState(false);
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchPlaceholders = useMemo(
+    () => ['Search songs, artists...', 'Find your next favorite...', 'Discover new playlists...', 'What are you in the mood for?'],
+    [],
+  );
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [placeholderVisible, setPlaceholderVisible] = useState(true);
+  useEffect(() => {
+    if (searchFocused || searchQuery) return;
+    const id = setInterval(() => {
+      setPlaceholderVisible(false);
+      setTimeout(() => {
+        setPlaceholderIdx((i) => (i + 1) % searchPlaceholders.length);
+        setPlaceholderVisible(true);
+      }, 350);
+    }, 3200);
+    return () => clearInterval(id);
+  }, [searchFocused, searchQuery, searchPlaceholders.length]);
 
   const currentPlaylist = playlists.find((p) => p.id === selectedPlaylistId);
   const playlistSongs = useMemo<Song[]>(
@@ -316,23 +334,43 @@ export function DesktopShell(props: DesktopShellProps) {
           >
             <ChevronRight size={16} />
           </button>
-          <div className="flex-1 max-w-md mx-auto relative">
+          <div className="flex-1 max-w-md mx-auto relative group">
             <Search
               size={14}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4a5568]"
+              className={cn(
+                'absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-300 ease-out',
+                searchFocused ? 'text-[#1DB954] scale-110' : 'text-[#4a5568] group-hover:text-[#8896a4]',
+              )}
             />
+            <div
+              aria-hidden
+              className={cn(
+                'pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 text-[12px] text-[#4a5568] transition-all duration-300 ease-out',
+                searchQuery || searchFocused
+                  ? 'opacity-0 -translate-y-[calc(50%+4px)]'
+                  : placeholderVisible
+                    ? 'opacity-100'
+                    : 'opacity-0 translate-y-[calc(-50%+4px)]',
+              )}
+            >
+              {searchPlaceholders[placeholderIdx]}
+            </div>
             <input
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 if (e.target.value) onViewChange('search');
               }}
-              placeholder="Search songs, artists..."
-              className="w-full pl-9 pr-4 py-2 rounded-full text-[12px] text-white placeholder:text-[#4a5568] focus:outline-none focus:ring-1 focus:ring-[#1DB954]/40"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className={cn(
+                'w-full pl-9 pr-4 py-2 rounded-full text-[12px] text-white focus:outline-none transition-all duration-300 ease-out',
+                searchFocused && 'shadow-[0_0_0_3px_rgba(29,185,84,0.15)]',
+              )}
               style={{
-                background: 'rgba(255,255,255,0.04)',
+                background: searchFocused ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
                 backdropFilter: 'blur(12px)',
-                border: '1px solid #1e2530',
+                border: searchFocused ? '1px solid rgba(29,185,84,0.5)' : '1px solid #1e2530',
               }}
             />
           </div>
