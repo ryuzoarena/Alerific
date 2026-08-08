@@ -215,7 +215,8 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
                 Show all
               </button>
             </div>
-            <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0">
+            {/* Mobile/tablet: circular avatars */}
+            <div className="lg:hidden flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4">
               {artistGroups.map(([artistName, artistSongs]) => (
                 <ArtistCard
                   key={artistName}
@@ -225,6 +226,21 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
                 />
               ))}
             </div>
+            {/* Desktop: playlist-style cards */}
+            <div className="hidden lg:block">
+              <HorizontalScroller className="gap-3 pb-4">
+                {artistGroups.map(([artistName, artistSongs]) => (
+                  <div key={artistName} className="flex-shrink-0 w-[160px]">
+                    <ArtistGridCard
+                      artistName={artistName}
+                      songs={artistSongs}
+                      onClick={() => onArtistClick?.(artistName)}
+                    />
+                  </div>
+                ))}
+              </HorizontalScroller>
+            </div>
+
           </section>
         )}
 
