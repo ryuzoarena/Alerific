@@ -1,7 +1,7 @@
 import { SongGridCard } from '@/components/SongCard';
 import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
-import { ArtistCard } from '@/components/ArtistCard';
+import { ArtistCard, ArtistGridCard } from '@/components/ArtistCard';
 import { AIMixCard } from '@/components/desktop/AIMixCard';
 import { DesktopTopNav } from '@/components/desktop/DesktopTopNav';
 import { SkeletonGridCards, SkeletonMixCards } from '@/components/desktop/SkeletonCards';
