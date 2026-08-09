@@ -51,9 +51,11 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbu
         <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
       </div>
 
-      <div className="hidden md:block flex-1 min-w-0">
-        <p className="text-sm text-muted-foreground truncate">{song.album || 'Unknown Album'}</p>
-      </div>
+      {!hideAlbum && (
+        <div className="hidden md:block flex-1 min-w-0">
+          <p className="text-sm text-muted-foreground truncate">{song.album || 'Unknown Album'}</p>
+        </div>
+      )}
 
       {isDeleteMode && (
         <button onClick={handleDelete} className="text-red-400 hover:text-red-300 animate-pulse" title="Delete song">
