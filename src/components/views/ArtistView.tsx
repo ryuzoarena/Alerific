@@ -225,9 +225,11 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
           </div>
         </div>
       </div>
+      </div>
 
       {/* Song list */}
-      <div className="px-2 sm:px-4">
+      <div className="px-2 sm:px-4 min-[1100px]:px-6 min-[1100px]:mt-3">
+
         <div className="space-y-0.5">
           {artistSongs.map((song, index) => (
             <SongCard
