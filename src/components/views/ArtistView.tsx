@@ -1,8 +1,8 @@
-import { ArrowLeft, Play, Shuffle, Plus, MoreVertical, Download } from 'lucide-react';
+import { ArrowLeft, Play, Shuffle, Plus, MoreVertical, Download, Filter, MoreHorizontal } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
 import { SongCard } from '@/components/SongCard';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
-import { useDominantColor } from '@/hooks/useDominantColor';
+import { useDominantColor, useDominantPalette } from '@/hooks/useDominantColor';
 import { useMemo } from 'react';
 
 interface ArtistViewProps {
@@ -22,6 +22,14 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
 
   const coverUrl = artistSongs.find(s => s.coverUrl)?.coverUrl;
   const dominantColor = useDominantColor(coverUrl || null);
+  const palette = useDominantPalette(coverUrl || null);
+
+  const totalDuration = useMemo(() => {
+    const total = artistSongs.reduce((acc, s) => acc + (s.duration || 0), 0);
+    const hrs = Math.floor(total / 3600);
+    const mins = Math.round((total % 3600) / 60);
+    return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
+  }, [artistSongs]);
 
   const handlePlayAll = () => {
     if (artistSongs.length > 0) {
@@ -43,11 +51,89 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
 
   return (
     <div className="h-full overflow-y-auto pb-24">
+      {/* ==================== DESKTOP HERO (≥1100px) ==================== */}
+      <div className="hidden min-[1100px]:block px-6 pt-6">
+        <div
+          className="relative overflow-hidden rounded-2xl border border-white/5 p-8"
+          style={{
+            background: `radial-gradient(120% 140% at 85% 20%, ${palette.accentSoft} 0%, transparent 60%), linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)`,
+          }}
+        >
+          <div className="flex items-end gap-8">
+            {/* Cover */}
+            <div
+              className="w-56 h-56 rounded-xl overflow-hidden flex-shrink-0 shadow-2xl"
+              style={{ boxShadow: `0 24px 60px -18px ${palette.accentGlow}` }}
+            >
+              {coverUrl ? (
+                <img src={coverUrl} alt={artistName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
+                  <span className="text-6xl font-bold text-foreground/70">
+                    {artistName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Meta */}
+            <div className="min-w-0 flex-1 pb-1">
+              <p className="text-xs font-bold tracking-[0.25em] text-muted-foreground uppercase">
+                Artist
+              </p>
+              <h1 className="mt-3 text-6xl font-black tracking-tight text-foreground truncate">
+                {artistName}
+              </h1>
+              <p className="mt-3 text-base text-muted-foreground">Semua lagu dari {artistName}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {artistSongs.length} lagu • {totalDuration}
+              </p>
+
+              <div className="mt-6 flex items-center gap-4">
+                <button
+                  onClick={handlePlayAll}
+                  className={`px-9 h-12 rounded-full font-extrabold tracking-widest text-sm theme-transition ${timeTheme.accentBg} ${timeTheme.buttonText} hover:scale-[1.03] transition-transform`}
+                  style={{ boxShadow: `0 12px 32px -10px ${palette.accentGlow}` }}
+                >
+                  PLAY
+                </button>
+                <button
+                  onClick={handleShufflePlay}
+                  className="px-9 h-12 rounded-full border border-white/20 text-foreground font-extrabold tracking-widest text-sm hover:border-white/40 hover:bg-white/5 transition-colors"
+                >
+                  SHUFFLE
+                </button>
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Download size={20} />
+                </button>
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
+                  <MoreHorizontal size={22} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div className="mt-4 flex items-center justify-between px-2 text-xs font-bold tracking-[0.2em] uppercase text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <Filter size={14} /> Filter
+          </span>
+          <span>Artist</span>
+          <span className="flex items-center gap-2">
+            <Download size={14} /> Download
+          </span>
+        </div>
+      </div>
+
+      {/* ==================== MOBILE / TABLET HEADER (<1100px) ==================== */}
+      <div className="min-[1100px]:hidden">
       {/* Header with dominant color gradient */}
       <div className="relative pt-4 pb-6 px-4" style={bgStyle}>
         {!dominantColor && (
           <div className="absolute inset-0 bg-gradient-to-b from-primary/30 to-background" />
         )}
+
 
         {/* Back button */}
         <button
@@ -139,9 +225,11 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
           </div>
         </div>
       </div>
+      </div>
 
       {/* Song list */}
-      <div className="px-2 sm:px-4">
+      <div className="px-2 sm:px-4 min-[1100px]:px-6 min-[1100px]:mt-3">
+
         <div className="space-y-0.5">
           {artistSongs.map((song, index) => (
             <SongCard
