@@ -18,9 +18,10 @@ interface SongCardProps {
   queue?: Song[];
   isDeleteMode?: boolean;
   compact?: boolean;
+  hideAlbum?: boolean;
 }
 
-export function SongCard({ song, index, showIndex, queue, isDeleteMode }: SongCardProps) {
+export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbum }: SongCardProps) {
   const { playSong, playerState, removeSong, addToUserQueue } = useMusicStore();
   const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;

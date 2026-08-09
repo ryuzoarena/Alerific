@@ -119,7 +119,6 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
           <span className="flex items-center gap-2">
             <Filter size={14} /> Filter
           </span>
-          <span>Artist</span>
           <span className="flex items-center gap-2">
             <Download size={14} /> Download
           </span>
@@ -239,6 +238,7 @@ export function ArtistView({ artistName, onBack, isDeleteMode }: ArtistViewProps
               showIndex
               queue={artistSongs}
               isDeleteMode={isDeleteMode}
+              hideAlbum
             />
           ))}
         </div>
