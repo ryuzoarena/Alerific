@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Plus,
   Clock,
-  Mic2,
   HardDrive,
   ChevronLeft,
   Search,
@@ -248,8 +247,8 @@ export function DesktopShell(props: DesktopShellProps) {
             <div className="mb-3">
               {[
                 { label: 'Recently Played', icon: Clock, onClick: () => onViewChange('home') },
-                { label: 'Podcasts', icon: Mic2, onClick: () => onViewChange('library') },
                 { label: 'Local Files', icon: HardDrive, onClick: () => onViewChange('library') },
+
               ].map((it) => {
                 const Icon = it.icon;
                 return (
