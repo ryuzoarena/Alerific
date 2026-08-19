@@ -275,7 +275,9 @@ export function DesktopShell(props: DesktopShellProps) {
           </button>
           {plOpen && (
             <div className="mb-3">
-              {playlists.map((p) => {
+              {playlists
+                .filter((p) => p.name !== 'Liked Songs')
+                .map((p) => {
                 const active = activeView === 'playlist' && selectedPlaylistId === p.id;
                 return (
                   <button
@@ -293,7 +295,7 @@ export function DesktopShell(props: DesktopShellProps) {
                   </button>
                 );
               })}
-              {playlists.length === 0 && (
+              {playlists.filter((p) => p.name !== 'Liked Songs').length === 0 && (
                 <p className="px-3 py-2 text-[12px] text-[#4a5568]">No playlists yet</p>
               )}
             </div>
