@@ -111,7 +111,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       navigator.mediaSession.metadata = new MediaMetadata({
         title: currentSong.title,
         artist: currentSong.artist,
-        album: currentSong.album || 'Alphatus',
+        album: currentSong.album || 'Alerify',
         artwork: loadedCoverUrl ? [
           { src: loadedCoverUrl, sizes: '96x96', type: 'image/jpeg' },
           { src: loadedCoverUrl, sizes: '128x128', type: 'image/jpeg' },
