@@ -1,4 +1,4 @@
-# Welcome to Alerify Project
+# Welcome to Alerific Project
 
 ## Project info
 
