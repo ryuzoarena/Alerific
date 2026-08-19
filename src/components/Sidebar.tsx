@@ -98,7 +98,7 @@ export function Sidebar({
             </div>
             {!collapsed && (
               <div className="flex flex-col leading-none min-w-0">
-                <span className="text-white font-bold text-lg tracking-tight">Sybau</span>
+                <span className="text-white font-bold text-lg tracking-tight">Alerify</span>
                 <span className="text-[10px] mt-0.5 truncate" style={{ color: '#666' }}>
                   Your personal music space
                 </span>

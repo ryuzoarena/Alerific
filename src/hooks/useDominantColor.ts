@@ -12,7 +12,7 @@ export interface DominantPalette {
 }
 
 const FALLBACK: DominantPalette = {
-  accent: 'rgb(29, 185, 84)', // Sybau green
+  accent: 'rgb(29, 185, 84)', // Alerify green
   accentSoft: 'rgba(29, 185, 84, 0.2)',
   accentGlow: 'rgba(29, 185, 84, 0.35)',
   rgb: '29, 185, 84',
