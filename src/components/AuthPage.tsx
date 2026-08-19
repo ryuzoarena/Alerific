@@ -156,8 +156,8 @@ export function AuthPage({ onBack, onSignIn, onSignUp }: AuthPageProps) {
             <div className="mx-auto mb-5 flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--auth-accent)/0.16)] text-[hsl(var(--auth-accent))] ring-1 ring-[hsl(var(--auth-accent)/0.25)]">
               <Music2 size={18} />
             </div>
-            <h2 className="text-[32px] font-bold leading-tight text-white">{mode === 'login' ? 'Selamat Datang' : 'Buat Akun'}</h2>
-            <p className="mt-2 text-sm text-white/40">{mode === 'login' ? 'Masuk ke akunmu' : 'Daftar untuk mulai mendengarkan'}</p>
+            <h2 className="text-[32px] font-bold leading-tight text-white">{mode === 'login' ? 'Welcome Aleteam' : 'Buat Akun'}</h2>
+            <p className="mt-2 text-sm text-white/40">{mode === 'login' ? 'Sign in' : 'Daftar untuk mulai mendengarkan'}</p>
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
