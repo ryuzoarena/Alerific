@@ -1,7 +1,7 @@
 {
   "name": "Alerify",
   "short_name": "Alerify",
-  "description": Alternative Music Player",
+  "description": "Alternative Music Player",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
