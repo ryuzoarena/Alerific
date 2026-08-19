@@ -21,7 +21,7 @@ const visualizerBars = Array.from({ length: 40 }, (_, index) => ({
 const albumCards = [
   { title: 'Iris', artist: 'Goo Goo Dolls', gradient: 'from-amber-300 via-orange-600 to-stone-950', className: 'left-[12%] top-[20%]', rotate: '-5deg', delay: '0s' },
   { title: 'Die For You', artist: 'The Weeknd', gradient: 'from-fuchsia-400 via-purple-800 to-slate-950', className: 'right-[14%] top-[28%]', rotate: '3deg', delay: '-1.2s' },
-  { title: 'Closing Night', artist: 'Sybau', gradient: 'from-emerald-300 via-cyan-800 to-zinc-950', className: 'left-[23%] bottom-[18%]', rotate: '-2deg', delay: '-2.1s' },
+  { title: 'Closing Night', artist: 'The Weeknd', gradient: 'from-emerald-300 via-cyan-800 to-zinc-950', className: 'left-[23%] bottom-[18%]', rotate: '-2deg', delay: '-2.1s' },
 ];
 
 const GoogleIcon = () => (
@@ -136,8 +136,8 @@ export function AuthPage({ onBack, onSignIn, onSignUp }: AuthPageProps) {
           <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[28px] bg-white/8 shadow-[0_0_80px_hsl(var(--auth-accent)/0.28)] ring-1 ring-white/10 backdrop-blur-md">
             <Music2 size={48} className="text-[hsl(var(--auth-accent))]" />
           </div>
-          <h1 className="text-7xl font-bold tracking-tight">Sybau</h1>
-          <p className="mt-4 font-['Playfair_Display'] text-[28px] italic text-white/70">Musik yang menemanimu</p>
+          <h1 className="text-7xl font-bold tracking-tight">Alerify</h1>
+          <p className="mt-4 font-['Playfair_Display'] text-[28px] italic text-white/70">Free the wing of music</p>
         </div>
 
         <p className="absolute bottom-8 left-8 text-[11px] tracking-wide text-white/30">10+ lagu tersimpan • Web Audio API</p>
@@ -156,8 +156,8 @@ export function AuthPage({ onBack, onSignIn, onSignUp }: AuthPageProps) {
             <div className="mx-auto mb-5 flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--auth-accent)/0.16)] text-[hsl(var(--auth-accent))] ring-1 ring-[hsl(var(--auth-accent)/0.25)]">
               <Music2 size={18} />
             </div>
-            <h2 className="text-[32px] font-bold leading-tight text-white">{mode === 'login' ? 'Selamat Datang' : 'Buat Akun'}</h2>
-            <p className="mt-2 text-sm text-white/40">{mode === 'login' ? 'Masuk ke akunmu' : 'Daftar untuk mulai mendengarkan'}</p>
+            <h2 className="text-[32px] font-bold leading-tight text-white">{mode === 'login' ? 'Welcome Aleteam' : 'Buat Akun'}</h2>
+            <p className="mt-2 text-sm text-white/40">{mode === 'login' ? 'Sign in' : 'Daftar untuk mulai mendengarkan'}</p>
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
