@@ -21,7 +21,7 @@ const visualizerBars = Array.from({ length: 40 }, (_, index) => ({
 const albumCards = [
   { title: 'Iris', artist: 'Goo Goo Dolls', gradient: 'from-amber-300 via-orange-600 to-stone-950', className: 'left-[12%] top-[20%]', rotate: '-5deg', delay: '0s' },
   { title: 'Die For You', artist: 'The Weeknd', gradient: 'from-fuchsia-400 via-purple-800 to-slate-950', className: 'right-[14%] top-[28%]', rotate: '3deg', delay: '-1.2s' },
-  { title: 'Closing Night', artist: 'Sybau', gradient: 'from-emerald-300 via-cyan-800 to-zinc-950', className: 'left-[23%] bottom-[18%]', rotate: '-2deg', delay: '-2.1s' },
+  { title: 'Closing Night', artist: 'The Weeknd', gradient: 'from-emerald-300 via-cyan-800 to-zinc-950', className: 'left-[23%] bottom-[18%]', rotate: '-2deg', delay: '-2.1s' },
 ];
 
 const GoogleIcon = () => (
