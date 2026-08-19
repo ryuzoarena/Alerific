@@ -222,7 +222,13 @@ export function DesktopShell(props: DesktopShellProps) {
         {/* CTA: Made For You */}
         <div className="px-4 mt-2">
           <button
-            onClick={() => onViewChange('home')}
+            onClick={() => {
+              if (songs.length === 0) return;
+              if (!playerState.shuffle) toggleShuffle();
+              const randomIndex = Math.floor(Math.random() * songs.length);
+              const randomSong = songs[randomIndex];
+              playSong(randomSong, songs);
+            }}
             className="ds-play-glow w-full py-2.5 rounded-full text-[13px] font-semibold text-black transition-all hover:scale-[1.02]"
             style={{
               background: 'linear-gradient(135deg, #1DB954 0%, #17a349 100%)',
