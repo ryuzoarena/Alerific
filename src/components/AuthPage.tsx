@@ -136,8 +136,8 @@ export function AuthPage({ onBack, onSignIn, onSignUp }: AuthPageProps) {
           <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[28px] bg-white/8 shadow-[0_0_80px_hsl(var(--auth-accent)/0.28)] ring-1 ring-white/10 backdrop-blur-md">
             <Music2 size={48} className="text-[hsl(var(--auth-accent))]" />
           </div>
-          <h1 className="text-7xl font-bold tracking-tight">Sybau</h1>
-          <p className="mt-4 font-['Playfair_Display'] text-[28px] italic text-white/70">Musik yang menemanimu</p>
+          <h1 className="text-7xl font-bold tracking-tight">Alerify</h1>
+          <p className="mt-4 font-['Playfair_Display'] text-[28px] italic text-white/70">Free the wing of music</p>
         </div>
 
         <p className="absolute bottom-8 left-8 text-[11px] tracking-wide text-white/30">10+ lagu tersimpan • Web Audio API</p>
