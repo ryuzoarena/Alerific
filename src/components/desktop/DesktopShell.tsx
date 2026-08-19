@@ -762,7 +762,7 @@ function PlaylistHeroAndList(props: HeroProps) {
             <p className="text-[12px] text-[#8896a4] mb-5">
               Created by{' '}
               <span className="text-white font-medium">
-                {playlist.owner_username || 'Alphatus'}
+                {playlist.owner_username || 'Alerify'}
               </span>{' '}
               • {songs.length} {songs.length === 1 ? 'song' : 'songs'}
               {songs.length > 0 && <> , {totalDuration(songs)}</>}
