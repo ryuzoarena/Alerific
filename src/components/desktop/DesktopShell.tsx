@@ -107,6 +107,18 @@ export function DesktopShell(props: DesktopShellProps) {
   const playSong = useMusicStore((s) => s.playSong);
   const setSearchQuery = useMusicStore((s) => s.setSearchQuery);
   const searchQuery = useMusicStore((s) => s.searchQuery);
+  const recentlyPlayedIds = useMusicStore((s) => s.recentlyPlayedIds);
+
+  const recentActivity = useMemo(
+    () =>
+      recentlyPlayedIds
+        .map((id) => songs.find((s) => s.id === id))
+        .filter(Boolean)
+        .slice(0, 8) as Song[],
+    [recentlyPlayedIds, songs],
+  );
+
+
 
   const [libOpen, setLibOpen] = useState(true);
   const [plOpen, setPlOpen] = useState(true);
