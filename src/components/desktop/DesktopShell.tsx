@@ -331,12 +331,14 @@ export function DesktopShell(props: DesktopShellProps) {
         <div className="flex items-center gap-3 px-6 pt-5 pb-4 shrink-0">
           <button
             onClick={() => window.history.back()}
+            aria-label="Go back"
             className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             onClick={() => window.history.forward()}
+            aria-label="Go forward"
             className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
           >
             <ChevronRight size={16} />
@@ -383,6 +385,7 @@ export function DesktopShell(props: DesktopShellProps) {
           </div>
           <button
             onClick={() => setShowRightPanel((v) => !v)}
+            aria-label={showRightPanel ? 'Hide friend activity' : 'Show friend activity'}
             title={showRightPanel ? 'Hide friend activity' : 'Show friend activity'}
             className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
           >
@@ -390,6 +393,7 @@ export function DesktopShell(props: DesktopShellProps) {
           </button>
           <button
             onClick={onOpenSettings}
+            aria-label="Open menu"
             className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
           >
             <Menu size={16} />

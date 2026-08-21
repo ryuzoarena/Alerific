@@ -42,6 +42,7 @@ export function RecentlyPlayedCard({ song, queue }: RecentlyPlayedCardProps) {
 
       {/* More button */}
       <button 
+        aria-label="More options"
         className="p-2 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={(e) => {
           e.stopPropagation();
