@@ -495,6 +495,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
       <MiniPlayer 
         loadedCoverUrl={loadedCoverUrl}
         onClick={() => setShowFullScreen(true)}
+            aria-label="Open full screen player"
       />
 
       {/* Full Screen Player */}
@@ -544,6 +545,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           <div className="flex items-center gap-4 mb-2">
             <button
               onClick={toggleShuffle}
+              aria-label="Toggle shuffle"
               className={cn(
                 "p-1 transition-colors",
                 shuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -554,6 +556,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             
             <button
               onClick={() => { cancelCrossfade(); prevSong(); }}
+              aria-label="Previous song"
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipBack size={20} fill="currentColor" />
@@ -561,6 +564,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             
             <button
               onClick={togglePlay}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
               className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center hover:scale-105 transition-transform"
             >
               {isPlaying ? (
@@ -572,6 +576,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             
             <button
               onClick={() => { cancelCrossfade(); nextSong(); }}
+              aria-label="Next song"
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <SkipForward size={20} fill="currentColor" />
@@ -579,6 +584,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
             
             <button
               onClick={toggleRepeat}
+              aria-label="Toggle repeat"
               className={cn(
                 "p-1 transition-colors",
                 repeat !== 'off' ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -617,6 +623,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         <div className="w-[30%] min-w-[180px] flex items-center justify-end gap-3">
           <button
             onClick={onToggleLyrics}
+            aria-label="Toggle lyrics"
             className={cn(
               "p-1 transition-colors",
               showLyrics ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -628,6 +635,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           
           <button 
             onClick={() => setShowQueuePanel(true)}
+            aria-label="Open queue"
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             title="Queue"
           >
@@ -638,6 +646,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           {currentSong && (
             <button 
               onClick={handleDelete}
+              aria-label="Delete song"
               className="p-1 text-muted-foreground hover:text-red-400 transition-colors"
               title="Delete song"
             >
@@ -648,6 +657,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMute}
+              aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
               className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}

@@ -101,6 +101,7 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
         {isLoggedIn ? (
           <button
             onClick={onAvatarClick}
+            aria-label="Open your profile"
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-[#535353]"
           >
             <span className="text-white text-sm font-bold">{userName?.charAt(0).toUpperCase() || 'U'}</span>
@@ -138,7 +139,8 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
       <div className="px-3 sm:px-4 lg:px-6">
         {/* Greeting */}
         <section className="mb-6 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold mb-4 lg:mb-6 text-white">{timeTheme.greeting}</h1>
+          <h1 className="sr-only">Alerify — stream and manage your personal music collection</h1>
+          <p aria-hidden="true" className="text-2xl lg:text-3xl font-bold mb-4 lg:mb-6 text-white">{timeTheme.greeting}</p>
 
           {/* Quick play grid */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
