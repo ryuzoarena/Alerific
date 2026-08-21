@@ -65,13 +65,8 @@ interface DesktopShellProps {
   onToggleDeleteMode: () => void;
 }
 
-const friendActivity = [
-  { name: 'Polen Merida', song: 'Midnight City', artist: 'M83', playlist: 'Sunday Moodz' },
-  { name: 'Rosie Clever', song: 'Electric Feel', artist: 'MGMT', playlist: 'Discover Weekly' },
-  { name: 'Koray Secgin', song: 'Redbone', artist: 'Childish Gambino', playlist: 'Coffee House' },
-  { name: 'Didem Sorian', song: 'Adore You', artist: 'Harry Styles', playlist: 'Drive Loud' },
-  { name: 'Eren Aksoy', song: 'Blinding Lights', artist: 'The Weeknd', playlist: '90\'s Popular' },
-];
+
+
 
 const avatarHue = (s: string) => {
   let h = 0;
