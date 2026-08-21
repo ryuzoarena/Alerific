@@ -101,6 +101,7 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
         {isLoggedIn ? (
           <button
             onClick={onAvatarClick}
+            aria-label="Open your profile"
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-[#535353]"
           >
             <span className="text-white text-sm font-bold">{userName?.charAt(0).toUpperCase() || 'U'}</span>
