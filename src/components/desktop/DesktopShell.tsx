@@ -65,13 +65,8 @@ interface DesktopShellProps {
   onToggleDeleteMode: () => void;
 }
 
-const friendActivity = [
-  { name: 'Polen Merida', song: 'Midnight City', artist: 'M83', playlist: 'Sunday Moodz' },
-  { name: 'Rosie Clever', song: 'Electric Feel', artist: 'MGMT', playlist: 'Discover Weekly' },
-  { name: 'Koray Secgin', song: 'Redbone', artist: 'Childish Gambino', playlist: 'Coffee House' },
-  { name: 'Didem Sorian', song: 'Adore You', artist: 'Harry Styles', playlist: 'Drive Loud' },
-  { name: 'Eren Aksoy', song: 'Blinding Lights', artist: 'The Weeknd', playlist: '90\'s Popular' },
-];
+
+
 
 const avatarHue = (s: string) => {
   let h = 0;
@@ -112,6 +107,18 @@ export function DesktopShell(props: DesktopShellProps) {
   const playSong = useMusicStore((s) => s.playSong);
   const setSearchQuery = useMusicStore((s) => s.setSearchQuery);
   const searchQuery = useMusicStore((s) => s.searchQuery);
+  const recentlyPlayedIds = useMusicStore((s) => s.recentlyPlayedIds);
+
+  const recentActivity = useMemo(
+    () =>
+      recentlyPlayedIds
+        .map((id) => songs.find((s) => s.id === id))
+        .filter(Boolean)
+        .slice(0, 8) as Song[],
+    [recentlyPlayedIds, songs],
+  );
+
+
 
   const [libOpen, setLibOpen] = useState(true);
   const [plOpen, setPlOpen] = useState(true);
@@ -597,47 +604,46 @@ export function DesktopShell(props: DesktopShellProps) {
           </div>
         </div>
 
-        {/* Friend Activity */}
+        {/* Listening Activity */}
         <div className="px-4 pt-4 pb-2">
           <h3 className="text-[10px] font-bold tracking-[0.18em] text-[#4a5568]">
-            FRIEND ACTIVITY
+            LISTENING ACTIVITY
           </h3>
         </div>
         <div className="flex-1 overflow-y-auto ds-scroll px-2 pb-4">
-          {friendActivity.map((f) => (
-            <div
-              key={f.name}
-              className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-white/[0.03] transition-colors cursor-pointer group"
-            >
-              <div
-                className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold text-white"
-                style={{
-                  background: `linear-gradient(135deg, hsl(${avatarHue(f.name)} 65% 50%), hsl(${avatarHue(f.name) + 50} 70% 30%))`,
-                }}
+          {recentActivity.length === 0 ? (
+            <p className="px-3 py-4 text-[11px] leading-relaxed text-[#8896a4]">
+              No listening activity yet. Play a song and it will show up here.
+            </p>
+          ) : (
+            recentActivity.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => playSong(s, recentActivity)}
+                className="w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-white/[0.03] transition-colors group"
               >
-                {f.name.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold text-white truncate">{f.name}</p>
-                <p className="text-[11px] text-[#8896a4] truncate">
-                  {f.song} • {f.artist}
-                </p>
-                <span
-                  className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider"
+                <div className="w-9 h-9 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-[11px] font-bold text-white"
                   style={{
-                    background: 'rgba(29,185,84,0.12)',
-                    color: '#1DB954',
+                    background: `linear-gradient(135deg, hsl(${avatarHue(s.artist)} 65% 50%), hsl(${avatarHue(s.artist) + 50} 70% 30%))`,
                   }}
                 >
-                  {f.playlist}
-                </span>
-              </div>
-              <Heart
-                size={12}
-                className="text-[#4a5568] group-hover:text-[#1DB954] transition-colors mt-1"
-              />
-            </div>
-          ))}
+                  {s.coverUrl ? (
+                    <img src={s.coverUrl} alt={`${s.title} cover`} className="w-full h-full object-cover" />
+                  ) : (
+                    s.title.charAt(0)
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-white truncate">{s.title}</p>
+                  <p className="text-[11px] text-[#8896a4] truncate">{s.artist}</p>
+                </div>
+                <Heart
+                  size={12}
+                  className="text-[#4a5568] group-hover:text-[#1DB954] transition-colors mt-1"
+                />
+              </button>
+            ))
+          )}
         </div>
       </aside>
       </div>
