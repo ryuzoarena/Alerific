@@ -86,6 +86,7 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
 
   // Desktop filter
   const [desktopFilter, setDesktopFilter] = useState<string>('all');
+  const [showAllArtists, setShowAllArtists] = useState(false);
 
   const isLoading = !songsLoaded;
 
@@ -213,11 +214,18 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
                 <Mic2 size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
                 <h2 className="text-xl font-bold text-white">Your Top Artists</h2>
               </div>
-              <button className="hidden lg:block text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-                Show all
+              <button
+                onClick={() => setShowAllArtists((v) => !v)}
+                className="text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors"
+              >
+                {showAllArtists ? 'Show less' : 'Show all'}
               </button>
             </div>
-            <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0">
+            <div className={cn(
+              showAllArtists
+                ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 pb-4"
+                : "flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0"
+            )}>
               {artistGroups.map(([artistName, artistSongs]) => (
                 <ArtistCard
                   key={artistName}
