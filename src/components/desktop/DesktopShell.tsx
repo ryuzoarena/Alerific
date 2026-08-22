@@ -432,6 +432,12 @@ export function DesktopShell(props: DesktopShellProps) {
               repeat={playerState.repeat}
               onShuffle={toggleShuffle}
               onRepeat={toggleRepeat}
+              onShufflePlay={() => {
+                if (playlistSongs.length === 0) return;
+                if (!playerState.shuffle) toggleShuffle();
+                const randomSong = playlistSongs[Math.floor(Math.random() * playlistSongs.length)];
+                playSong(randomSong, playlistSongs);
+              }}
             />
           ) : (
             <div className="px-2 pt-2">
