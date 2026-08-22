@@ -86,9 +86,24 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
 
   // Desktop filter
   const [desktopFilter, setDesktopFilter] = useState<string>('all');
-  const [showAllArtists, setShowAllArtists] = useState(false);
+  const [showAllArtists, setShowAllArtists] = useState(() => {
+    try {
+      return localStorage.getItem('alerify-show-all-artists') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alerify-show-all-artists', String(showAllArtists));
+    } catch {
+      /* ignore */
+    }
+  }, [showAllArtists]);
 
   const isLoading = !songsLoaded;
+
 
   return (
     <div className={cn(
