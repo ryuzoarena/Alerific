@@ -7,7 +7,7 @@ import { DesktopTopNav } from '@/components/desktop/DesktopTopNav';
 import { SkeletonGridCards, SkeletonMixCards } from '@/components/desktop/SkeletonCards';
 import { HorizontalScroller } from '@/components/desktop/HorizontalScroller';
 import { useMusicStore } from '@/stores/musicStore';
-import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2 } from 'lucide-react';
+import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2, Loader2 } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useEffect, useMemo, useState } from 'react';
 import { Song } from '@/types/music';
@@ -86,9 +86,24 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
 
   // Desktop filter
   const [desktopFilter, setDesktopFilter] = useState<string>('all');
-  const [showAllArtists, setShowAllArtists] = useState(false);
+  const [showAllArtists, setShowAllArtists] = useState(() => {
+    try {
+      return localStorage.getItem('alerify-show-all-artists') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alerify-show-all-artists', String(showAllArtists));
+    } catch {
+      /* ignore */
+    }
+  }, [showAllArtists]);
 
   const isLoading = !songsLoaded;
+
 
   return (
     <div className={cn(
@@ -207,36 +222,63 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
         )}
 
         {/* Artists */}
-        {artistGroups.length > 0 && (
-          <section className="mb-6 lg:mb-8">
+        {(isLoading || artistGroups.length > 0) && (
+          <section className="mb-6 lg:mb-8" aria-busy={isLoading}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Mic2 size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 className="text-xl font-bold text-white">Your Top Artists</h2>
+                <h2 id="top-artists-heading" className="text-xl font-bold text-white">Your Top Artists</h2>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAllArtists((v) => !v)}
-                className="text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors"
+                aria-expanded={showAllArtists}
+                aria-controls="top-artists-panel"
+                aria-label={showAllArtists ? 'Show fewer artists' : 'Show all artists'}
+                disabled={isLoading || artistGroups.length === 0}
+                className="rounded-full px-2 py-1 text-sm font-semibold text-[#b3b3b3] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:opacity-40 disabled:hover:text-[#b3b3b3]"
               >
                 {showAllArtists ? 'Show less' : 'Show all'}
               </button>
             </div>
-            <div className={cn(
-              showAllArtists
-                ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 pb-4"
-                : "flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0"
-            )}>
-              {artistGroups.map(([artistName, artistSongs]) => (
-                <ArtistCard
-                  key={artistName}
-                  artistName={artistName}
-                  songs={artistSongs}
-                  onClick={() => onArtistClick?.(artistName)}
-                />
-              ))}
-            </div>
+
+            {isLoading ? (
+              <div className="flex items-center gap-3 py-10 text-white/70" role="status">
+                <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                <span className="text-sm">Loading artists…</span>
+              </div>
+            ) : artistGroups.length === 0 ? (
+              <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-white">No artists yet</p>
+                <p className="mt-1 text-sm text-white/60">
+                  Upload at least two songs by the same artist and they’ll show up here.
+                </p>
+              </div>
+            ) : (
+              <div
+                id="top-artists-panel"
+                aria-labelledby="top-artists-heading"
+                key={showAllArtists ? 'grid' : 'row'}
+                className={cn(
+                  "animate-fade-in transition-all duration-300 ease-out",
+                  showAllArtists
+                    ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 pb-4"
+                    : "flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0"
+                )}
+              >
+                {artistGroups.map(([artistName, artistSongs]) => (
+                  <ArtistCard
+                    key={artistName}
+                    artistName={artistName}
+                    songs={artistSongs}
+                    onClick={() => onArtistClick?.(artistName)}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         )}
+
 
         {/* Recommendations */}
         {recommendedSongs.length > 0 && (
