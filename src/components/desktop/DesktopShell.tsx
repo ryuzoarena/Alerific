@@ -705,6 +705,7 @@ function PlaylistHeroAndList(props: HeroProps) {
     repeat,
     onShuffle,
     onRepeat,
+    onShufflePlay,
   } = props;
   const [showAddSongs, setShowAddSongs] = useState(false);
 
