@@ -668,6 +668,7 @@ interface HeroProps {
   repeat: 'off' | 'all' | 'one';
   onShuffle: () => void;
   onRepeat: () => void;
+  onShufflePlay: () => void;
 }
 
 function fmtAgo(ts: number) {
