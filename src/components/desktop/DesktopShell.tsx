@@ -432,6 +432,12 @@ export function DesktopShell(props: DesktopShellProps) {
               repeat={playerState.repeat}
               onShuffle={toggleShuffle}
               onRepeat={toggleRepeat}
+              onShufflePlay={() => {
+                if (playlistSongs.length === 0) return;
+                if (!playerState.shuffle) toggleShuffle();
+                const randomSong = playlistSongs[Math.floor(Math.random() * playlistSongs.length)];
+                playSong(randomSong, playlistSongs);
+              }}
             />
           ) : (
             <div className="px-2 pt-2">
@@ -668,6 +674,7 @@ interface HeroProps {
   repeat: 'off' | 'all' | 'one';
   onShuffle: () => void;
   onRepeat: () => void;
+  onShufflePlay: () => void;
 }
 
 function fmtAgo(ts: number) {
@@ -704,6 +711,7 @@ function PlaylistHeroAndList(props: HeroProps) {
     repeat,
     onShuffle,
     onRepeat,
+    onShufflePlay,
   } = props;
   const [showAddSongs, setShowAddSongs] = useState(false);
 
@@ -798,10 +806,12 @@ function PlaylistHeroAndList(props: HeroProps) {
                 PLAY
               </button>
               <button
-                className="px-6 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-white transition-all hover:bg-white/5"
+                onClick={onShufflePlay}
+                disabled={songs.length === 0}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-white transition-all hover:bg-white/5 disabled:opacity-40 disabled:hover:scale-100"
                 style={{ border: '1px solid rgba(255,255,255,0.25)' }}
               >
-                FOLLOW
+                <Shuffle size={15} /> SHUFFLE
               </button>
               <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
                 <Download size={15} />
@@ -818,12 +828,6 @@ function PlaylistHeroAndList(props: HeroProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <span className="ml-2 text-[11px] text-[#8896a4]">
-                <span className="text-white font-semibold">
-                  {(47541).toLocaleString()}
-                </span>{' '}
-                followers
-              </span>
             </div>
           </div>
         </div>
