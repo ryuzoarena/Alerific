@@ -828,12 +828,6 @@ function PlaylistHeroAndList(props: HeroProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <span className="ml-2 text-[11px] text-[#8896a4]">
-                <span className="text-white font-semibold">
-                  {(47541).toLocaleString()}
-                </span>{' '}
-                followers
-              </span>
             </div>
           </div>
         </div>
