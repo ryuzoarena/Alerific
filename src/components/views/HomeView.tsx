@@ -7,7 +7,7 @@ import { DesktopTopNav } from '@/components/desktop/DesktopTopNav';
 import { SkeletonGridCards, SkeletonMixCards } from '@/components/desktop/SkeletonCards';
 import { HorizontalScroller } from '@/components/desktop/HorizontalScroller';
 import { useMusicStore } from '@/stores/musicStore';
-import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2 } from 'lucide-react';
+import { Music2, TrendingUp, Clock, Sparkles, Library, Mic2, Loader2 } from 'lucide-react';
 import { useTimeTheme } from '@/hooks/useTimeTheme';
 import { useEffect, useMemo, useState } from 'react';
 import { Song } from '@/types/music';
