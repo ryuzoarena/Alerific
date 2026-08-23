@@ -31,7 +31,7 @@ const Index = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
   const [showLyrics, setShowLyrics] = useState(false);
-  const [deleteModeRaw, setIsDeleteMode] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
   const [selectedArtist, setSelectedArtist] = useState<string>('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -43,7 +43,6 @@ const Index = () => {
   const auth = useAuth();
   const { isLoggedIn, displayName, signIn, signUp, signOut, profile, user } = auth;
   const { isAdmin } = useUserRole();
-  const isDeleteMode = deleteModeRaw && isAdmin;
   const timeTheme = useTimeTheme();
 
   const handleArtistClick = (artistName: string) => {

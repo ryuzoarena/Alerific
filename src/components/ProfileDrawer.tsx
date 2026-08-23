@@ -102,18 +102,16 @@ export function ProfileDrawer({
                 <span className="text-base text-foreground">Tambah Lagu</span>
               </button>
 
-              {/* Delete Song — admin only */}
-              {isAdmin && (
-                <button
-                  onClick={() => handleAction(() => onDeleteModeToggle?.())}
-                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-accent/50 transition-colors"
-                >
-                  <Trash2 size={24} className={cn(isDeleteMode ? "text-destructive" : "text-foreground")} />
-                  <span className={cn("text-base", isDeleteMode ? "text-destructive" : "text-foreground")}>
-                    {isDeleteMode ? "Matikan Mode Hapus" : "Hapus Lagu"}
-                  </span>
-                </button>
-              )}
+              {/* Delete Song */}
+              <button
+                onClick={() => handleAction(() => onDeleteModeToggle?.())}
+                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-accent/50 transition-colors"
+              >
+                <Trash2 size={24} className={cn(isDeleteMode ? "text-destructive" : "text-foreground")} />
+                <span className={cn("text-base", isDeleteMode ? "text-destructive" : "text-foreground")}>
+                  {isDeleteMode ? "Matikan Mode Hapus" : "Hapus Lagu"}
+                </span>
+              </button>
             </>
           )}
 

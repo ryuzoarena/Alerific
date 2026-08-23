@@ -14,36 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      artist_profiles: {
-        Row: {
-          artist_name: string
-          bio: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          image_path: string | null
-          updated_at: string
-        }
-        Insert: {
-          artist_name: string
-          bio?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          image_path?: string | null
-          updated_at?: string
-        }
-        Update: {
-          artist_name?: string
-          bio?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          image_path?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       playback_state: {
         Row: {
           device_id: string | null
