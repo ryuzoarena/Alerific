@@ -12,7 +12,12 @@ const FONT_SIZE_PX: Record<string, string> = {
  * Mount once at the app shell.
  */
 export function useApplySettings() {
-  const { themeMode, accentColor, fontSize } = useSettingsStore();
+  const { themeMode, accentColor, fontSize, customBackground } = useSettingsStore();
+
+  // Custom wallpaper → let surfaces become translucent
+  useEffect(() => {
+    document.documentElement.classList.toggle('has-custom-bg', !!customBackground);
+  }, [customBackground]);
 
   // Theme mode (dark / light / system)
   useEffect(() => {
