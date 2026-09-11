@@ -84,6 +84,14 @@ interface SettingsStore {
   fontSize: FontSize;
   setFontSize: (s: FontSize) => void;
 
+  // Custom wallpaper
+  customBackground: string | null;
+  setCustomBackground: (dataUrl: string | null) => void;
+  backgroundBlur: number;
+  setBackgroundBlur: (n: number) => void;
+  backgroundDim: number;
+  setBackgroundDim: (n: number) => void;
+
   // Audio quality
   streamingQuality: StreamingQuality;
   setStreamingQuality: (q: StreamingQuality) => void;
@@ -137,6 +145,13 @@ export const useSettingsStore = create<SettingsStore>()(
 
       fontSize: 'medium',
       setFontSize: (s) => set({ fontSize: s }),
+
+      customBackground: null,
+      setCustomBackground: (dataUrl) => set({ customBackground: dataUrl }),
+      backgroundBlur: 12,
+      setBackgroundBlur: (n) => set({ backgroundBlur: Math.max(0, Math.min(40, n)) }),
+      backgroundDim: 55,
+      setBackgroundDim: (n) => set({ backgroundDim: Math.max(0, Math.min(95, n)) }),
 
       streamingQuality: 'high',
       setStreamingQuality: (q) => set({ streamingQuality: q }),
