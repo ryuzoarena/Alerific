@@ -27,6 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { prepareBackgroundImage } from '@/lib/backgroundImage';
 
 /* ---------- shared building blocks ---------- */
 
@@ -97,6 +98,23 @@ export function SettingsView() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* ---------- custom wallpaper ---------- */
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const [loadingBackground, setLoadingBackground] = useState(false);
+
+  const handleBackgroundFile = async (file: File) => {
+    setLoadingBackground(true);
+    try {
+      const dataUrl = await prepareBackgroundImage(file);
+      setCustomBackground(dataUrl);
+      toast({ title: 'Latar belakang diperbarui' });
+    } catch {
+      toast({ title: 'Gagal memuat gambar', variant: 'destructive' });
+    } finally {
+      setLoadingBackground(false);
+    }
+  };
 
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { setAvatarUrl(profile?.avatar_url ?? null); }, [profile?.avatar_url]);
