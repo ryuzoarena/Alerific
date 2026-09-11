@@ -330,6 +330,17 @@
   }
 }
 
+/* ===== Custom wallpaper: let main surfaces show the image through ===== */
+.has-custom-bg body {
+  background-color: transparent;
+}
+.has-custom-bg .bg-black {
+  background-color: transparent !important;
+}
+.has-custom-bg main {
+  background-color: hsl(var(--background) / 0.35) !important;
+}
+
 /* ===== Feature 4: Mobile/tablet-only scroll hardening ===== */
 @media (max-width: 1024px) {
   .playlist-songs-container {
