@@ -27,6 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { prepareBackgroundImage } from '@/lib/backgroundImage';
 
 /* ---------- shared building blocks ---------- */
 
@@ -75,6 +76,9 @@ export function SettingsView() {
     themeMode, setThemeMode,
     accentColor, setAccentColor,
     fontSize, setFontSize,
+    customBackground, setCustomBackground,
+    backgroundBlur, setBackgroundBlur,
+    backgroundDim, setBackgroundDim,
     streamingQuality, setStreamingQuality,
     crossfadeSeconds, setCrossfadeSeconds,
     normalizeVolume, setNormalizeVolume,
@@ -94,6 +98,23 @@ export function SettingsView() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* ---------- custom wallpaper ---------- */
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const [loadingBackground, setLoadingBackground] = useState(false);
+
+  const handleBackgroundFile = async (file: File) => {
+    setLoadingBackground(true);
+    try {
+      const dataUrl = await prepareBackgroundImage(file);
+      setCustomBackground(dataUrl);
+      toast({ title: 'Latar belakang diperbarui' });
+    } catch {
+      toast({ title: 'Gagal memuat gambar', variant: 'destructive' });
+    } finally {
+      setLoadingBackground(false);
+    }
+  };
 
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { setAvatarUrl(profile?.avatar_url ?? null); }, [profile?.avatar_url]);
@@ -328,6 +349,79 @@ export function SettingsView() {
               />
             ))}
           </div>
+        </div>
+
+        {/* Wallpaper */}
+        <div className="py-3 border-t border-border/40">
+          <h3 className="text-sm font-semibold text-foreground mb-1">Latar belakang</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Pakai foto atau GIF sendiri sebagai wallpaper aplikasi.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <div
+              className="w-24 h-16 rounded-lg border border-white/10 bg-white/5 bg-cover bg-center shrink-0"
+              style={customBackground ? { backgroundImage: `url(${customBackground})` } : undefined}
+            />
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={bgInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleBackgroundFile(f);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={loadingBackground}
+                onClick={() => bgInputRef.current?.click()}
+              >
+                {loadingBackground && <Loader2 size={14} className="mr-2 animate-spin" />}
+                {customBackground ? 'Ganti gambar' : 'Pilih gambar'}
+              </Button>
+              {customBackground && (
+                <Button size="sm" variant="ghost" onClick={() => setCustomBackground(null)}>
+                  <Trash2 size={14} className="mr-2" /> Hapus
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {customBackground && (
+            <div className="mt-4 space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Blur</span>
+                  <span className="text-xs text-foreground">{backgroundBlur}px</span>
+                </div>
+                <Slider
+                  value={[backgroundBlur]}
+                  min={0}
+                  max={40}
+                  step={1}
+                  onValueChange={([v]) => setBackgroundBlur(v)}
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Kegelapan</span>
+                  <span className="text-xs text-foreground">{backgroundDim}%</span>
+                </div>
+                <Slider
+                  value={[backgroundDim]}
+                  min={0}
+                  max={95}
+                  step={1}
+                  onValueChange={([v]) => setBackgroundDim(v)}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Font size */}

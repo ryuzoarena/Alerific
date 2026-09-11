@@ -23,6 +23,7 @@ import { CreatePlaylistDialog } from '@/components/CreatePlaylistDialog';
 import { cn } from '@/lib/utils';
 import { useMusicStore } from '@/stores/musicStore';
 import { DesktopShell } from '@/components/desktop/DesktopShell';
+import { AppBackground } from '@/components/AppBackground';
 
 type View = 'home' | 'search' | 'library' | 'playlist' | 'settings' | 'artist' | 'admin' | 'profile';
 
@@ -126,8 +127,10 @@ const Index = () => {
   };
 
   return (
+    <>
+    <AppBackground />
     <div className={cn(
-      "h-screen flex flex-col overflow-hidden",
+      "h-screen flex flex-col overflow-hidden relative z-10",
       "bg-black"
     )}>
       <div className="flex-1 flex overflow-hidden min-h-0">
@@ -243,6 +246,7 @@ const Index = () => {
         }}
       />
     </div>
+    </>
   );
 };
 
