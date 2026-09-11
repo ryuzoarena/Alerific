@@ -154,7 +154,7 @@ export function DesktopShell(props: DesktopShellProps) {
 
   return (
     <div
-      className="hidden min-[1100px]:flex flex-1 min-h-0 overflow-hidden text-white"
+      className="ds-root hidden min-[1100px]:flex flex-1 min-h-0 overflow-hidden text-white"
       style={{
         fontFamily: "'DM Sans', system-ui, sans-serif",
         background: '#0d1117',
@@ -182,7 +182,7 @@ export function DesktopShell(props: DesktopShellProps) {
 
       {/* ============ LEFT SIDEBAR ============ */}
       <aside
-        className="w-[230px] shrink-0 flex flex-col border-r"
+        className="ds-surface w-[230px] shrink-0 flex flex-col border-r"
         style={{ background: '#111318', borderColor: '#1e2530' }}
       >
         {/* Top icon nav */}
@@ -328,7 +328,7 @@ export function DesktopShell(props: DesktopShellProps) {
 
       {/* ============ MAIN CONTENT ============ */}
       <main
-        className="flex-1 min-w-0 flex flex-col overflow-hidden"
+        className="ds-main-surface flex-1 min-w-0 flex flex-col overflow-hidden"
         style={{
           background:
             'linear-gradient(180deg, #1a2035 0%, #0d1117 60%)',
@@ -496,7 +496,7 @@ export function DesktopShell(props: DesktopShellProps) {
         )}
       >
       <aside
-        className="w-[280px] h-full flex flex-col border-l"
+        className="ds-surface w-[280px] h-full flex flex-col border-l"
         style={{ background: '#0e1117', borderColor: '#1e2530' }}
       >
         {/* Profile */}
