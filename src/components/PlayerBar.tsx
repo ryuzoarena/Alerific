@@ -36,6 +36,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const isCrossfadingRef = useRef(false);
   const crossfadeIntervalRef = useRef<number | null>(null);
   const skipNextSrcLoadRef = useRef(false);
+  // Last known good playback position, used to recover from network glitches
+  const lastPositionRef = useRef(0);
+  const recoveringRef = useRef(false);
 
   const {
     playerState,
@@ -93,6 +96,16 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     }
 
     setLoadedAudioUrl(audioUrl);
+
+    // A new track starts fresh: stop any pending crossfade/preload state so a
+    // leftover timer can never advance the queue mid-song.
+    if (crossfadeIntervalRef.current !== null) {
+      clearInterval(crossfadeIntervalRef.current);
+      crossfadeIntervalRef.current = null;
+    }
+    isCrossfadingRef.current = false;
+    recoveringRef.current = false;
+    lastPositionRef.current = 0;
 
     if (audioUrl) {
       if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
@@ -361,17 +374,23 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const handleTimeUpdate = () => {
     if (audioRef.current && !isDragging) {
       setCurrentTime(audioRef.current.currentTime);
+      lastPositionRef.current = audioRef.current.currentTime;
 
-      const remaining = audioRef.current.duration - audioRef.current.currentTime;
+      const dur = audioRef.current.duration;
+      const hasValidDuration = Number.isFinite(dur) && dur > 0;
+      const remaining = hasValidDuration ? dur - audioRef.current.currentTime : Infinity;
 
       // Crossfade trigger (real audio fade between songs)
       const crossfadeSeconds = useSettingsStore.getState().crossfadeSeconds;
       const repeatMode = useMusicStore.getState().playerState.repeat;
       if (
+        hasValidDuration &&
         crossfadeSeconds > 0 &&
         remaining > 0 &&
         remaining <= crossfadeSeconds &&
         !isCrossfadingRef.current &&
+        !audioRef.current.paused &&
+        audioRef.current.readyState >= 3 &&
         repeatMode !== 'one'
       ) {
         // Ensure preload has the next URL
@@ -384,7 +403,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           }
           startCrossfade(crossfadeSeconds);
         }
-      } else if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+      } else if (hasValidDuration && remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
         // Standard preload (gapless / faster swap)
         const nextUrl = getNextSongUrl();
         if (nextUrl && preloadedUrlRef.current !== nextUrl) {
@@ -415,10 +434,59 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     }
   };
 
+  // Recover from a network glitch / decode error mid-song instead of skipping.
+  const recoverAtPosition = () => {
+    const audio = audioRef.current;
+    if (!audio || recoveringRef.current) return;
+    const resumeAt = lastPositionRef.current;
+    recoveringRef.current = true;
+
+    const finish = () => {
+      recoveringRef.current = false;
+    };
+
+    try {
+      audio.load();
+      audio.addEventListener(
+        'loadedmetadata',
+        () => {
+          try {
+            if (resumeAt > 0) audio.currentTime = resumeAt;
+            audio.play().then(finish).catch(finish);
+          } catch {
+            finish();
+          }
+        },
+        { once: true }
+      );
+    } catch {
+      finish();
+    }
+  };
+
+  const handleAudioError = () => {
+    // A media error must never advance the queue — recover the current track.
+    cancelCrossfade();
+    if (useMusicStore.getState().playerState.isPlaying) {
+      recoverAtPosition();
+    }
+  };
+
   // Auto-play next song when current ends — use a ref so the handler
   // always reads the latest store / settings state, avoiding stale closures.
   const handleEndedRef = useRef<() => void>(() => {});
   handleEndedRef.current = () => {
+    const audio = audioRef.current;
+    // Ignore premature "ended" events caused by buffering/network drops:
+    // only treat it as a real end when we are actually at the end of the track.
+    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining > 1.5) {
+        handleAudioError();
+        return;
+      }
+    }
+
     const latestRepeat = useMusicStore.getState().playerState.repeat;
     const latestAutoplay = useSettingsStore.getState().autoplay;
     const latestQueue = useMusicStore.getState().queue;
@@ -493,6 +561,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
+        onError={handleAudioError}
       />
       {/* Hidden preload element for gapless playback */}
       <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" playsInline style={{ display: 'none' }} />
