@@ -551,6 +551,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
+        onError={handleAudioError}
       />
       {/* Hidden preload element for gapless playback */}
       <audio ref={preloadAudioRef} crossOrigin="anonymous" preload="auto" playsInline style={{ display: 'none' }} />
