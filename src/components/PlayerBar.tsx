@@ -361,17 +361,23 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const handleTimeUpdate = () => {
     if (audioRef.current && !isDragging) {
       setCurrentTime(audioRef.current.currentTime);
+      lastPositionRef.current = audioRef.current.currentTime;
 
-      const remaining = audioRef.current.duration - audioRef.current.currentTime;
+      const dur = audioRef.current.duration;
+      const hasValidDuration = Number.isFinite(dur) && dur > 0;
+      const remaining = hasValidDuration ? dur - audioRef.current.currentTime : Infinity;
 
       // Crossfade trigger (real audio fade between songs)
       const crossfadeSeconds = useSettingsStore.getState().crossfadeSeconds;
       const repeatMode = useMusicStore.getState().playerState.repeat;
       if (
+        hasValidDuration &&
         crossfadeSeconds > 0 &&
         remaining > 0 &&
         remaining <= crossfadeSeconds &&
         !isCrossfadingRef.current &&
+        !audioRef.current.paused &&
+        audioRef.current.readyState >= 3 &&
         repeatMode !== 'one'
       ) {
         // Ensure preload has the next URL
@@ -384,7 +390,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
           }
           startCrossfade(crossfadeSeconds);
         }
-      } else if (remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
+      } else if (hasValidDuration && remaining > 0 && remaining <= 5 && preloadAudioRef.current) {
         // Standard preload (gapless / faster swap)
         const nextUrl = getNextSongUrl();
         if (nextUrl && preloadedUrlRef.current !== nextUrl) {
