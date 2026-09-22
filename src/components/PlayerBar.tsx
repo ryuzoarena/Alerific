@@ -425,7 +425,7 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   };
 
   // Recover from a network glitch / decode error mid-song instead of skipping.
-  const recoverAtPosition = useCallback(() => {
+  const recoverAtPosition = () => {
     const audio = audioRef.current;
     if (!audio || recoveringRef.current) return;
     const resumeAt = lastPositionRef.current;
