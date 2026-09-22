@@ -424,10 +424,59 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
     }
   };
 
+  // Recover from a network glitch / decode error mid-song instead of skipping.
+  const recoverAtPosition = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || recoveringRef.current) return;
+    const resumeAt = lastPositionRef.current;
+    recoveringRef.current = true;
+
+    const finish = () => {
+      recoveringRef.current = false;
+    };
+
+    try {
+      audio.load();
+      audio.addEventListener(
+        'loadedmetadata',
+        () => {
+          try {
+            if (resumeAt > 0) audio.currentTime = resumeAt;
+            audio.play().then(finish).catch(finish);
+          } catch {
+            finish();
+          }
+        },
+        { once: true }
+      );
+    } catch {
+      finish();
+    }
+  };
+
+  const handleAudioError = () => {
+    // A media error must never advance the queue — recover the current track.
+    cancelCrossfade();
+    if (useMusicStore.getState().playerState.isPlaying) {
+      recoverAtPosition();
+    }
+  };
+
   // Auto-play next song when current ends — use a ref so the handler
   // always reads the latest store / settings state, avoiding stale closures.
   const handleEndedRef = useRef<() => void>(() => {});
   handleEndedRef.current = () => {
+    const audio = audioRef.current;
+    // Ignore premature "ended" events caused by buffering/network drops:
+    // only treat it as a real end when we are actually at the end of the track.
+    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining > 1.5) {
+        handleAudioError();
+        return;
+      }
+    }
+
     const latestRepeat = useMusicStore.getState().playerState.repeat;
     const latestAutoplay = useSettingsStore.getState().autoplay;
     const latestQueue = useMusicStore.getState().queue;
