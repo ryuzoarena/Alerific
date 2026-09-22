@@ -36,6 +36,9 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
   const isCrossfadingRef = useRef(false);
   const crossfadeIntervalRef = useRef<number | null>(null);
   const skipNextSrcLoadRef = useRef(false);
+  // Last known good playback position, used to recover from network glitches
+  const lastPositionRef = useRef(0);
+  const recoveringRef = useRef(false);
 
   const {
     playerState,
