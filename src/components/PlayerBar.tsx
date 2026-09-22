@@ -97,6 +97,16 @@ export function PlayerBar({ onToggleLyrics, showLyrics, onCoverUrlChange }: Play
 
     setLoadedAudioUrl(audioUrl);
 
+    // A new track starts fresh: stop any pending crossfade/preload state so a
+    // leftover timer can never advance the queue mid-song.
+    if (crossfadeIntervalRef.current !== null) {
+      clearInterval(crossfadeIntervalRef.current);
+      crossfadeIntervalRef.current = null;
+    }
+    isCrossfadingRef.current = false;
+    recoveringRef.current = false;
+    lastPositionRef.current = 0;
+
     if (audioUrl) {
       if (isMobilePlaybackDevice()) applyMobilePlaybackSettings(audioRef.current);
       else applySafePlaybackSettings(audioRef.current);
