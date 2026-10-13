@@ -2,6 +2,8 @@ import { SongGridCard } from '@/components/SongCard';
 import { PlaylistCoverArt } from '@/components/PlaylistCoverArt';
 import { RecentlyPlayedCard } from '@/components/RecentlyPlayedCard';
 import { ArtistCard } from '@/components/ArtistCard';
+import { Button } from '@/components/ui/button';
+import { musicCategories } from '@/components/desktop/musicCategories';
 import { AIMixCard } from '@/components/desktop/AIMixCard';
 import { DesktopTopNav } from '@/components/desktop/DesktopTopNav';
 import { SkeletonGridCards, SkeletonMixCards } from '@/components/desktop/SkeletonCards';
@@ -23,15 +25,6 @@ interface HomeViewProps {
   onGetStarted?: () => void;
   onSelectPlaylist?: (id: string) => void;
 }
-
-const aiMixes = [
-  { title: 'Daylist', description: 'Your personalized mix that changes throughout the day', gradient: 'bg-gradient-to-br from-yellow-600 via-orange-700 to-red-800' },
-  { title: 'Hype Getting Ready Mix', description: 'Energy boost for your morning routine', gradient: 'bg-gradient-to-br from-pink-600 via-rose-700 to-red-800' },
-  { title: 'Driving Mix', description: 'Perfect playlist for the open road', gradient: 'bg-gradient-to-br from-sky-600 via-blue-700 to-indigo-800' },
-  { title: 'Chill Mix', description: 'Relax and unwind with calm vibes', gradient: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800' },
-  { title: 'Focus Mix', description: 'Deep concentration with ambient sounds', gradient: 'bg-gradient-to-br from-violet-600 via-purple-700 to-fuchsia-800' },
-  { title: 'Workout Mix', description: 'High energy tracks to keep you moving', gradient: 'bg-gradient-to-br from-red-600 via-orange-600 to-amber-700' },
-];
 
 export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedIn, userName, onGetStarted, onSelectPlaylist }: HomeViewProps) {
   const {
@@ -76,16 +69,6 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
 
   const madeForYou = songs.slice(0, 6);
 
-  // Mobile filter
-  const [activeFilter, setActiveFilter] = useState<string>('all');
-  const mobileFilters = [
-    { id: 'semua', label: 'Semua' },
-    { id: 'musik', label: 'Musik' },
-    { id: 'podcast', label: 'Podcast' },
-  ];
-
-  // Desktop filter
-  const [desktopFilter, setDesktopFilter] = useState<string>('all');
   const [showAllArtists, setShowAllArtists] = useState(() => {
     try {
       return localStorage.getItem('alerify-show-all-artists') === 'true';
@@ -102,71 +85,34 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
     }
   }, [showAllArtists]);
 
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const toggleSection = (id: string) => setExpandedSections(v => ({ ...v, [id]: !v[id] }));
   const isLoading = !songsLoaded;
 
 
   return (
     <div className={cn(
-      "pb-24 overflow-y-auto h-full",
+      "pb-6 min-w-0",
       // Mobile: time-based gradient
       "lg:bg-transparent",
     )}>
-
-      {/* Mobile header */}
-      <div className="lg:hidden flex items-center gap-3 mb-4 p-3 sm:p-4">
-        {isLoggedIn ? (
-          <button
-            onClick={onAvatarClick}
-            aria-label="Open your profile"
-            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-[#535353]"
-          >
-            <span className="text-white text-sm font-bold">{userName?.charAt(0).toUpperCase() || 'U'}</span>
-          </button>
-        ) : (
-          <button
-            onClick={onGetStarted}
-            className={cn(
-              "px-4 py-2 rounded-full text-xs font-bold flex-shrink-0 transition-transform hover:scale-[1.02]",
-              timeTheme.accentBg, timeTheme.buttonText
-            )}
-          >
-            Get Started
-          </button>
-        )}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {mobileFilters.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setActiveFilter(f.id)}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors",
-                activeFilter === f.id
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white/80"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Content */}
       <div className="px-3 sm:px-4 lg:px-6">
         {/* Greeting */}
         <section className="mb-6 lg:mb-8">
           <h1 className="sr-only">Alerify — stream and manage your personal music collection</h1>
-          <p aria-hidden="true" className="text-2xl lg:text-3xl font-bold mb-4 lg:mb-6 text-white">{timeTheme.greeting}</p>
+          <p aria-hidden="true" className="text-2xl lg:text-3xl font-bold mb-4 lg:mb-6 text-foreground">{timeTheme.greeting}</p>
 
           {/* Quick play grid */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
             {playlists.slice(0, 6).map((playlist) => {
               const playlistSongs = songs.filter((s) => playlist.songIds.includes(s.id));
               return (
-                <button
+                <Button variant="plain" size="plain"
                   key={playlist.id}
                   onClick={() => onSelectPlaylist?.(playlist.id)}
-                  className="flex items-center bg-white/5 hover:bg-white/10 rounded-md overflow-hidden group transition-all duration-200 cursor-pointer"
+                  className="min-w-0 flex items-center bg-foreground/5 hover:bg-foreground/10 rounded-md overflow-hidden group transition-all duration-200 cursor-pointer"
                 >
                   <PlaylistCoverArt
                     playlist={playlist}
@@ -175,29 +121,43 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
                     rounded="rounded-none"
                     className="w-14 h-14 lg:w-16 lg:h-16"
                   />
-                  <span className="flex-1 px-3 lg:px-4 font-semibold text-sm text-white truncate">{playlist.name}</span>
-                </button>
+                  <span className="min-w-0 flex-1 px-2 lg:px-4 font-semibold text-sm text-foreground truncate">{playlist.name}</span>
+                </Button>
               );
             })}
           </div>
         </section>
 
         {/* AI Mixes — desktop only */}
-        <section className="mb-8 hidden lg:block">
+        <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">AI Mixes</h2>
-            <button className="text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-              Show all
-            </button>
+            <h2 className="text-xl font-bold text-foreground">AI Mixes</h2>
+            <Button variant="plain" size="plain" onClick={() => toggleSection('mixes')} aria-expanded={!!expandedSections.mixes} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              {expandedSections.mixes ? 'Show less' : 'Show all'}
+            </Button>
           </div>
           {isLoading ? (
             <SkeletonMixCards />
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {aiMixes.map((mix) => (
-                <AIMixCard key={mix.title} {...mix} />
+            {expandedSections.mixes ? <div className="grid grid-cols-2 sm:grid-cols-3 min-[1100px]:grid-cols-4 gap-3 pb-4">
+              {musicCategories.map((mix) => (
+                <AIMixCard key={mix.title} {...mix} onClick={() => {
+                  const state = useMusicStore.getState();
+                  if (!songs.length) return;
+                  if (!state.playerState.shuffle) state.toggleShuffle();
+                  state.playSong(songs[Math.floor(Math.random() * songs.length)], songs);
+                }} />
               ))}
-            </div>
+            </div> : <HorizontalScroller className="gap-3 pb-2">
+              {musicCategories.map((mix) => (
+                <AIMixCard key={mix.title} {...mix} onClick={() => {
+                  const state = useMusicStore.getState();
+                  if (!songs.length) return;
+                  if (!state.playerState.shuffle) state.toggleShuffle();
+                  state.playSong(songs[Math.floor(Math.random() * songs.length)], songs);
+                }} />
+              ))}
+            </HorizontalScroller>}
           )}
         </section>
 
@@ -206,12 +166,12 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           <section className="mb-6 lg:mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Clock size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 className="text-xl lg:text-xl font-bold text-white">Recently Played</h2>
+                <Clock size={20} className="text-foreground/70" />
+                <h2 className="text-xl lg:text-xl font-bold text-foreground">Recently Played</h2>
               </div>
-              <button className="hidden lg:block text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-                Show all
-              </button>
+              <Button variant="plain" size="plain" onClick={() => toggleSection('recent')} aria-expanded={!!expandedSections.recent} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                {expandedSections.recent ? 'Show less' : 'Show all'}
+              </Button>
             </div>
             <div className="space-y-1">
               {recentlyPlayedSongs.map((song) => (
@@ -226,31 +186,31 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           <section className="mb-6 lg:mb-8" aria-busy={isLoading}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Mic2 size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 id="top-artists-heading" className="text-xl font-bold text-white">Your Top Artists</h2>
+                <Mic2 size={20} className="text-foreground/70" />
+                <h2 id="top-artists-heading" className="text-xl font-bold text-foreground">Your Top Artists</h2>
               </div>
-              <button
+              <Button variant="plain" size="plain"
                 type="button"
                 onClick={() => setShowAllArtists((v) => !v)}
                 aria-expanded={showAllArtists}
                 aria-controls="top-artists-panel"
                 aria-label={showAllArtists ? 'Show fewer artists' : 'Show all artists'}
                 disabled={isLoading || artistGroups.length === 0}
-                className="rounded-full px-2 py-1 text-sm font-semibold text-[#b3b3b3] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:opacity-40 disabled:hover:text-[#b3b3b3]"
+                className="rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:opacity-40 disabled:hover:text-muted-foreground"
               >
                 {showAllArtists ? 'Show less' : 'Show all'}
-              </button>
+              </Button>
             </div>
 
             {isLoading ? (
-              <div className="flex items-center gap-3 py-10 text-white/70" role="status">
+              <div className="flex items-center gap-3 py-10 text-foreground/70" role="status">
                 <Loader2 size={20} className="animate-spin" aria-hidden="true" />
                 <span className="text-sm">Loading artists…</span>
               </div>
             ) : artistGroups.length === 0 ? (
-              <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-8 text-center">
-                <p className="text-sm font-semibold text-white">No artists yet</p>
-                <p className="mt-1 text-sm text-white/60">
+              <div className="rounded-lg border border-border/10 bg-foreground/5 px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-foreground">No artists yet</p>
+                <p className="mt-1 text-sm text-foreground/60">
                   Upload at least two songs by the same artist and they’ll show up here.
                 </p>
               </div>
@@ -262,8 +222,8 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
                 className={cn(
                   "animate-fade-in transition-all duration-300 ease-out",
                   showAllArtists
-                    ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 pb-4"
-                    : "flex gap-4 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide -mx-3 px-3 sm:-mx-4 sm:px-4 lg:mx-0 lg:px-0"
+                    ? "grid grid-cols-2 sm:grid-cols-3 min-[1100px]:grid-cols-4 gap-4 sm:gap-5 pb-4"
+                    : "songs-scroll-container flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
                 )}
               >
                 {artistGroups.map(([artistName, artistSongs]) => (
@@ -285,34 +245,30 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           <section className="mb-6 lg:mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 className="text-xl font-bold text-white">Recommended For You</h2>
+                <Sparkles size={20} className="text-foreground/70" />
+                <h2 className="text-xl font-bold text-foreground">Recommended For You</h2>
               </div>
-              <button className="hidden lg:block text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-                Show all
-              </button>
+              <Button variant="plain" size="plain" onClick={() => toggleSection('recommended')} aria-expanded={!!expandedSections.recommended} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                {expandedSections.recommended ? 'Show less' : 'Show all'}
+              </Button>
             </div>
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
               <>
-                <HorizontalScroller className="lg:hidden gap-2 sm:gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
-                  {recommendedSongs.map((song) => (
-                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
-                      <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} />
-                    </div>
-                  ))}
-                </HorizontalScroller>
-                {/* Desktop: drag-scroll single row, compact cards */}
-                <div className="hidden lg:block">
-                  <HorizontalScroller className="gap-3 pb-4">
+                {expandedSections.recommended ? <div className="grid grid-cols-2 sm:grid-cols-3 min-[1100px]:grid-cols-4 gap-3 pb-4">
                     {recommendedSongs.map((song) => (
-                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
                         <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} compact />
                       </div>
                     ))}
-                  </HorizontalScroller>
-                </div>
+                  </div> : <HorizontalScroller className="gap-3 pb-4">
+                    {recommendedSongs.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
+                        <SongGridCard song={song} queue={recommendedSongs} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>}
               </>
             )}
           </section>
@@ -323,33 +279,30 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           <section className="mb-6 lg:mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 className="text-xl font-bold text-white">Made For You</h2>
+                <TrendingUp size={20} className="text-foreground/70" />
+                <h2 className="text-xl font-bold text-foreground">Made For You</h2>
               </div>
-              <button className="hidden lg:block text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-                Show all
-              </button>
+              <Button variant="plain" size="plain" onClick={() => toggleSection('made')} aria-expanded={!!expandedSections.made} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                {expandedSections.made ? 'Show less' : 'Show all'}
+              </Button>
             </div>
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
               <>
-                <HorizontalScroller className="lg:hidden gap-2 sm:gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
-                  {madeForYou.map((song) => (
-                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
-                      <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} />
-                    </div>
-                  ))}
-                </HorizontalScroller>
-                <div className="hidden lg:block">
-                  <HorizontalScroller className="gap-3 pb-4">
+                {expandedSections.made ? <div className="grid grid-cols-2 sm:grid-cols-3 min-[1100px]:grid-cols-4 gap-3 pb-4">
                     {madeForYou.map((song) => (
-                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
                         <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} compact />
                       </div>
                     ))}
-                  </HorizontalScroller>
-                </div>
+                  </div> : <HorizontalScroller className="gap-3 pb-4">
+                    {madeForYou.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
+                        <SongGridCard song={song} queue={madeForYou} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>}
               </>
             )}
           </section>
@@ -360,33 +313,30 @@ export function HomeView({ isDeleteMode, onArtistClick, onAvatarClick, isLoggedI
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Library size={20} className={cn("lg:text-white/70", timeTheme.accentColor)} />
-                <h2 className="text-xl font-bold text-white">All Songs</h2>
+                <Library size={20} className="text-foreground/70" />
+                <h2 className="text-xl font-bold text-foreground">All Songs</h2>
               </div>
-              <button className="hidden lg:block text-sm font-semibold text-[#b3b3b3] hover:text-white transition-colors">
-                Show all
-              </button>
+              <Button variant="plain" size="plain" onClick={() => toggleSection('all')} aria-expanded={!!expandedSections.all} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                {expandedSections.all ? 'Show less' : 'Show all'}
+              </Button>
             </div>
             {isLoading ? (
               <SkeletonGridCards />
             ) : (
               <>
-                <HorizontalScroller className="lg:hidden gap-3 pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4">
-                  {songs.map((song) => (
-                    <div key={song.id} className="flex-shrink-0 w-28 sm:w-32">
-                      <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
-                    </div>
-                  ))}
-                </HorizontalScroller>
-                <div className="hidden lg:block">
-                  <HorizontalScroller className="gap-3 pb-4">
+                {expandedSections.all ? <div className="grid grid-cols-2 sm:grid-cols-3 min-[1100px]:grid-cols-4 gap-3 pb-4">
                     {songs.map((song) => (
-                      <div key={song.id} className="flex-shrink-0 w-[160px]">
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
                         <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
                       </div>
                     ))}
-                  </HorizontalScroller>
-                </div>
+                  </div> : <HorizontalScroller className="gap-3 pb-4">
+                    {songs.map((song) => (
+                      <div key={song.id} className="flex-shrink-0 w-[150px] md:w-[160px]">
+                        <SongGridCard song={song} queue={songs} isDeleteMode={isDeleteMode} compact />
+                      </div>
+                    ))}
+                  </HorizontalScroller>}
               </>
             )}
           </section>
