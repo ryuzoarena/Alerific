@@ -1,34 +1,22 @@
 import { Play } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import type { MusicCategory } from './musicCategories';
 
-interface AIMixCardProps {
-  title: string;
-  description: string;
-  gradient: string;
-  onClick?: () => void;
-}
-
-export function AIMixCard({ title, description, gradient, onClick }: AIMixCardProps) {
+export function AIMixCard({ title, description, Icon, hue, onClick }: MusicCategory & { onClick?: () => void }) {
   return (
-    <button
+    <Button variant="plain" size="plain"
       onClick={onClick}
-      className={cn(
-        "group relative flex-shrink-0 w-[180px] h-[220px] rounded-lg overflow-hidden cursor-pointer transition-all duration-300",
-        "hover:scale-[1.03] hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
-        // Glassmorphism on hover
-        "before:absolute before:inset-0 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
-        "before:bg-white/5 before:backdrop-blur-sm"
-      )}
+      aria-label={`Play ${title}`}
+      className={`mix-category mix-${hue} group relative shrink-0 w-[150px] md:w-[180px] h-[210px] md:h-[220px] rounded-lg overflow-hidden text-left whitespace-normal transition-transform motion-safe:hover:-translate-y-1`}
     >
-      <div className={cn("absolute inset-0", gradient)} />
-      <div className="relative z-10 flex flex-col justify-end h-full p-4">
-        <h3 className="text-white font-bold text-base leading-tight mb-1">{title}</h3>
-        <p className="text-white/70 text-xs line-clamp-2">{description}</p>
+      <Icon className="mix-icon absolute left-4 top-5 !w-12 !h-12" strokeWidth={1.4} />
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-14">
+        <h3 className="text-foreground font-bold text-sm md:text-base leading-tight mb-1">{title}</h3>
+        <p className="text-foreground/70 text-xs line-clamp-2">{description}</p>
       </div>
-      {/* Play button on hover */}
-      <div className="absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full bg-primary flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
-        <Play size={18} className="text-black ml-0.5" fill="currentColor" />
+      <div className="absolute bottom-3 right-3 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+        <Play size={18} className="ml-0.5" fill="currentColor" />
       </div>
-    </button>
+    </Button>
   );
 }
