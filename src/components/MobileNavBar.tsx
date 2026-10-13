@@ -1,4 +1,5 @@
 import { Home, Search, Library, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobileNavBarProps {
@@ -16,32 +17,32 @@ export function MobileNavBar({ activeView, onViewChange, onCreatePlaylistClick }
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]">
-      <div className="flex items-center justify-around py-2 pb-3">
+    <nav className="mobile-bottom-nav min-[1100px]:hidden fixed bottom-0 left-0 right-0 z-50 bg-sidebar border-t border-border">
+      <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const isActive = item.id !== 'create' && activeView === item.id;
           return (
-            <button
+            <Button variant="plain" size="plain"
               key={item.id}
               onClick={item.action}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-0"
+              className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-0 min-h-11 flex-1"
             >
               <item.icon
                 size={26}
                 className={cn(
                   "transition-colors",
-                  isActive ? "text-white" : "text-white/50"
+                  isActive ? "text-foreground" : "text-muted-foreground"
                 )}
                 fill={isActive ? "currentColor" : "none"}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className={cn(
                 "text-[10px] font-medium truncate",
-                isActive ? "text-white" : "text-white/50"
+                isActive ? "text-foreground" : "text-muted-foreground"
               )}>
                 {item.label}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>

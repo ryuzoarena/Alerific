@@ -1,0 +1,4 @@
+- [ ] Unify the shell across phone, tablet and desktop with accessible sidebar/activity overlays.
+- [ ] Apply muted semantic palette and icon-based AI category cards; retain touch scrolling and controls.
+- [ ] Restyle smaller-screen playlists without losing playlist actions, playback or lyrics.
+- [ ] Verify phone 390px, tablet 820px, desktop 1280px and narrow-screen overflow.

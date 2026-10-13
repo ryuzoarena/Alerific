@@ -68,9 +68,7 @@ export function SearchView({ isDeleteMode, onSelectPlaylist }: SearchViewProps) 
 
   return (
     <div className="p-6 pb-24 overflow-y-auto h-full">
-      <div className="mb-8 lg:hidden">
-        <SearchBar />
-      </div>
+
 
       {!searchQuery ? (
         <div className="text-center py-20">
@@ -111,7 +109,7 @@ export function SearchView({ isDeleteMode, onSelectPlaylist }: SearchViewProps) 
                     <div
                       className={cn(
                         'aspect-square rounded mb-3 overflow-hidden flex items-center justify-center',
-                        !p.cover_path && 'bg-gradient-to-br from-violet-600 to-fuchsia-500',
+                        !p.cover_path && 'bg-secondary',
                       )}
                     >
                       {p.cover_path ? (
@@ -128,7 +126,7 @@ export function SearchView({ isDeleteMode, onSelectPlaylist }: SearchViewProps) 
                     <p className="text-xs text-muted-foreground truncate">
                       by {p.owner_username || 'user'} • {p.song_count} songs
                     </p>
-                    <div className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-300">
+                    <div className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary">
                       <Globe size={10} /> Public
                     </div>
                   </button>

@@ -1,6 +1,6 @@
 import { Play, Pause, Heart, Speaker } from 'lucide-react';
 import { useMusicStore } from '@/stores/musicStore';
-import { useDominantColor } from '@/hooks/useDominantColor';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MiniPlayerProps {
@@ -11,7 +11,6 @@ interface MiniPlayerProps {
 export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
   const { playerState, togglePlay, playlists, addSongToPlaylist, removeSongFromPlaylist } = useMusicStore();
   const { currentSong, isPlaying, currentTime, duration } = playerState;
-  const dominantColor = useDominantColor(loadedCoverUrl);
 
   if (!currentSong) return null;
 
@@ -43,16 +42,16 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
   return (
     <div 
       onClick={onClick}
-      className="lg:hidden fixed bottom-[88px] left-2 right-2 z-40 cursor-pointer"
+      className="mobile-mini-player min-[1100px]:hidden fixed left-2 right-2 z-40 cursor-pointer"
     >
       <div 
-        className="rounded-lg p-2 flex items-center gap-3 relative overflow-hidden transition-colors duration-500"
-        style={{ backgroundColor: dominantColor || 'rgb(68, 44, 44)' }}
+        className="rounded-lg bg-sidebar border border-border p-2 flex items-center gap-3 relative overflow-hidden transition-colors duration-500"
+        
       >
         {/* Progress bar at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground/20">
           <div 
-            className="h-full bg-white transition-all"
+            className="h-full bg-foreground transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -66,21 +65,21 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
+            <div className="w-full h-full bg-secondary" />
           )}
         </div>
 
         {/* Song info with marquee animation */}
-        <div className="flex-1 min-w-0 max-w-[100px] overflow-hidden">
+        <div className="flex-1 min-w-0  overflow-hidden">
           <div className="marquee-container">
             <p 
-              className="text-sm font-medium text-white whitespace-nowrap animate-marquee"
+              className="text-sm font-medium text-foreground whitespace-nowrap animate-marquee"
               data-text={currentSong.title}
             >
               {currentSong.title}
             </p>
           </div>
-          <p className="text-xs text-white/60 truncate">
+          <p className="text-xs text-foreground/60 truncate">
             {currentSong.artist}
           </p>
         </div>
@@ -88,35 +87,35 @@ export function MiniPlayer({ loadedCoverUrl, onClick }: MiniPlayerProps) {
         {/* Action buttons */}
         <div className="flex items-center gap-1 ml-auto">
           {/* Connect/Speaker button */}
-          <button
-            onClick={handleConnectClick}
-            className="p-2 text-white/80 hover:text-white transition-colors"
+          <Button variant="plain" size="plain"
+            onClick={handleConnectClick} aria-label="Connect speaker"
+            className="min-w-11 min-h-11 p-2 text-foreground/80 hover:text-foreground transition-colors"
           >
             <Speaker size={20} />
-          </button>
+          </Button>
 
           {/* Like button */}
-          <button
-            onClick={handleLikeClick}
+          <Button variant="plain" size="plain"
+            onClick={handleLikeClick} aria-label={isLiked ? "Unlike song" : "Like song"}
             className={cn(
               "p-2 transition-colors",
-              isLiked ? "text-green-500" : "text-white/80 hover:text-white"
+              isLiked ? "text-primary" : "text-foreground/80 hover:text-foreground"
             )}
           >
             <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
-          </button>
+          </Button>
 
           {/* Play button */}
-          <button
-            onClick={handlePlayClick}
-            className="p-2 text-white"
+          <Button variant="plain" size="plain"
+            onClick={handlePlayClick} aria-label={isPlaying ? "Pause" : "Play"}
+            className="min-w-11 min-h-11 p-2 text-foreground"
           >
             {isPlaying ? (
               <Pause size={24} fill="currentColor" />
             ) : (
               <Play size={24} fill="currentColor" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

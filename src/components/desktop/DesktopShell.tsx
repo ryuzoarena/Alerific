@@ -37,6 +37,10 @@ import { SettingsView } from '@/components/views/SettingsView';
 import { ArtistView } from '@/components/views/ArtistView';
 import { AdminView } from '@/components/views/AdminView';
 import { ProfileView } from '@/components/views/ProfileView';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { useShellBreakpoint } from '@/hooks/useShellBreakpoint';
+import { MobilePlaylistView } from '@/components/views/MobilePlaylistView';
 import { cn } from '@/lib/utils';
 import type { Song, Playlist } from '@/types/music';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -123,7 +127,11 @@ export function DesktopShell(props: DesktopShellProps) {
   const [libOpen, setLibOpen] = useState(true);
   const [plOpen, setPlOpen] = useState(true);
   const [profileMenu, setProfileMenu] = useState(false);
-  const [showRightPanel, setShowRightPanel] = useState(true);
+  const { isPhone, isDesktop } = useShellBreakpoint();
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showRightPanel, setShowRightPanel] = useState(() => window.innerWidth >= 1100);
+  useEffect(() => { setShowRightPanel(isDesktop); setShowSidebar(false); }, [isDesktop]);
+  useEffect(() => { setShowSidebar(false); }, [activeView, selectedPlaylistId]);
   const [searchFocused, setSearchFocused] = useState(false);
   const searchPlaceholders = useMemo(
     () => ['Search songs, artists...', 'Find your next favorite...', 'Discover new playlists...', 'What are you in the mood for?'],
@@ -140,7 +148,316 @@ export function DesktopShell(props: DesktopShellProps) {
         setPlaceholderVisible(true);
       }, 350);
     }, 3200);
-    return () => clearInterval(id);
+    const categoryNavigation = (
+        <div className="flex items-center justify-around px-4 pt-5 pb-3">
+          {[
+            { id: 'home', label: 'Browse', icon: Compass },
+            { id: 'search', label: 'Radio', icon: Radio },
+            { id: 'library', label: 'Liked', icon: Heart },
+          ].map((it) => {
+            const Icon = it.icon;
+            const active =
+              (it.id === 'home' && activeView === 'home') ||
+              (it.id === 'search' && activeView === 'search') ||
+              (it.id === 'library' && activeView === 'library');
+            return (
+              <Button variant="plain" size="plain"
+                key={it.id}
+                onClick={() => onViewChange(it.id as View)}
+                className="flex flex-col items-center gap-1.5 group"
+              >
+                <span
+                  className={cn(
+                    'w-10 h-10 rounded-full flex items-center justify-center transition-all',
+                    active
+                      ? 'bg-foreground text-primary-foreground'
+                      : 'bg-shell-top text-muted-foreground group-hover:text-foreground group-hover:bg-secondary',
+                  )}
+                >
+                  <Icon size={17} />
+                </span>
+                <span
+                  className={cn(
+                    'text-[10px] uppercase tracking-wider',
+                    active ? 'text-foreground' : 'text-muted-foreground group-hover:text-muted-foreground',
+                  )}
+                >
+                  {it.label}
+                </span>
+              </Button>
+            );
+          })}
+        </div>
+
+  );
+  const sidebarContent = (
+      <aside
+        className="ds-surface w-full md:w-[200px] min-[1100px]:w-[230px] shrink-0 flex flex-col border-r h-full min-h-0"
+        style={{ background: 'hsl(var(--sidebar))', borderColor: 'hsl(var(--border))' }}
+      >
+        {/* Top icon nav */}
+        {categoryNavigation}
+
+        {/* CTA: Made For You */}
+        <div className="px-4 mt-2">
+          <Button variant="plain" size="plain"
+            onClick={() => {
+              if (songs.length === 0) return;
+              if (!playerState.shuffle) toggleShuffle();
+              const randomIndex = Math.floor(Math.random() * songs.length);
+              const randomSong = songs[randomIndex];
+              playSong(randomSong, songs);
+            }}
+            className="ds-play-glow w-full py-2.5 rounded-full text-[13px] font-semibold text-primary-foreground transition-all hover:scale-[1.02]"
+            style={{
+              background: 'hsl(var(--primary))',
+            }}
+          >
+            Made For You
+          </Button>
+        </div>
+
+        {/* Lib + Playlists */}
+        <div className="flex-1 overflow-y-auto ds-scroll mt-5 px-2">
+          {/* YOUR LIBRARY */}
+          <Button variant="plain" size="plain"
+            onClick={() => setLibOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-muted-foreground hover:text-muted-foreground"
+          >
+            YOUR LIBRARY
+            {libOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </Button>
+          {libOpen && (
+            <div className="mb-3">
+              {[
+                { label: 'Recently Played', icon: Clock, onClick: () => onViewChange('home') },
+                { label: 'Local Files', icon: HardDrive, onClick: () => onViewChange('library') },
+
+              ].map((it) => {
+                const Icon = it.icon;
+                return (
+                  <Button variant="plain" size="plain"
+                    key={it.label}
+                    onClick={it.onClick}
+                    className="ds-sidebar-item w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Icon size={14} />
+                    {it.label}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* PLAYLISTS */}
+          <Button variant="plain" size="plain"
+            onClick={() => setPlOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-muted-foreground hover:text-muted-foreground"
+          >
+            PLAYLISTS
+            {plOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </Button>
+          {plOpen && (
+            <div className="mb-3">
+              {playlists
+                .filter((p) => p.name !== 'Liked Songs')
+                .map((p) => {
+                const active = activeView === 'playlist' && selectedPlaylistId === p.id;
+                return (
+                  <Button variant="plain" size="plain"
+                    key={p.id}
+                    onClick={() => {
+                      onSelectPlaylist(p.id);
+                      onViewChange('playlist');
+                    }}
+                    className={cn(
+                      'ds-sidebar-item w-full text-left px-3 py-1.5 text-[13px] transition-colors truncate',
+                      active ? 'is-active text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {p.name}
+                  </Button>
+                );
+              })}
+              {playlists.filter((p) => p.name !== 'Liked Songs').length === 0 && (
+                <p className="px-3 py-2 text-[12px] text-muted-foreground">No playlists yet</p>
+              )}
+            </div>
+          )}
+
+          {/* New Playlist */}
+          <Button variant="plain" size="plain"
+            onClick={onCreatePlaylistClick}
+            className="w-full mt-2 mb-4 flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground rounded-md transition-colors"
+            style={{ border: '1px dashed hsl(var(--border))' }}
+          >
+            <Plus size={14} /> New Playlist
+          </Button>
+        </div>
+
+      </aside>
+  );
+  const rightContent = (
+      <aside
+        className="ds-surface w-full min-[1100px]:w-[280px] h-full min-h-0 flex flex-col border-l"
+        style={{ background: 'hsl(var(--activity))', borderColor: 'hsl(var(--border))' }}
+      >
+        {/* Profile */}
+        <div className="px-4 pt-5 pb-4 border-b" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="flex items-center gap-2.5 relative">
+            <Button variant="plain" size="plain" onClick={onAvatarClick} className="shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold text-foreground"
+                  style={{
+                    background: 'hsl(var(--secondary))',
+                  }}
+                >
+                  {(userName || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </Button>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold truncate text-foreground">
+                {isLoggedIn ? userName : 'Guest'}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Premium</p>
+            </div>
+            <Button variant="plain" size="plain"
+              onClick={onOpenSettings}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings size={14} />
+            </Button>
+            <Button variant="plain" size="plain"
+              onClick={() => setProfileMenu((v) => !v)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown size={14} />
+            </Button>
+            {profileMenu && (
+              <div
+                className="absolute top-full right-0 mt-2 w-48 rounded-lg py-1.5 z-10"
+                style={{
+                  background: 'hsl(var(--shell-top))',
+                  border: '1px solid hsl(var(--border))',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                }}
+              >
+                {isLoggedIn ? (
+                  <>
+                    <Button variant="plain" size="plain"
+                      onClick={() => {
+                        setProfileMenu(false);
+                        onViewChange('profile');
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    >
+                      <Settings size={12} /> Profile
+                    </Button>
+                    <Button variant="plain" size="plain"
+                      onClick={() => {
+                        setProfileMenu(false);
+                        onUploadClick();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    >
+                      <Upload size={12} /> Upload Song
+                    </Button>
+                    <Button variant="plain" size="plain"
+                      onClick={() => {
+                        setProfileMenu(false);
+                        onToggleDeleteMode();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    >
+                      <Trash2 size={12} /> {isDeleteMode ? 'Exit Delete' : 'Delete Mode'}
+                    </Button>
+                    {isAdmin && (
+                      <Button variant="plain" size="plain"
+                        onClick={() => {
+                          setProfileMenu(false);
+                          onViewChange('admin');
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                      >
+                        <Shield size={12} /> Admin
+                      </Button>
+                    )}
+                    <div className="my-1 h-px bg-border" />
+                    <Button variant="plain" size="plain"
+                      onClick={() => {
+                        setProfileMenu(false);
+                        onSignOut();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    >
+                      <LogOut size={12} /> Sign out
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="plain" size="plain"
+                    onClick={() => {
+                      setProfileMenu(false);
+                      onGetStarted();
+                    }}
+                    className="w-full text-left px-3 py-2 text-[12px] text-foreground hover:bg-foreground/5"
+                  >
+                    Sign in
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Listening Activity */}
+        <div className="px-4 pt-4 pb-2">
+          <h3 className="text-[10px] font-bold tracking-[0.18em] text-muted-foreground">
+            LISTENING ACTIVITY
+          </h3>
+        </div>
+        <div className="flex-1 overflow-y-auto ds-scroll px-2 pb-4">
+          {recentActivity.length === 0 ? (
+            <p className="px-3 py-4 text-[11px] leading-relaxed text-muted-foreground">
+              No listening activity yet. Play a song and it will show up here.
+            </p>
+          ) : (
+            recentActivity.map((s) => (
+              <Button variant="plain" size="plain"
+                key={s.id}
+                onClick={() => playSong(s, recentActivity)}
+                className="w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-foreground/[0.03] transition-colors group"
+              >
+                <div className="w-9 h-9 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-[11px] font-bold text-foreground"
+                  style={{
+                    background: 'hsl(var(--secondary))',
+                  }}
+                >
+                  {s.coverUrl ? (
+                    <img src={s.coverUrl} alt={`${s.title} cover`} className="w-full h-full object-cover" />
+                  ) : (
+                    s.title.charAt(0)
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold text-foreground truncate">{s.title}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{s.artist}</p>
+                </div>
+                <Heart
+                  size={12}
+                  className="text-muted-foreground group-hover:text-primary transition-colors mt-1"
+                />
+              </Button>
+            ))
+          )}
+        </div>
+      </aside>
+  );
+
+  return () => clearInterval(id);
   }, [searchFocused, searchQuery, searchPlaceholders.length]);
 
   const currentPlaylist = playlists.find((p) => p.id === selectedPlaylistId);
@@ -154,214 +471,62 @@ export function DesktopShell(props: DesktopShellProps) {
 
   return (
     <div
-      className="ds-root hidden min-[1100px]:flex flex-1 min-h-0 overflow-hidden text-white"
+      className="ds-root flex flex-1 min-w-0 min-h-0 overflow-hidden text-foreground"
       style={{
         fontFamily: "'DM Sans', system-ui, sans-serif",
-        background: '#0d1117',
+        background: 'hsl(var(--background))',
       }}
     >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
-        .ds-display { font-family: 'Outfit', 'DM Sans', system-ui, sans-serif; letter-spacing: -0.02em; }
-        .ds-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .ds-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
-        .ds-scroll::-webkit-scrollbar-thumb:hover { background: rgba(29,185,84,0.4); }
-        .ds-sidebar-item { position: relative; }
-        .ds-sidebar-item::before {
-          content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) scaleY(0);
-          width: 2px; height: 60%; background: #1DB954; border-radius: 2px;
-          transition: transform 180ms ease; transform-origin: center;
-        }
-        .ds-sidebar-item:hover::before, .ds-sidebar-item.is-active::before { transform: translateY(-50%) scaleY(1); }
-        .ds-play-glow:hover { box-shadow: 0 0 24px #1DB95480, 0 0 60px #1DB95430; }
-        .ds-song-row:hover { background: rgba(255,255,255,0.04); }
-        .ds-song-row:hover .ds-song-title { color: #1DB954; }
-        @keyframes dsPulse { 0%,100% { box-shadow: 0 0 0 0 #1DB95480; } 50% { box-shadow: 0 0 0 6px #1DB95400; } }
-        .ds-dot-pulse { animation: dsPulse 1.8s ease-in-out infinite; }
-      `}</style>
+
 
       {/* ============ LEFT SIDEBAR ============ */}
-      <aside
-        className="ds-surface w-[230px] shrink-0 flex flex-col border-r"
-        style={{ background: '#111318', borderColor: '#1e2530' }}
-      >
-        {/* Top icon nav */}
-        <div className="flex items-center justify-around px-4 pt-5 pb-3">
-          {[
-            { id: 'home', label: 'Browse', icon: Compass },
-            { id: 'search', label: 'Radio', icon: Radio },
-            { id: 'library', label: 'Liked', icon: Heart },
-          ].map((it) => {
-            const Icon = it.icon;
-            const active =
-              (it.id === 'home' && activeView === 'home') ||
-              (it.id === 'search' && activeView === 'search') ||
-              (it.id === 'library' && activeView === 'library');
-            return (
-              <button
-                key={it.id}
-                onClick={() => onViewChange(it.id as View)}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <span
-                  className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center transition-all',
-                    active
-                      ? 'bg-white text-black'
-                      : 'bg-[#1a2035] text-[#8896a4] group-hover:text-white group-hover:bg-[#222a3d]',
-                  )}
-                >
-                  <Icon size={17} />
-                </span>
-                <span
-                  className={cn(
-                    'text-[10px] uppercase tracking-wider',
-                    active ? 'text-white' : 'text-[#4a5568] group-hover:text-[#8896a4]',
-                  )}
-                >
-                  {it.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* CTA: Made For You */}
-        <div className="px-4 mt-2">
-          <button
-            onClick={() => {
-              if (songs.length === 0) return;
-              if (!playerState.shuffle) toggleShuffle();
-              const randomIndex = Math.floor(Math.random() * songs.length);
-              const randomSong = songs[randomIndex];
-              playSong(randomSong, songs);
-            }}
-            className="ds-play-glow w-full py-2.5 rounded-full text-[13px] font-semibold text-black transition-all hover:scale-[1.02]"
-            style={{
-              background: 'linear-gradient(135deg, #1DB954 0%, #17a349 100%)',
-              boxShadow: '0 4px 14px #1DB95440',
-            }}
-          >
-            Made For You
-          </button>
-        </div>
-
-        {/* Lib + Playlists */}
-        <div className="flex-1 overflow-y-auto ds-scroll mt-5 px-2">
-          {/* YOUR LIBRARY */}
-          <button
-            onClick={() => setLibOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#4a5568] hover:text-[#8896a4]"
-          >
-            YOUR LIBRARY
-            {libOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          </button>
-          {libOpen && (
-            <div className="mb-3">
-              {[
-                { label: 'Recently Played', icon: Clock, onClick: () => onViewChange('home') },
-                { label: 'Local Files', icon: HardDrive, onClick: () => onViewChange('library') },
-
-              ].map((it) => {
-                const Icon = it.icon;
-                return (
-                  <button
-                    key={it.label}
-                    onClick={it.onClick}
-                    className="ds-sidebar-item w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#8896a4] hover:text-white transition-colors"
-                  >
-                    <Icon size={14} />
-                    {it.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* PLAYLISTS */}
-          <button
-            onClick={() => setPlOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#4a5568] hover:text-[#8896a4]"
-          >
-            PLAYLISTS
-            {plOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          </button>
-          {plOpen && (
-            <div className="mb-3">
-              {playlists
-                .filter((p) => p.name !== 'Liked Songs')
-                .map((p) => {
-                const active = activeView === 'playlist' && selectedPlaylistId === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      onSelectPlaylist(p.id);
-                      onViewChange('playlist');
-                    }}
-                    className={cn(
-                      'ds-sidebar-item w-full text-left px-3 py-1.5 text-[13px] transition-colors truncate',
-                      active ? 'is-active text-white' : 'text-[#8896a4] hover:text-white',
-                    )}
-                  >
-                    {p.name}
-                  </button>
-                );
-              })}
-              {playlists.filter((p) => p.name !== 'Liked Songs').length === 0 && (
-                <p className="px-3 py-2 text-[12px] text-[#4a5568]">No playlists yet</p>
-              )}
-            </div>
-          )}
-
-          {/* New Playlist */}
-          <button
-            onClick={onCreatePlaylistClick}
-            className="w-full mt-2 mb-4 flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white rounded-md transition-colors"
-            style={{ border: '1px dashed #1e2530' }}
-          >
-            <Plus size={14} /> New Playlist
-          </button>
-        </div>
-
-      </aside>
+      <div className="hidden md:flex shrink-0">{sidebarContent}</div>
+      <Sheet open={showSidebar && isPhone} onOpenChange={setShowSidebar}>
+        <SheetContent side="left" className="shell-overlay p-0 w-[280px] bg-sidebar border-border flex flex-col" aria-describedby={undefined}>
+          <SheetTitle className="sr-only">Browse your music</SheetTitle>
+          {sidebarContent}
+        </SheetContent>
+      </Sheet>
 
       {/* ============ MAIN CONTENT ============ */}
       <main
         className="ds-main-surface flex-1 min-w-0 flex flex-col overflow-hidden"
         style={{
           background:
-            'linear-gradient(180deg, #1a2035 0%, #0d1117 60%)',
+            'var(--shell-gradient)',
         }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 pt-5 pb-4 shrink-0">
-          <button
+        <div className="flex items-center gap-2 md:gap-3 px-3 md:px-6 pt-3 md:pt-5 pb-3 md:pb-4 shrink-0">
+          <Button variant="plain" size="plain" onClick={() => setShowSidebar(true)} aria-label="Open music sidebar" className="md:hidden w-11 h-11 shrink-0 rounded-full bg-secondary text-foreground">
+            {avatarUrl ? <img src={avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover" /> : <Menu size={20} />}
+          </Button>
+          <Button variant="plain" size="plain"
             onClick={() => window.history.back()}
             aria-label="Go back"
-            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
+            className="hidden md:flex w-11 h-11 rounded-full bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft size={16} />
-          </button>
-          <button
+          </Button>
+          <Button variant="plain" size="plain"
             onClick={() => window.history.forward()}
             aria-label="Go forward"
-            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
+            className="hidden md:flex w-11 h-11 rounded-full bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight size={16} />
-          </button>
+          </Button>
           <div className="flex-1 max-w-md mx-auto relative group">
             <Search
               size={14}
               className={cn(
                 'absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-300 ease-out',
-                searchFocused ? 'text-[#1DB954] scale-110' : 'text-[#4a5568] group-hover:text-[#8896a4]',
+                searchFocused ? 'text-primary scale-110' : 'text-muted-foreground group-hover:text-muted-foreground',
               )}
             />
             <div
               aria-hidden
               className={cn(
-                'pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 text-[12px] text-[#4a5568] transition-all duration-300 ease-out',
+                'truncate right-3 pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground transition-all duration-300 ease-out',
                 searchQuery || searchFocused
                   ? 'opacity-0 -translate-y-[calc(50%+4px)]'
                   : placeholderVisible
@@ -372,6 +537,7 @@ export function DesktopShell(props: DesktopShellProps) {
               {searchPlaceholders[placeholderIdx]}
             </div>
             <input
+              aria-label="Search songs, artists and playlists"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -380,38 +546,39 @@ export function DesktopShell(props: DesktopShellProps) {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
               className={cn(
-                'w-full pl-9 pr-4 py-2 rounded-full text-[12px] text-white focus:outline-none transition-all duration-300 ease-out',
-                searchFocused && 'shadow-[0_0_0_3px_rgba(29,185,84,0.15)]',
+                'w-full h-11 pl-9 pr-4 py-2 rounded-full text-[12px] text-foreground focus:outline-none transition-all duration-300 ease-out',
+
               )}
               style={{
                 background: searchFocused ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
                 backdropFilter: 'blur(12px)',
-                border: searchFocused ? '1px solid rgba(29,185,84,0.5)' : '1px solid #1e2530',
+                border: searchFocused ? '1px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
               }}
             />
           </div>
-          <button
+          <Button variant="plain" size="plain"
             onClick={() => setShowRightPanel((v) => !v)}
-            aria-label={showRightPanel ? 'Hide friend activity' : 'Show friend activity'}
-            title={showRightPanel ? 'Hide friend activity' : 'Show friend activity'}
-            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
+            aria-label={showRightPanel ? 'Hide listening activity' : 'Show listening activity'}
+            title={showRightPanel ? 'Hide listening activity' : 'Show listening activity'}
+            className="w-11 h-11 shrink-0 rounded-full bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ListMusic size={16} />
-          </button>
-          <button
+          </Button>
+          <Button variant="plain" size="plain"
             onClick={onOpenSettings}
-            aria-label="Open menu"
-            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-[#8896a4] hover:text-white transition-colors"
+            aria-label="Open settings"
+            className="hidden md:flex w-11 h-11 shrink-0 rounded-full bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <Menu size={16} />
-          </button>
+          </Button>
 
         </div>
 
+        <div className="md:hidden shrink-0 border-b border-border">{categoryNavigation}</div>
         {/* Body */}
-        <div className="flex-1 overflow-y-auto ds-scroll pb-32">
+        <div className="shell-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden ds-scroll">
           {activeView === 'playlist' && currentPlaylist ? (
-            <PlaylistHeroAndList
+            !isDesktop ? <MobilePlaylistView playlistId={selectedPlaylistId} onBack={() => onViewChange('home')} isDeleteMode={isDeleteMode} /> : <PlaylistHeroAndList
               playlist={currentPlaylist}
               songs={playlistSongs}
               onPlayAll={() =>
@@ -489,170 +656,13 @@ export function DesktopShell(props: DesktopShellProps) {
       </main>
 
       {/* ============ RIGHT PANEL ============ */}
-      <div
-        className={cn(
-          'shrink-0 overflow-hidden transition-[width,opacity] duration-300 ease-in-out',
-          showRightPanel ? 'w-[280px] opacity-100' : 'w-0 opacity-0',
-        )}
-      >
-      <aside
-        className="ds-surface w-[280px] h-full flex flex-col border-l"
-        style={{ background: '#0e1117', borderColor: '#1e2530' }}
-      >
-        {/* Profile */}
-        <div className="px-4 pt-5 pb-4 border-b" style={{ borderColor: '#1e2530' }}>
-          <div className="flex items-center gap-2.5 relative">
-            <button onClick={onAvatarClick} className="shrink-0">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
-              ) : (
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold text-white"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${avatarHue(userName || 'U')} 70% 50%), hsl(${avatarHue(userName || 'U') + 40} 70% 35%))`,
-                  }}
-                >
-                  {(userName || 'U').charAt(0).toUpperCase()}
-                </div>
-              )}
-            </button>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold truncate text-white">
-                {isLoggedIn ? userName : 'Guest'}
-              </p>
-              <p className="text-[10px] text-[#4a5568] uppercase tracking-wider">Premium</p>
-            </div>
-            <button
-              onClick={onOpenSettings}
-              className="text-[#8896a4] hover:text-white transition-colors"
-            >
-              <Settings size={14} />
-            </button>
-            <button
-              onClick={() => setProfileMenu((v) => !v)}
-              className="text-[#8896a4] hover:text-white transition-colors"
-            >
-              <ChevronDown size={14} />
-            </button>
-            {profileMenu && (
-              <div
-                className="absolute top-full right-0 mt-2 w-48 rounded-lg py-1.5 z-10"
-                style={{
-                  background: '#1a2035',
-                  border: '1px solid #1e2530',
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                }}
-              >
-                {isLoggedIn ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setProfileMenu(false);
-                        onViewChange('profile');
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white hover:bg-white/5"
-                    >
-                      <Settings size={12} /> Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        setProfileMenu(false);
-                        onUploadClick();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white hover:bg-white/5"
-                    >
-                      <Upload size={12} /> Upload Song
-                    </button>
-                    <button
-                      onClick={() => {
-                        setProfileMenu(false);
-                        onToggleDeleteMode();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white hover:bg-white/5"
-                    >
-                      <Trash2 size={12} /> {isDeleteMode ? 'Exit Delete' : 'Delete Mode'}
-                    </button>
-                    {isAdmin && (
-                      <button
-                        onClick={() => {
-                          setProfileMenu(false);
-                          onViewChange('admin');
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white hover:bg-white/5"
-                      >
-                        <Shield size={12} /> Admin
-                      </button>
-                    )}
-                    <div className="my-1 h-px bg-[#1e2530]" />
-                    <button
-                      onClick={() => {
-                        setProfileMenu(false);
-                        onSignOut();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#8896a4] hover:text-white hover:bg-white/5"
-                    >
-                      <LogOut size={12} /> Sign out
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setProfileMenu(false);
-                      onGetStarted();
-                    }}
-                    className="w-full text-left px-3 py-2 text-[12px] text-white hover:bg-white/5"
-                  >
-                    Sign in
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Listening Activity */}
-        <div className="px-4 pt-4 pb-2">
-          <h3 className="text-[10px] font-bold tracking-[0.18em] text-[#4a5568]">
-            LISTENING ACTIVITY
-          </h3>
-        </div>
-        <div className="flex-1 overflow-y-auto ds-scroll px-2 pb-4">
-          {recentActivity.length === 0 ? (
-            <p className="px-3 py-4 text-[11px] leading-relaxed text-[#8896a4]">
-              No listening activity yet. Play a song and it will show up here.
-            </p>
-          ) : (
-            recentActivity.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => playSong(s, recentActivity)}
-                className="w-full text-left flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-white/[0.03] transition-colors group"
-              >
-                <div className="w-9 h-9 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-[11px] font-bold text-white"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(${avatarHue(s.artist)} 65% 50%), hsl(${avatarHue(s.artist) + 50} 70% 30%))`,
-                  }}
-                >
-                  {s.coverUrl ? (
-                    <img src={s.coverUrl} alt={`${s.title} cover`} className="w-full h-full object-cover" />
-                  ) : (
-                    s.title.charAt(0)
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-white truncate">{s.title}</p>
-                  <p className="text-[11px] text-[#8896a4] truncate">{s.artist}</p>
-                </div>
-                <Heart
-                  size={12}
-                  className="text-[#4a5568] group-hover:text-[#1DB954] transition-colors mt-1"
-                />
-              </button>
-            ))
-          )}
-        </div>
-      </aside>
-      </div>
+      <div className={cn('hidden min-[1100px]:block shrink-0 overflow-hidden transition-[width,opacity] duration-300', showRightPanel ? 'w-[280px]' : 'w-0 opacity-0')}>{rightContent}</div>
+      <Sheet open={showRightPanel && !isDesktop} onOpenChange={setShowRightPanel}>
+        <SheetContent side={isPhone ? 'bottom' : 'right'} className={cn('shell-overlay p-0 bg-activity border-border flex flex-col', isPhone ? 'h-[75dvh] rounded-t-lg' : 'w-[320px] h-dvh')} aria-describedby={undefined}>
+          <SheetTitle className="sr-only">Profile and Listening Activity</SheetTitle>
+          {rightContent}
+        </SheetContent>
+      </Sheet>
     </div>
 
   );
@@ -726,7 +736,7 @@ function PlaylistHeroAndList(props: HeroProps) {
       <div
         className="relative overflow-hidden rounded-2xl mb-6"
         style={{
-          background: '#1a2035',
+          background: 'hsl(var(--shell-top))',
           border: '1px solid rgba(255,255,255,0.05)',
         }}
       >
@@ -744,7 +754,7 @@ function PlaylistHeroAndList(props: HeroProps) {
               className="w-full h-full"
               style={{
                 background:
-                  'radial-gradient(ellipse at 30% 50%, #1DB95430 0%, transparent 60%), linear-gradient(135deg, #1a2035, #0d1117)',
+                  'var(--shell-gradient)',
               }}
             />
           )}
@@ -752,7 +762,7 @@ function PlaylistHeroAndList(props: HeroProps) {
             className="absolute inset-0"
             style={{
               background:
-                'linear-gradient(90deg, #0d1117 0%, rgba(13,17,23,0.85) 40%, rgba(13,17,23,0.4) 100%)',
+                'linear-gradient(90deg, hsl(var(--background)) 0%, rgba(13,17,23,0.85) 40%, rgba(13,17,23,0.4) 100%)',
             }}
           />
         </div>
@@ -772,21 +782,21 @@ function PlaylistHeroAndList(props: HeroProps) {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold tracking-[0.25em] text-[#8896a4] mb-3">
+            <p className="text-[10px] font-bold tracking-[0.25em] text-muted-foreground mb-3">
               PLAYLIST
             </p>
             <h1
-              className="ds-display text-5xl font-extrabold text-white mb-2 truncate"
+              className="ds-display text-5xl font-extrabold text-foreground mb-2 truncate"
               style={{ textShadow: '0 4px 24px rgba(0,0,0,0.6)' }}
             >
               {playlist.name}
             </h1>
-            <p className="text-[14px] text-[#8896a4] mb-3 truncate">
+            <p className="text-[14px] text-muted-foreground mb-3 truncate">
               {playlist.description || 'Forget the traffic stress.'}
             </p>
-            <p className="text-[12px] text-[#8896a4] mb-5">
+            <p className="text-[12px] text-muted-foreground mb-5">
               Created by{' '}
-              <span className="text-white font-medium">
+              <span className="text-foreground font-medium">
                 {playlist.owner_username || 'Alerify'}
               </span>{' '}
               • {songs.length} {songs.length === 1 ? 'song' : 'songs'}
@@ -794,36 +804,35 @@ function PlaylistHeroAndList(props: HeroProps) {
             </p>
 
             <div className="flex items-center gap-3 flex-wrap">
-              <button
+              <Button variant="plain" size="plain"
                 onClick={onPlayAll}
                 disabled={songs.length === 0}
-                className="ds-play-glow px-7 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-black transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+                className="ds-play-glow px-7 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-primary-foreground transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
                 style={{
-                  background: 'linear-gradient(135deg, #1DB954 0%, #17a349 100%)',
-                  boxShadow: '0 4px 20px #1DB95460',
+                  background: 'hsl(var(--primary))',
                 }}
               >
                 PLAY
-              </button>
-              <button
+              </Button>
+              <Button variant="plain" size="plain"
                 onClick={onShufflePlay}
                 disabled={songs.length === 0}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-white transition-all hover:bg-white/5 disabled:opacity-40 disabled:hover:scale-100"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[12px] font-bold tracking-[0.15em] text-foreground transition-all hover:bg-foreground/5 disabled:opacity-40 disabled:hover:scale-100"
                 style={{ border: '1px solid rgba(255,255,255,0.25)' }}
               >
                 <Shuffle size={15} /> SHUFFLE
-              </button>
-              <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
+              </Button>
+              <Button variant="plain" size="plain" className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors">
                 <Download size={15} />
-              </button>
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
+                  <Button variant="plain" size="plain" className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors">
                     <MoreHorizontal size={15} />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-[#1a2035] border-white/10 text-white">
-                  <DropdownMenuItem onClick={() => setShowAddSongs(true)} className="cursor-pointer focus:bg-white/10 focus:text-white">
+                <DropdownMenuContent align="start" className="bg-shell-top border-border/10 text-foreground">
+                  <DropdownMenuItem onClick={() => setShowAddSongs(true)} className="cursor-pointer focus:bg-foreground/10 focus:text-foreground">
                     <Plus size={14} className="mr-2" /> Add songs to playlist
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -835,27 +844,27 @@ function PlaylistHeroAndList(props: HeroProps) {
 
       {/* Filter + Header */}
       <div className="flex items-center justify-between mb-2 px-2">
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] text-[#8896a4] hover:text-white hover:bg-white/5 transition-colors">
+        <Button variant="plain" size="plain" className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors">
           <Filter size={12} /> Filter
-        </button>
+        </Button>
         <div className="flex items-center gap-8 pr-4">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#4a5568] hidden md:block w-40">
+          <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground hidden md:block w-40">
             ARTIST
           </span>
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#4a5568] flex items-center gap-1">
+          <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground flex items-center gap-1">
             <Download size={10} /> DOWNLOAD
           </span>
         </div>
       </div>
       <div
         className="h-px mb-2"
-        style={{ background: '#1e2530' }}
+        style={{ background: 'hsl(var(--border))' }}
       />
 
       {/* Rows */}
       <div>
         {songs.length === 0 ? (
-          <div className="py-16 text-center text-[#4a5568] text-[13px]">
+          <div className="py-16 text-center text-muted-foreground text-[13px]">
             No songs in this playlist yet.
           </div>
         ) : (
@@ -867,32 +876,32 @@ function PlaylistHeroAndList(props: HeroProps) {
                 onDoubleClick={() => onPlaySong(song)}
                 className="ds-song-row grid grid-cols-[24px_24px_1fr_180px_90px_24px] items-center gap-3 px-3 py-2.5 rounded-md transition-colors"
               >
-                <button className="text-[#4a5568] hover:text-[#1DB954] transition-colors">
+                <Button variant="plain" size="plain" className="text-muted-foreground hover:text-primary transition-colors">
                   <Plus size={14} />
-                </button>
-                <button
+                </Button>
+                <Button variant="plain" size="plain"
                   onClick={() => onPlaySong(song)}
-                  className="text-[#8896a4] hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {isCurrent && isPlaying ? <Pause size={14} /> : <Play size={14} />}
-                </button>
+                </Button>
                 <div className="min-w-0">
                   <p
                     className={cn(
                       'ds-song-title text-[13px] font-medium truncate transition-colors',
-                      isCurrent ? 'text-[#1DB954]' : 'text-white',
+                      isCurrent ? 'text-primary' : 'text-foreground',
                     )}
                   >
                     {song.title}
                   </p>
                 </div>
-                <p className="text-[12px] text-[#8896a4] truncate hidden md:block">
+                <p className="text-[12px] text-muted-foreground truncate hidden md:block">
                   {song.artist}
                 </p>
-                <p className="text-[11px] text-[#4a5568]">{fmtAgo(song.addedAt)}</p>
-                <button className="text-[#4a5568] hover:text-white transition-colors">
+                <p className="text-[11px] text-muted-foreground">{fmtAgo(song.addedAt)}</p>
+                <Button variant="plain" size="plain" className="text-muted-foreground hover:text-foreground transition-colors">
                   <MoreHorizontal size={14} />
-                </button>
+                </Button>
               </div>
             );
           })

@@ -2,7 +2,7 @@ import { Play, Trash2, MoreVertical, ListPlus } from 'lucide-react';
 import { Song } from '@/types/music';
 import { useMusicStore } from '@/stores/musicStore';
 import { cn } from '@/lib/utils';
-import { useTimeTheme } from '@/hooks/useTimeTheme';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -23,7 +23,6 @@ interface SongCardProps {
 
 export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbum }: SongCardProps) {
   const { playSong, playerState, removeSong, addToUserQueue } = useMusicStore();
-  const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
 
@@ -42,12 +41,12 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbu
         {song.coverUrl ? (
           <img src={song.coverUrl} alt={song.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
+          <div className="w-full h-full bg-secondary" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={cn("text-sm font-medium truncate", isActive ? timeTheme.accentColor : "text-foreground")}>{song.title}</p>
+        <p className={cn("text-sm font-medium truncate", isActive ? "text-primary" : "text-foreground")}>{song.title}</p>
         <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
       </div>
 
@@ -58,17 +57,17 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbu
       )}
 
       {isDeleteMode && (
-        <button onClick={handleDelete} className="text-red-400 hover:text-red-300 animate-pulse" title="Delete song">
+        <Button variant="plain" size="plain" onClick={handleDelete} className="text-destructive hover:text-destructive" title="Delete song">
           <Trash2 size={16} />
-        </button>
+        </Button>
       )}
 
       {/* Three-dot menu with Add to Queue */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <button className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+          <Button variant="plain" size="plain" className="w-11 h-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
             <MoreVertical size={18} />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onClick={handleAddToQueue}>
@@ -83,7 +82,6 @@ export function SongCard({ song, index, showIndex, queue, isDeleteMode, hideAlbu
 // Grid card variant for home view
 export function SongGridCard({ song, queue, isDeleteMode, compact }: SongCardProps) {
   const { playSong, playerState, togglePlay, removeSong, addToUserQueue } = useMusicStore();
-  const timeTheme = useTimeTheme();
   const isPlaying = playerState.currentSong?.id === song.id && playerState.isPlaying;
   const isActive = playerState.currentSong?.id === song.id;
 
@@ -111,20 +109,20 @@ export function SongGridCard({ song, queue, isDeleteMode, compact }: SongCardPro
           {song.coverUrl ? (
             <img src={song.coverUrl} alt={song.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20" />
+            <div className="w-full h-full bg-secondary" />
           )}
         </div>
         {isDeleteMode && (
-          <button onClick={handleDelete} className="absolute top-1 right-1 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse hover:bg-red-400 transition-colors" title="Delete song">
-            <Trash2 size={14} className="text-white" />
-          </button>
+          <Button variant="plain" size="plain" onClick={handleDelete} className="absolute top-1 right-1 w-11 h-11 bg-destructive rounded-full flex items-center justify-center shadow-lg animate-pulse hover:bg-destructive/90 transition-colors" title="Delete song">
+            <Trash2 size={14} className="text-foreground" />
+          </Button>
         )}
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <button className="absolute top-1 right-1 w-7 h-7 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreVertical size={14} className="text-white" />
-            </button>
+            <Button variant="plain" size="plain" className="absolute top-1 right-1 w-11 h-11 bg-background/70 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <MoreVertical size={14} className="text-foreground" />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={handleAddToQueue}>
@@ -133,29 +131,29 @@ export function SongGridCard({ song, queue, isDeleteMode, compact }: SongCardPro
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <button onClick={handlePlay} className={cn(
+        <Button variant="plain" size="plain" onClick={handlePlay} className={cn(
           "play-overlay absolute bottom-2 right-2 rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:opacity-90 transition-all theme-transition",
-          timeTheme.accentBg,
-          compact ? "w-8 h-8" : "w-9 h-9"
+          "bg-primary",
+          compact ? "w-11 h-11" : "w-9 h-9"
         )}>
           {isPlaying ? (
             <span className="flex gap-0.5">
-              <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
-              <span className={`w-0.5 h-3 ${timeTheme.buttonText} rounded-full`} style={{ backgroundColor: 'currentColor' }} />
+              <span className={`w-0.5 h-3 text-primary-foreground rounded-full`} style={{ backgroundColor: 'currentColor' }} />
+              <span className={`w-0.5 h-3 text-primary-foreground rounded-full`} style={{ backgroundColor: 'currentColor' }} />
             </span>
           ) : (
-            <Play size={compact ? 16 : 18} className={`${timeTheme.buttonText} ml-0.5`} fill="currentColor" />
+            <Play size={compact ? 16 : 18} className={`text-primary-foreground ml-0.5`} fill="currentColor" />
           )}
-        </button>
+        </Button>
       </div>
       <h3 className={cn(
         "font-semibold truncate mb-0.5 theme-transition",
         compact ? "text-[13px] leading-tight" : "text-sm md:text-base mb-1",
-        isActive ? timeTheme.accentColor : "text-foreground"
+        isActive ? "text-primary" : "text-foreground"
       )}>{song.title}</h3>
       <p className={cn(
         "truncate",
-        compact ? "text-[12px] text-[#b3b3b3]" : "text-xs md:text-sm text-muted-foreground"
+        compact ? "text-[12px] text-muted-foreground" : "text-xs md:text-sm text-muted-foreground"
       )}>{song.artist}</p>
     </div>
   );
